@@ -76,7 +76,7 @@ export default function Contact() {
         >
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">Get In Touch</h2>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
-            Let's discuss your next project or collaboration opportunity
+            Let&apos;s discuss your next project or collaboration opportunity
           </p>
         </motion.div>
 
@@ -126,7 +126,7 @@ export default function Contact() {
                     { icon: Github, href: personalInfo.github, label: 'GitHub' },
                     { icon: Linkedin, href: personalInfo.linkedin, label: 'LinkedIn' },
                     { icon: Twitter, href: personalInfo.twitter, label: 'Twitter' },
-                  ].map((social, index) => (
+                  ].map((social) => (
                     <motion.a
                       key={social.label}
                       href={social.href}
@@ -250,7 +250,7 @@ export default function Contact() {
                     animate={{ opacity: 1, y: 0 }}
                     className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-center"
                   >
-                    Thank you for your message! I'll get back to you soon.
+                    Thank you for your message! I&apos;ll get back to you soon.
                   </motion.div>
                 )}
                 
@@ -279,7 +279,7 @@ export default function Contact() {
           <div className="glass-card p-8 max-w-2xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-4">Ready to Start Your Project?</h3>
             <p className="text-white/80 mb-6">
-              Let's turn your ideas into reality. I'm always excited to work on innovative projects and collaborate with passionate people.
+              Let&apos;s turn your ideas into reality. I&apos;m always excited to work on innovative projects and collaborate with passionate people.
             </p>
             <motion.a
               href={`mailto:${personalInfo.email}`}
