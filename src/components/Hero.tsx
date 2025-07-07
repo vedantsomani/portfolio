@@ -17,8 +17,14 @@ export default function Hero() {
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-56 h-56 bg-pink-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute top-1/3 right-1/4 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute bottom-1/4 left-1/3 w-56 h-56 bg-pink-500/20 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: '4s' }}
+        ></div>
       </div>
 
       <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -34,17 +40,11 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Hi, I'm{' '}
+            Hi, I&apos;m{' '}
             <motion.span
               className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent"
-              animate={{ 
-                backgroundPosition: ['0%', '100%', '0%'],
-              }}
-              transition={{ 
-                duration: 5,
-                repeat: Infinity,
-                ease: 'linear'
-              }}
+              animate={{ backgroundPosition: ['0%', '100%', '0%'] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
             >
               {personalInfo.name}
             </motion.span>
@@ -90,7 +90,7 @@ export default function Hero() {
             className="glass-button px-8 py-4 text-white font-semibold flex items-center justify-center space-x-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => handleScrollToNext()}
+            onClick={handleScrollToNext}
           >
             <Mail className="w-5 h-5" />
             <span>Get In Touch</span>
@@ -108,7 +108,7 @@ export default function Hero() {
             { icon: Github, href: personalInfo.github, label: 'GitHub' },
             { icon: Linkedin, href: personalInfo.linkedin, label: 'LinkedIn' },
             { icon: Twitter, href: personalInfo.twitter, label: 'Twitter' },
-          ].map((social, index) => (
+          ].map((social, i) => (
             <motion.a
               key={social.label}
               href={social.href}
@@ -119,7 +119,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 + index * 0.1 }}
+              transition={{ delay: 1.2 + i * 0.1 }}
             >
               <social.icon className="w-6 h-6" />
               <span className="sr-only">{social.label}</span>
