@@ -1,10 +1,2 @@
-{
-  "version": 2,
-  "name": "vedant-portfolio",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  }
-}
+
 
