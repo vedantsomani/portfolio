@@ -30,11 +30,8 @@ export default defineConfig({
       // Secrets: `wrangler secret put RESEND_API_KEY` / `CONTACT_TO_EMAIL`; locally in .dev.vars.
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       CONTACT_TO_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
-      CONTACT_FROM_EMAIL: envField.string({
-        context: 'server',
-        access: 'secret',
-        default: 'Portfolio <onboarding@resend.dev>',
-      }),
+      // Optional; defaults to "Vedant Somani <hello@vedantsomani.tech>" (src/lib/enquiry-email.ts).
+      CONTACT_FROM_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
       // TODO(vedant): Cloudflare Web Analytics token (dashboard → Web Analytics → add site).
       PUBLIC_CF_BEACON_TOKEN: envField.string({
         context: 'client',

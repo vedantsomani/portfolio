@@ -5,6 +5,7 @@ import { Resend } from 'resend';
 import { budgets, projectTypes } from '../data/services';
 import { rateLimit } from '../lib/rate-limit';
 import { site } from '../data/site';
+import { buildEnquiryEmail, resolveFrom } from '../lib/enquiry-email';
 
 const typeValues = projectTypes.map((t) => t.value) as [string, ...string[]];
 const budgetValues = budgets.map((b) => b.value) as [string, ...string[]];
@@ -48,21 +49,24 @@ export const server = {
         });
       }
 
-      const body = [
-        `Name: ${input.name}`,
-        `Email: ${input.email}`,
-        `Company / site: ${input.company || '—'}`,
-        `Project type: ${label(projectTypes, input.type)}`,
-        `Budget: ${label(budgets, input.budget)}`,
-        '',
-        input.description,
-      ].join('\n');
-
-      // TODO(vedant): `npx wrangler secret put RESEND_API_KEY`. CONTACT_TO_EMAIL is an optional override.
+      const email = buildEnquiryEmail({
+        name: input.name,
+        email: input.email,
+        company: input.company,
+        projectType: label(projectTypes, input.type),
+        budget: label(budgets, input.budget),
+        message: input.description,
+      });
+      // Secrets are read from the Worker env at runtime (astro:env via the Cloudflare adapter).
+      // CONTACT_FROM_EMAIL and CONTACT_TO_EMAIL are optional overrides of the site defaults.
+      const from = resolveFrom(CONTACT_FROM_EMAIL, import.meta.env.PROD);
       const to = CONTACT_TO_EMAIL ?? site.email;
+
       if (!RESEND_API_KEY || !to) {
         if (import.meta.env.DEV) {
-          console.info('[contact] Resend not configured; message logged instead:\n' + body);
+          const log = ['[contact] Resend not configured; message logged instead.'];
+          log.push(`From: ${from}`, `Subject: ${email.subject}`, '', email.text);
+          console.info(log.join('\n'));
           return { sent: true };
         }
         throw new ActionError({
@@ -73,11 +77,12 @@ export const server = {
 
       const resend = new Resend(RESEND_API_KEY);
       const { error } = await resend.emails.send({
-        from: CONTACT_FROM_EMAIL,
+        from,
         to,
         replyTo: input.email,
-        subject: `New project enquiry: ${input.name} (${label(projectTypes, input.type)})`,
-        text: body,
+        subject: email.subject,
+        text: email.text,
+        html: email.html,
       });
       if (error) {
         console.error('[contact] Resend error', error);

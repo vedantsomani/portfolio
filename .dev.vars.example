@@ -2,3 +2,5 @@
 RESEND_API_KEY=
 # Optional: overrides hello@vedantsomani.tech
 CONTACT_TO_EMAIL=
+# Optional: overrides Vedant Somani <hello@vedantsomani.tech>
+CONTACT_FROM_EMAIL=
