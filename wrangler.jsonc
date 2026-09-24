@@ -6,8 +6,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "binding": "ASSETS" },
   "observability": { "enabled": true },
-  // Contact form limiter. The binding only supports 10 s or 60 s windows, so 5/hour is not
-  // expressible here: this is 5 per minute per IP. TODO(vedant): choose the hourly strategy.
+  // Contact form limiter: 5 per minute per IP (the binding supports only 10 s / 60 s windows).
+  // Decided: this plus the honeypot is enough. Add Turnstile only if spam appears.
   "ratelimits": [
     {
       "name": "CONTACT_LIMITER",

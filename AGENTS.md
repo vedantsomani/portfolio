@@ -11,7 +11,7 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 - Astro View Transitions (`<ClientRouter />`).
 - Cloudflare Workers via `@astrojs/cloudflare` (static assets + Worker). Every page is prerendered except `/contact` and the action endpoint. Config in `wrangler.jsonc`; images optimised at build (`imageService: 'compile'`), no Images or KV bindings. (Vercel was dropped: Hobby forbids commercial use.)
 - Cloudflare Web Analytics beacon (cookieless page views) and `@astrojs/sitemap`. Custom events go through `track()` in `src/lib/track.ts` using the SITE_SPEC §7 names; it is a no-op until an event backend is chosen.
-- Forms: Astro Action + Zod → Resend (fetch-based, runs on workerd). Honeypot + Workers Rate Limiting binding `CONTACT_LIMITER` per IP. The binding only supports 10 s / 60 s windows, so it is set to 5 per minute; an hourly cap needs a different store (open decision). Secrets via `wrangler secret put`: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`; locally in `.dev.vars`.
+- Forms: Astro Action + Zod → Resend (fetch-based, runs on workerd). Honeypot + Workers Rate Limiting binding `CONTACT_LIMITER` per IP. 5 per minute per IP (the binding supports only 10 s / 60 s windows). Decided: no hourly cap; add Cloudflare Turnstile only if spam appears. Secrets via `wrangler secret put`: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`; locally in `.dev.vars`.
 - Fonts self-hosted: `@fontsource-variable/archivo`, `@fontsource/ibm-plex-mono`, Latin subset.
 
 ## Hard rules

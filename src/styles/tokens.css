@@ -29,10 +29,8 @@
     ink on oxblood-hi                        3.04  fails (can't pass: see SITE_SPEC fix, button text flips to bg)
     oxblood as text on bg                    1.47  fails
 
-  --oxblood-hi candidates (all hsl saturation 70%, pick one; TODO(vedant): choose)
-    0°   #E25A5A  bg 5.26  surface 4.85  oxblood 3.58  bg-on 5.26
-    355° #E25964  bg 5.27  surface 4.85  oxblood 3.59  bg-on 5.27  ← current default
-    350° #E2596F  bg 5.31  surface 4.89  oxblood 3.61  bg-on 5.31
+  --oxblood-hi #E25964 = hsl(355 70% 61.6%). Chosen over 0° and 350° variants: far enough from
+  terracotta (#D97757, ΔE 22.9) without leaning pink.
 */
 
 @layer tokens {

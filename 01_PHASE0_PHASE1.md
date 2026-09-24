@@ -20,9 +20,9 @@ Then STOP and wait for "approved".
 4. Components: `Nav` (mobile menu as a full-screen panel, focus-trapped, Esc closes), `Footer`, `Wordmark`, `Button`, `Section`, `PriceTable`, `ContactForm`, `Figure` (AVIF + JPG, width/height set, lazy by default).
 5. Pages with real spec content + TODOs and **no motion yet**: `/`, `/services`, `/contact`, `404`.
 6. The hero right column renders the static photo placeholder only (the lens comes in Phase 3).
-7. Contact: Astro Action, Zod validation, honeypot, rate limit, Resend to `TODO(vedant): email`. Inline accessible errors, success state, and a `mailto:` fallback when JS is off.
-8. Deploy a Vercel preview.
-9. QA: Lighthouse mobile on all pages; screenshots at 375/768/1440; keyboard-only run through nav + form.
+7. Contact: Astro Action, Zod validation, honeypot, rate limit (Workers Rate Limiting binding, 5/min per IP), Resend to `TODO(vedant): email`. Inline accessible errors, success state, and a `mailto:` fallback when JS is off.
+8. Deploy a Cloudflare Workers preview (`wrangler deploy`, or a preview version via `wrangler versions upload`).
+9. QA: Lighthouse mobile on all pages against `wrangler dev` serving the production build (`npm run preview`); screenshots at 375/768/1440; keyboard-only run through nav + form.
 
 ## Report back
 File tree · Lighthouse scores · JS/CSS bytes per route · preview URL · every `TODO(vedant)` · anything in the spec you think is wrong, with a fix.
