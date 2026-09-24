@@ -9,9 +9,9 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 - Native CSS scroll-driven animations (`animation-timeline: view()`) for simple scroll effects.
 - OGL for the hero shader (island). Three.js only for the hardware hall (lazy island).
 - Astro View Transitions (`<ClientRouter />`).
-- Vercel via `@astrojs/vercel`. Static by default; only the contact endpoint runs on demand.
-- `@vercel/analytics`, `@vercel/speed-insights`, `@astrojs/sitemap`.
-- Forms: Astro Action + Zod → Resend. Honeypot + IP rate limit (5/hour).
+- Cloudflare Workers via `@astrojs/cloudflare` (static assets + Worker). Every page is prerendered except `/contact` and the action endpoint. Config in `wrangler.jsonc`; images optimised at build (`imageService: 'compile'`), no Images or KV bindings. (Vercel was dropped: Hobby forbids commercial use.)
+- Cloudflare Web Analytics beacon (cookieless page views) and `@astrojs/sitemap`. Custom events go through `track()` in `src/lib/track.ts` using the SITE_SPEC §7 names; it is a no-op until an event backend is chosen.
+- Forms: Astro Action + Zod → Resend (fetch-based, runs on workerd). Honeypot + Workers Rate Limiting binding `CONTACT_LIMITER` per IP. The binding only supports 10 s / 60 s windows, so it is set to 5 per minute; an hourly cap needs a different store (open decision). Secrets via `wrangler secret put`: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`; locally in `.dev.vars`.
 - Fonts self-hosted: `@fontsource-variable/archivo`, `@fontsource/ibm-plex-mono`, Latin subset.
 
 ## Hard rules
@@ -25,14 +25,14 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 
 ## Performance budgets (p75, mid-range Android, 4G throttle)
 - LCP ≤ 2.0 s · INP ≤ 200 ms · CLS ≤ 0.05
-- Initial JS ≤ 90 KB gz per route. Three.js and GLB files load lazily.
+- Initial JS ≤ 90 KB gz per route. Three.js and GLB files load lazily. The Cloudflare Web Analytics beacon (third-party, deferred) is excluded from this figure but reported separately.
 - Images AVIF with JPG fallback; hero ≤ 150 KB; `fetchpriority="high"` only on the LCP image.
 - Lighthouse mobile: Performance ≥ 95, Accessibility 100, SEO 100, Best Practices 100.
 
 ## Workflow
 - Work only in the phase named in the current prompt. Never start the next phase.
 - Before coding UI: post a plan (files, components, motion list), then build.
-- After each phase: `astro check`, build, Lighthouse mobile on every changed route, screenshots at 375 / 768 / 1440, a self-critique against the spec. Report scores, JS/CSS bytes per route, and TODOs.
+- After each phase: `astro check`, build, Lighthouse mobile on every changed route (measured against `wrangler dev` serving the production build: `npm run preview`), screenshots at 375 / 768 / 1440, a self-critique against the spec. Report scores, JS/CSS bytes per route, and TODOs.
 - If `figma/` frames or a Figma link are provided, implement them exactly (via the Figma MCP `get_design_context`). Don't redesign.
 - Conventional commits: `feat:`, `fix:`, `perf:`, `content:`, `style:`.
 

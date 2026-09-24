@@ -29,8 +29,10 @@ const [saarthi, skynet] = engineering;
     <div class="hero__copy">
       <p class="hero__supporting">{hero.supporting}</p>
       <div class="hero__actions">
-        <Button href="/contact">Start a project</Button>
-        <a href="/lab" class="hero__secondary">
+        <Button href="/contact" data-track="hero_start_project">
+          Start a project
+        </Button>
+        <a href="/lab" class="hero__secondary" data-track="hero_see_lab">
           See the lab
         </a>
       </div>
@@ -85,7 +87,9 @@ const [saarthi, skynet] = engineering;
         <Figure src={saarthi.cover} alt={saarthi.coverAlt} sizes="(min-width: 64rem) 55vw, 100vw" />
         <div class="work-card__meta">
           <h3>
-            <a href={saarthi.href}>{saarthi.title}</a>
+            <a href={saarthi.href} data-track="project_open">
+              {saarthi.title}
+            </a>
           </h3>
           <p class="t-data work-card__status">{saarthi.status}</p>
           <p class="work-card__summary">{saarthi.summary}</p>
@@ -95,7 +99,9 @@ const [saarthi, skynet] = engineering;
         <Figure src={skynet.cover} alt={skynet.coverAlt} sizes="(min-width: 64rem) 22vw, 60vw" />
         <div class="work-card__meta">
           <h3>
-            <a href={skynet.href}>{skynet.title}</a>
+            <a href={skynet.href} data-track="project_open">
+              {skynet.title}
+            </a>
           </h3>
           <p class="t-data work-card__status">{skynet.status ?? <Todo what="status" />}</p>
           <p class="work-card__summary">{skynet.summary}</p>

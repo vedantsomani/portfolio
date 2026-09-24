@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local wrangler dev. Production: npx wrangler secret put <NAME>
+RESEND_API_KEY=
+CONTACT_TO_EMAIL=

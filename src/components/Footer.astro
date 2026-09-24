@@ -30,9 +30,23 @@ const year = new Date().getFullYear();
 
     <ul class="footer__links" role="list">
       <li>
-        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+        {site.email ? (
+          <a href={`mailto:${site.email}`} data-track="email_click">
+            {site.email}
+          </a>
+        ) : (
+          <Todo what="email" />
+        )}
       </li>
-      <li>{site.github ? <a href={site.github}>GitHub</a> : <Todo what="GitHub URL" />}</li>
+      <li>
+        {site.github ? (
+          <a href={site.github} data-track="github_out">
+            GitHub
+          </a>
+        ) : (
+          <Todo what="GitHub URL" />
+        )}
+      </li>
       <li>{site.linkedin ? <a href={site.linkedin}>LinkedIn</a> : <Todo what="LinkedIn URL" />}</li>
     </ul>
 

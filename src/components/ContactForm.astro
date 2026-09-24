@@ -218,7 +218,13 @@ const describedBy = (key: string, hint = false) =>
       </Button>
       <p class="t-small form__alt">
         Prefer email?{' '}
-        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+        {site.email ? (
+          <a href={`mailto:${site.email}`} data-track="email_click">
+            {site.email}
+          </a>
+        ) : (
+          <Todo what="email" />
+        )}
       </p>
     </div>
   </form>
@@ -226,6 +232,7 @@ const describedBy = (key: string, hint = false) =>
 
 <script>
   import { actions, isInputError } from 'astro:actions';
+  import { track } from '../lib/track';
 
   // Progressive enhancement: submit without leaving the page so typed values survive errors.
   const labels: Record<string, string> = {
@@ -251,6 +258,7 @@ const describedBy = (key: string, hint = false) =>
     if (!form || !success || !summary || !summaryTitle || !summaryList || !submit) return;
 
     form.noValidate = true;
+    form.addEventListener('input', () => track('form_start'), { once: true });
     // Keep the ClientRouter from also handling this form.
     form.dataset.astroReload = '';
 
@@ -319,6 +327,7 @@ const describedBy = (key: string, hint = false) =>
         return;
       }
       if (data?.sent) {
+        track('lead_submit');
         form.hidden = true;
         success.hidden = false;
         success.focus();

@@ -29,3 +29,8 @@ pnpm-debug.log*
 
 # QA output
 qa/
+
+# wrangler local secrets
+.dev.vars*
+!.dev.vars.example
+.wrangler/

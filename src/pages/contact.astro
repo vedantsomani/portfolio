@@ -23,6 +23,7 @@ if (Astro.request.method === 'POST') {
 
 <BaseLayout
   title="Start a project"
+  trackView="contact_open"
   description="Tell me what you want to build. A rough scope is enough — no sales call needed."
   underNav
 >
@@ -34,7 +35,13 @@ if (Astro.request.method === 'POST') {
       <p>No sales call needed for a rough scope.</p>
       <p>Half-built product? Send what exists.</p>
       <p class="contact-head__email">
-        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+        {site.email ? (
+          <a href={`mailto:${site.email}`} data-track="email_click">
+            {site.email}
+          </a>
+        ) : (
+          <Todo what="email" />
+        )}
       </p>
     </div>
   </header>

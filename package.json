@@ -8,22 +8,22 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "npm run build && wrangler dev",
     "astro": "astro",
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "cf-typegen": "wrangler types --include-runtime=false",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
+    "@astrojs/cloudflare": "^13.7.0",
     "@astrojs/mdx": "^5.0.6",
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/vercel": "^10.0.8",
     "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
     "astro": "^6.4.8",
     "gsap": "^3.15.0",
     "ogl": "^1.0.11",
@@ -33,7 +33,8 @@
   },
   "allowScripts": {
     "esbuild": true,
-    "sharp@0.34.5": true
+    "sharp@0.34.5": true,
+    "workerd@1.20260921.1": true
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -46,6 +47,7 @@
     "playwright": "^1.63.0",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.0.1",
-    "typescript-eslint": "^8.70.1"
+    "typescript-eslint": "^8.70.1",
+    "wrangler": "^4.138.0"
   }
 }

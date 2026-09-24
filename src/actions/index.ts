@@ -38,11 +38,12 @@ export const server = {
       // Bots that fill the honeypot get a normal-looking success and nothing is sent.
       if (input.website) return { sent: true };
 
-      const limit = rateLimit(context.clientAddress);
+      const limit = await rateLimit(context.clientAddress);
       if (!limit.ok) {
         throw new ActionError({
           code: 'TOO_MANY_REQUESTS',
-          message: `Too many messages from this connection. Try again in ${limit.retryAfterMin} minutes, or email directly.`,
+          message:
+            'Too many messages from this connection. Wait a minute and try again, or email directly.',
         });
       }
 
@@ -56,7 +57,7 @@ export const server = {
         input.description,
       ].join('\n');
 
-      // TODO(vedant): set RESEND_API_KEY and CONTACT_TO_EMAIL in Vercel project env.
+      // TODO(vedant): `npx wrangler secret put RESEND_API_KEY` and `CONTACT_TO_EMAIL`.
       if (!RESEND_API_KEY || !CONTACT_TO_EMAIL) {
         if (import.meta.env.DEV) {
           console.info('[contact] Resend not configured; message logged instead:\n' + body);

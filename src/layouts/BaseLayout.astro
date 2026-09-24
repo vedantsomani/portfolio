@@ -1,9 +1,9 @@
 ---
 import { ClientRouter } from 'astro:transitions';
-import Analytics from '@vercel/analytics/astro';
-import SpeedInsights from '@vercel/speed-insights/astro';
+import { PUBLIC_CF_BEACON_TOKEN } from 'astro:env/client';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import type { EventName } from '../lib/track';
 import '../styles/tokens.css';
 import '../styles/reset.css';
 import '../styles/base.css';
@@ -18,12 +18,18 @@ interface Props {
   /** Page opens with a full-bleed field that sits under the transparent nav. */
   underNav?: boolean;
   noindex?: boolean;
+  /** Event from SITE_SPEC §7 fired when the page is viewed. */
+  trackView?: EventName;
 }
 
-const { title, description, canonical, underNav = false, noindex = false } = Astro.props;
+const { title, description, canonical, underNav = false, noindex = false, trackView } = Astro.props;
 const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
 const fullTitle = title === 'Vedant Somani' ? title : `${title} | Vedant Somani`;
-const isProd = import.meta.env.PROD;
+// Cloudflare Web Analytics: cookieless page views. `spa` follows ClientRouter navigations.
+const beacon =
+  import.meta.env.PROD && PUBLIC_CF_BEACON_TOKEN
+    ? JSON.stringify({ token: PUBLIC_CF_BEACON_TOKEN, spa: true })
+    : null;
 ---
 
 <!doctype html>
@@ -54,7 +60,7 @@ const isProd = import.meta.env.PROD;
 
     <ClientRouter fallback="swap" />
   </head>
-  <body class:list={{ 'under-nav': underNav }}>
+  <body class:list={{ 'under-nav': underNav }} data-track-view={trackView}>
     <a class="skip-link" href="#main">
       Skip to content
     </a>
@@ -63,11 +69,27 @@ const isProd = import.meta.env.PROD;
       <slot />
     </main>
     <Footer />
-    {isProd && (
-      <>
-        <Analytics />
-        <SpeedInsights />
-      </>
+    {beacon && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={beacon}
+      ></script>
     )}
+    <script>
+      import { track, type EventName } from '../lib/track';
+
+      // One delegated listener: any element with data-track="event_name" reports its clicks.
+      document.addEventListener('click', (event) => {
+        const el = (event.target as Element | null)?.closest<HTMLElement>('[data-track]');
+        if (el?.dataset.track) track(el.dataset.track as EventName);
+      });
+      // Page-level views: <body data-track-view="service_view">.
+      document.addEventListener('astro:page-load', () => {
+        const view = document.body.dataset.trackView;
+        if (view) track(view as EventName);
+      });
+    </script>
   </body>
 </html>
