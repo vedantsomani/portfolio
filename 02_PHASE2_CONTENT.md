@@ -49,6 +49,11 @@ Only from `SITE_SPEC.md §6`. Leave empty sections as visible `TODO(vedant)` blo
 ## 5. Asset checklist
 Generate `ASSETS.md` listing every image/model/CSV the site expects: path, dimensions, format, max size, and what the shot must show (e.g. "Saarthi top-down, board centered, diffuse light, 2400×1600").
 
+The hero photo brief must also require:
+- The left third of the frame is dark bench with no board in it: on desktop the headline overlaps the photo's left edge, and text must stay readable without a scrim.
+- All 4 mounting holes are visible and unobstructed: they are the registration points for aligning the X-ray (KiCad) layer in Phase 3.
+- Budgets: desktop source ≤ 150 KB, mobile 4:3 crop ≤ 60 KB (AVIF).
+
 ## Report back
 Screenshots of each template at 375/1440 · Lighthouse · the `ASSETS.md` · all TODOs.
 

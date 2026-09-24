@@ -34,12 +34,14 @@ Audience priority: (1) local/SMB owner, (2) startup founder, (3) recruiter/tech 
 | `--ink-2` | derive, ≥ 4.5:1 on `--bg` | Secondary text |
 | `--rule` | derive, low contrast | Structural lines (sparingly) |
 | `--oxblood` | `#5A1E14` | Brand fields |
-| `--oxblood-hi` | derive lighter oxblood, ≥ 4.5:1 on `--bg` | Links, focus rings, PCB traces |
+| `--oxblood-hi` | `#E25964` (hsl 355° 70% 61.6%), 5.27:1 on `--bg` | Primary button fill, focus rings, error text, link hover, PCB traces |
 
 **Oxblood rules (Lando principle: owned color, used boldly)**
 - Oxblood comes from a real object: Saarthi's red solder mask (TODO(vedant): next PCB revision) and the X-ray PCB render.
-- Use it in large fields: the full-bleed contact section, case-study headers, page-transition panels, and the primary button fill.
-- Never on small text (`#5A1E14` fails contrast). Small accents use `--oxblood-hi`.
+- Use `--oxblood` (#5A1E14) in large fields only: the full-bleed contact/final-CTA section, the Hardware hall section on Home (full-bleed field, ink text, cards on `--bg` surfaces), case-study headers, and page-transition panels.
+- Primary buttons fill with `--oxblood-hi`, label `--bg` (5.27:1), hover to `--ink`.
+- Never on small text (`#5A1E14` fails contrast).
+- Small red accents are limited to buttons, focus rings, and error text. Links are `--ink` with an `--ink-2` underline and turn `--oxblood-hi` only on hover (`--ink` on oxblood fields). Status marks (e.g. the availability dot) are `--ink-2`.
 - Put the contrast ratios for every pair in a comment in `tokens.css`.
 
 **Type**
@@ -69,7 +71,7 @@ Easing: `--ease-out: cubic-bezier(.16,1,.3,1)`, `--ease-in: cubic-bezier(.7,0,.8
 1. Nav: wordmark; Projects, Lab, Services, About; "Start a project" button. Transparent → `--bg` after 40 px scroll. No glass blur.
 2. Hero: copy on the left 5 columns, X-ray lens on the right 7 (full-bleed on mobile, below the copy).
 3. Selected work: one full-width client case + an asymmetric pair (Saarthi large, one engineering card small).
-4. Hardware hall strip: 2 objects, with a link to /lab.
+4. Hardware hall: full-bleed `--oxblood` field with a display-size heading, 2 objects on `--bg` cards, and a link to /lab.
 5. Services: 3 offers with "from" prices + a narrow "Connected prototypes" band.
 6. Lab preview: 3 entries with status.
 7. Process: Scope → Prototype → Build → Test → Launch (a real sequence, so numbering is allowed).

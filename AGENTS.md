@@ -26,7 +26,7 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 ## Performance budgets (p75, mid-range Android, 4G throttle)
 - LCP ≤ 2.0 s · INP ≤ 200 ms · CLS ≤ 0.05
 - Initial JS ≤ 90 KB gz per route. Three.js and GLB files load lazily. The Cloudflare Web Analytics beacon (third-party, deferred) is excluded from this figure but reported separately.
-- Images AVIF with JPG fallback; hero ≤ 150 KB; `fetchpriority="high"` only on the LCP image.
+- Images AVIF with JPG fallback. Hero photo ≤ 150 KB desktop source, ≤ 60 KB mobile source (4:3 crop). `fetchpriority="high"` only on the desktop hero (≥ 1024 px, via a media-scoped preload); on mobile the headline is the intended LCP element.
 - Lighthouse mobile: Performance ≥ 95, Accessibility 100, SEO 100, Best Practices 100.
 
 ## Workflow
@@ -47,4 +47,5 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 - Skill-logo walls, "10+ technologies" counters, tech-tag filters
 - Monospace anywhere except real data: part numbers, measurements, timestamps, status
 - Oxblood used as thin accents everywhere. Use it in large fields or not at all (see spec §3).
+- **Red usage rule:** `--oxblood-hi` appears only on buttons, focus rings, and error text (plus link hover). Links are `--ink` with an `--ink-2` underline; status marks are `--ink-2`; `#5A1E14` only as large full-bleed fields (final CTA, Hardware hall, case headers, contact header, transitions).
 - Stock photos, AI-generated images, generic device mockups

@@ -10,6 +10,7 @@ import Todo from '../components/Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
 import { hero, site } from '../data/site';
 import { clientCase, engineering, hall, lab } from '../data/home';
+import { getImage } from 'astro:assets';
 import heroPhoto from '../assets/placeholders/hero-photo.jpg';
 
 const [saarthi, skynet] = engineering;
@@ -19,12 +20,53 @@ const showClientCase = SHOW_TODOS || Boolean(clientCase.title);
 const labEntries = SHOW_TODOS ? lab : lab.filter((e) => e.title);
 const showStatus = SHOW_TODOS || labEntries.some((e) => e.status);
 const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
+// The lab preview only ships once at least one entry has a status and a result.
+const showLab = SHOW_TODOS || lab.some((e) => e.status && e.line);
+
+// Hero photo, art-directed. Mobile: 4:3 crop, ≤ 60 KB, normal priority, so the headline is
+// the intended LCP element. Desktop (≥ 1024px): full frame ≤ 150 KB, preloaded with
+// fetchpriority="high" through a media-scoped <link> (an <img> can't scope fetchpriority).
+const variants = (widths: number[], format: 'avif' | 'jpg', crop: boolean, quality: number) =>
+  Promise.all(
+    widths.map((width) =>
+      getImage({
+        src: heroPhoto,
+        width,
+        ...(crop ? { height: Math.round((width * 3) / 4), fit: 'cover' as const } : {}),
+        format,
+        quality,
+      }),
+    ),
+  );
+const srcset = (imgs: Awaited<ReturnType<typeof getImage>>[]) =>
+  imgs.map((i) => `${i.src} ${i.attributes.width}w`).join(', ');
+const deskWidths = [1280, 1600, 2400];
+const mobWidths = [480, 760, 1080];
+const [deskAvif, deskJpg, mobAvif, mobJpg] = await Promise.all([
+  variants(deskWidths, 'avif', false, 60),
+  variants(deskWidths, 'jpg', false, 70),
+  variants(mobWidths, 'avif', true, 50),
+  variants(mobWidths, 'jpg', true, 60),
+]);
+const DESKTOP = '(min-width: 64rem)';
+const deskSizes = '84vw';
+const mobFallback = mobJpg[mobJpg.length - 1];
 ---
 
 <BaseLayout
   title="Vedant Somani"
   description="Business websites and web apps, designed, built, and deployed end to end by an engineer who also writes flight-controller firmware. Based in Greater Noida, working with clients anywhere."
 >
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    type="image/avif"
+    imagesrcset={srcset(deskAvif)}
+    imagesizes={deskSizes}
+    media={DESKTOP}
+    fetchpriority="high"
+  />
   <section class="hero grid" aria-labelledby="hero-title">
     {/* Size container: the title scales to its column so it holds 3 lines at every width.
          On wide screens it sits above the photo in z-order and runs over its left edge. */}
@@ -36,19 +78,46 @@ const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
 
     {/* Phase 3 mounts the X-ray lens over this image; the <img> stays the LCP element. */}
     <div class="hero__media">
-      <Figure
-        src={heroPhoto}
-        alt={hero.photoAlt}
-        priority
-        todo="hero photo + alt text"
-        sizes="(min-width: 64rem) 84vw, 100vw"
-        widths={[640, 960, 1280, 1600, 2400]}
-      >
-        <Fragment slot="caption">
+      <figure class="figure">
+        {SHOW_TODOS && (
+          <div class="figure__todo">
+            <Todo what="hero photo + alt text" />
+          </div>
+        )}
+        <picture>
+          <source
+            media={DESKTOP}
+            type="image/avif"
+            srcset={srcset(deskAvif)}
+            sizes={deskSizes}
+            width={heroPhoto.width}
+            height={heroPhoto.height}
+          />
+          <source
+            media={DESKTOP}
+            type="image/jpeg"
+            srcset={srcset(deskJpg)}
+            sizes={deskSizes}
+            width={heroPhoto.width}
+            height={heroPhoto.height}
+          />
+          <source type="image/avif" srcset={srcset(mobAvif)} sizes="100vw" />
+          <img
+            src={mobFallback.src}
+            srcset={srcset(mobJpg)}
+            sizes="100vw"
+            width={mobFallback.attributes.width}
+            height={mobFallback.attributes.height}
+            alt={hero.photoAlt}
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+        <figcaption class="figure__caption t-small">
           <span>Saarthi H7-Pro flight controller</span>
           <span class="t-data">STM32H753</span>
-        </Fragment>
-      </Figure>
+        </figcaption>
+      </figure>
     </div>
 
     <div class="hero__copy">
@@ -134,7 +203,12 @@ const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
     </div>
   </Section>
 
-  <Section id="hall" title="Hardware hall" statement>
+  <Section
+    id="hall"
+    title="Hardware hall"
+    statement
+    class="field-oxblood on-oxblood section--field"
+  >
     <a slot="aside" href="/lab">
       Visit the lab
     </a>
@@ -172,7 +246,7 @@ const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
     </p>
   </Section>
 
-  {labEntries.length > 0 && (
+  {showLab && (
     <Section id="lab" title="From the lab">
       <a slot="aside" href="/lab">
         The full lab

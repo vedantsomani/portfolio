@@ -122,18 +122,22 @@
     max-width: var(--measure);
   }
 
+  /* Red usage rule: links are ink with an ink-2 underline; red only on hover. */
   a {
     color: inherit;
+    text-decoration-color: var(--ink-2);
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
   }
 
-  /* Links inside running prose carry the only small oxblood accent. */
-  .prose a {
+  a:hover {
     color: var(--oxblood-hi);
+    text-decoration-color: currentColor;
   }
 
-  .prose a:hover {
+  /* oxblood-hi text on an oxblood field is 3.59:1, below AA: hover stays ink there. */
+  .on-oxblood a:hover {
+    color: var(--ink);
     text-decoration-thickness: 2px;
   }
 

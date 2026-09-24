@@ -38,7 +38,6 @@
 
   .wordmark--large {
     width: min(100%, 492px); /* u = 12px */
-    color: var(--oxblood-hi);
   }
 
   @media (min-width: 56rem) {
@@ -123,9 +122,13 @@
     background: transparent;
   }
 
-  /* Over an oxblood field, focus rings switch to ink (oxblood-hi is only 3.59:1 there). */
+  /* Over an oxblood field, focus rings and link hovers stay ink (oxblood-hi is 3.59:1 there). */
   .under-nav .nav[data-js]:not([data-scrolled]) :focus-visible {
     outline-color: var(--ink);
+  }
+
+  .under-nav .nav[data-js]:not([data-scrolled]) .nav__primary a:hover {
+    color: var(--ink);
   }
 
   .nav__inner {
@@ -347,7 +350,7 @@
   .pad-mark {
     width: 0.625rem;
     height: 0.625rem;
-    background: var(--oxblood-hi);
+    background: var(--ink-2);
   }
 
   .grid > .hero__media {
@@ -498,13 +501,19 @@
     }
   }
 
+  /* Hardware hall sits on a full-bleed oxblood field; its cards are --bg surfaces on it. */
+  .section--field {
+    margin-block-start: var(--section);
+    padding-block: var(--section);
+  }
+
   /* align-content: start keeps images the same height when one card has fewer spec lines. */
   .hall__item {
     display: grid;
     align-content: start;
     gap: var(--space-3);
     padding: var(--space-3);
-    background: var(--surface);
+    background: var(--bg);
   }
 
   .hall__meta {
@@ -1061,7 +1070,7 @@
   }
 
   .choice input {
-    accent-color: var(--oxblood-hi);
+    accent-color: var(--ink);
     width: 1.125rem;
     height: 1.125rem;
     margin: 0;
