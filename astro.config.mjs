@@ -39,6 +39,11 @@ export default defineConfig({
   vite: {
     // Minify the Worker bundle too (Astro builds server output unminified): smaller cold starts,
     // and no comments from our code or dependencies ship.
+    // Pre-bundle the actions route for the Worker environment. Discovered late on a cold cache
+    // (fresh CI checkout), it made Vite reload mid-`astro check` and fail on a vanished chunk.
+    environments: {
+      ssr: { optimizeDeps: { include: ['astro/actions/runtime/entrypoints/route.js'] } },
+    },
     plugins: [
       {
         name: 'minify-worker',

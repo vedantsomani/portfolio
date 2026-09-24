@@ -113,7 +113,11 @@ Loaded later, never initial:
 There are no GLB files yet.
 
 ## Live check
-_Filled in after the push; see below._
+Pushed to `main` (`38429c5`, then the CI fix below). Cloudflare Workers Builds deployed the new build within about 2 minutes.
+
+- **Plain `curl -sI https://vedantsomani.tech/` fails with exit 6 (could not resolve host).** This is not a deploy problem. Cloudflare's authoritative nameservers (`art`/`coraline.ns.cloudflare.com`) return no A or AAAA record for the apex, so no resolver anywhere can find it; `www` does resolve. FINAL_GOAL §3 forbids touching DNS or the dashboards, so this is launch step 1 below.
+- **The same request pinned to the Cloudflare edge** (`--resolve vedantsomani.tech:443:104.21.47.86`) returns `HTTP/1.1 200 OK` with `X-Robots-Tag: noindex, nofollow`, the CSP and HSTS headers, and a body containing "built from the silicon up". `/services` returns `301` → `/`.
+- **CI:** the first push failed GitHub Actions at `npm run check`. On a cold dependency cache (a fresh checkout), Vite discovered the actions route partway through `astro check` and reloaded. I reproduced it on Linux in WSL. The fix pre-bundles that dependency for the Worker environment (`astro.config.mjs`), and the full CI sequence (lint, format, check, build) now passes on a clean Linux clone.
 
 ## Remaining TODO(vedant)
 All of these are hidden in production and visible in `npm run dev`.
