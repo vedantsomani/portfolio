@@ -1,11 +1,16 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vedant-site",
+  // Must match the Worker name in Workers Builds (CI).
+  "name": "portfolio",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "binding": "ASSETS" },
   "observability": { "enabled": true },
+  // *.workers.dev URL and per-version preview URLs stay on until launch.
+  // Phase 4: set "workers_dev": false once the custom domain is live.
+  "workers_dev": true,
+  "preview_urls": true,
   // Contact form limiter: 5 per minute per IP (the binding supports only 10 s / 60 s windows).
   // Decided: this plus the honeypot is enough. Add Turnstile only if spam appears.
   "ratelimits": [
