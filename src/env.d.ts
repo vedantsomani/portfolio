@@ -13,3 +13,12 @@ interface Fetcher {
 declare module 'cloudflare:workers' {
   export const env: Env;
 }
+
+interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException(): void;
+}
+
+interface ExportedHandler<E = unknown> {
+  fetch?(request: Request, env: E, ctx: ExecutionContext): Response | Promise<Response>;
+}

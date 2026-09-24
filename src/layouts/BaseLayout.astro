@@ -23,7 +23,14 @@ interface Props {
 }
 
 const { title, description, canonical, underNav = false, noindex = false, trackView } = Astro.props;
-const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
+// Canonical path: absolute on the production domain, no ".html", no "/index", no trailing slash
+// (home is "/"). Noindex pages (404) get no canonical at all.
+const canonicalPath =
+  (canonical ?? Astro.url.pathname)
+    .replace(/\.html$/, '')
+    .replace(/\/index$/, '/')
+    .replace(/(.)\/+$/, '$1') || '/';
+const canonicalURL = noindex ? null : new URL(canonicalPath, Astro.site).href;
 const fullTitle = title === 'Vedant Somani' ? title : `${title} | Vedant Somani`;
 // Cloudflare Web Analytics: cookieless page views. `spa` follows ClientRouter navigations.
 const beacon =
@@ -39,7 +46,7 @@ const beacon =
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalURL} />
+    {canonicalURL && <link rel="canonical" href={canonicalURL} />}
     {noindex && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content="#14100E" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -54,7 +61,7 @@ const beacon =
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonicalURL} />
+    {canonicalURL && <meta property="og:url" content={canonicalURL} />}
     <!-- TODO(vedant): OG image is generated with Satori in Phase 4 -->
     <slot name="head" />
 

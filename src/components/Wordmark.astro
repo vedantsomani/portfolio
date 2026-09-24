@@ -10,11 +10,14 @@
   - Free trace ends terminate in a round pad (2u across) with a 0.9u drill that shows the background.
   - ViewBox pads 1u on every side for pad overhang: 41u × 10u.
 */
+// Decorative by default: the link around it carries the accessible name. Pass `label` only when
+// the wordmark stands alone as an image.
 interface Props {
   size?: 'nav' | 'footer' | 'large';
+  label?: string;
   class?: string;
 }
-const { size = 'nav', class: className } = Astro.props;
+const { size = 'nav', label, class: className } = Astro.props;
 
 type Pt = [number, number];
 type Letter = { paths: Pt[][]; closed?: boolean; pads: Pt[] };
@@ -162,8 +165,9 @@ const maskId = `wm-drill-${size}`;
 <svg
   class:list={['wordmark', `wordmark--${size}`, className]}
   viewBox={`0 0 ${width} ${height}`}
-  role="img"
-  aria-label="Vedant Somani"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
   focusable="false"
 >
   <defs>

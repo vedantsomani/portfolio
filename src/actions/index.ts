@@ -4,6 +4,7 @@ import { CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL, RESEND_API_KEY } from 'astro:env/
 import { Resend } from 'resend';
 import { budgets, projectTypes } from '../data/services';
 import { rateLimit } from '../lib/rate-limit';
+import { site } from '../data/site';
 
 const typeValues = projectTypes.map((t) => t.value) as [string, ...string[]];
 const budgetValues = budgets.map((b) => b.value) as [string, ...string[]];
@@ -57,8 +58,9 @@ export const server = {
         input.description,
       ].join('\n');
 
-      // TODO(vedant): `npx wrangler secret put RESEND_API_KEY` and `CONTACT_TO_EMAIL`.
-      if (!RESEND_API_KEY || !CONTACT_TO_EMAIL) {
+      // TODO(vedant): `npx wrangler secret put RESEND_API_KEY`. CONTACT_TO_EMAIL is an optional override.
+      const to = CONTACT_TO_EMAIL ?? site.email;
+      if (!RESEND_API_KEY || !to) {
         if (import.meta.env.DEV) {
           console.info('[contact] Resend not configured; message logged instead:\n' + body);
           return { sent: true };
@@ -72,7 +74,7 @@ export const server = {
       const resend = new Resend(RESEND_API_KEY);
       const { error } = await resend.emails.send({
         from: CONTACT_FROM_EMAIL,
-        to: CONTACT_TO_EMAIL,
+        to,
         replyTo: input.email,
         subject: `New project enquiry: ${input.name} (${label(projectTypes, input.type)})`,
         text: body,

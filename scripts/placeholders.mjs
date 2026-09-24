@@ -9,7 +9,8 @@ const items = [
   ['client-cover', 2400, 1050, '#2f2824'],
   ['saarthi-cover', 1600, 1200, '#352d29'],
   ['skynet-cover', 1200, 1600, '#2b2521'],
-  ['hall-saarthi', 1200, 1200, '#2a2320'],
+  // Distinct tones matter: byte-identical files are deduplicated into one asset at build.
+  ['hall-saarthi', 1200, 1200, '#2e2521'],
   ['hall-setu', 1200, 1200, '#2a2320'],
 ];
 

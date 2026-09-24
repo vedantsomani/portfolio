@@ -4,8 +4,8 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 
-// TODO(vedant): production domain. Until then canonicals point at SITE_URL or localhost.
-const site = process.env.SITE_URL ?? 'http://localhost:4321';
+// Canonical origin. Other hosts (workers.dev, preview URLs) are marked noindex in src/worker.ts.
+const site = 'https://vedantsomani.tech';
 
 export default defineConfig({
   site,
@@ -21,7 +21,8 @@ export default defineConfig({
   }),
   // Sessions are unused. An explicit driver stops the adapter provisioning a KV namespace for them.
   session: { driver: sessionDrivers.lruCache() },
-  integrations: [mdx(), sitemap()],
+  // /contact renders on demand, so the sitemap can't discover it from the build; list it explicitly.
+  integrations: [mdx(), sitemap({ customPages: [`${site}/contact`] })],
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   image: { responsiveStyles: false },
   env: {

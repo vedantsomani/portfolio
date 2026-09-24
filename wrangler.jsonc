@@ -2,10 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   // Must match the Worker name in Workers Builds (CI).
   "name": "portfolio",
-  "main": "@astrojs/cloudflare/entrypoints/server",
+  // Wraps the adapter handler to add X-Robots-Tag on non-production hosts.
+  "main": "./src/worker.ts",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": { "binding": "ASSETS" },
+  // run_worker_first: static assets also pass through src/worker.ts (for X-Robots-Tag). Every asset
+  // request then counts as a Worker invocation.
+  "assets": { "binding": "ASSETS", "run_worker_first": true },
   "observability": { "enabled": true },
   // *.workers.dev URL and per-version preview URLs stay on until launch.
   // Phase 4: set "workers_dev": false once the custom domain is live.
