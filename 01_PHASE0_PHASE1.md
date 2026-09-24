@@ -1,3 +1,5 @@
+> **Historical.** Superseded by `FINAL_GOAL.md` (portfolio only, no freelancing) and the updated `SITE_SPEC.md` / `AGENTS.md`. Kept as a record of how the site was built; do not follow it where it disagrees with those files.
+
 You are the lead engineer and designer on my portfolio + freelance site. Read `AGENTS.md` and `SITE_SPEC.md` in full before doing anything. They are binding.
 
 Reference for craft level: landonorris.com (OFF+BRAND, Awwwards Site of the Year 2025): an owned color used boldly, real objects, sharp motion. The site must not look AI-generated; `AGENTS.md` lists the tells to avoid.

@@ -1,0 +1,28 @@
+---
+// One section of a case study or lab entry. With content it renders normally. Empty with a `todo`,
+// it shows a TODO block in dev and disappears in production (no empty headings ship).
+import Todo from './Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
+
+interface Props {
+  title: string;
+  todo?: string;
+}
+const { title, todo } = Astro.props;
+const hasContent = Astro.slots.has('default');
+const id = title
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-|-$/g, '');
+---
+
+{(hasContent || (todo && SHOW_TODOS)) && (
+  <section class="case-section" aria-labelledby={`${id}-title`} data-trace-stop>
+    <h2 id={`${id}-title`} class="case-section__title">
+      {title}
+    </h2>
+    <div class="case-section__body prose">
+      {hasContent ? <slot /> : <Todo what={todo ?? ''} block />}
+    </div>
+  </section>
+)}

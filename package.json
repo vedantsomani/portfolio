@@ -7,13 +7,16 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/og.mjs && astro build",
     "preview": "npm run build && wrangler dev",
+    "preview:audit": "npm run build && wrangler dev --var PRE_LAUNCH:false",
     "astro": "astro",
-    "check": "astro check",
+    "check": "astro check && eslint . && prettier --check .",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "og": "node scripts/og.mjs",
+    "sprites": "node scripts/hall-sprites.mjs",
     "cf-typegen": "wrangler types --include-runtime=false",
     "deploy": "npm run build && wrangler deploy"
   },
@@ -27,7 +30,6 @@
     "astro": "^6.4.8",
     "gsap": "^3.15.0",
     "ogl": "^1.0.11",
-    "resend": "^6.28.1",
     "three": "^0.186.1",
     "typescript": "^6.0.3"
   },
@@ -44,10 +46,13 @@
     "eslint": "^10.11.0",
     "eslint-plugin-astro": "^3.2.1",
     "globals": "^17.12.0",
+    "lighthouse": "^13.5.0",
     "playwright": "^1.63.0",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.0.1",
+    "satori": "^0.33.5",
     "typescript-eslint": "^8.70.1",
-    "wrangler": "^4.138.0"
+    "wrangler": "^4.138.0",
+    "yaml": "^2.9.1"
   }
 }

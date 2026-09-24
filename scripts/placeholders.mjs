@@ -1,19 +1,28 @@
 // Placeholder art: a generated PCB layout (IC footprints, 45° routed traces, drilled pads) in
 // --rule on --surface, rasterised to JPG so it runs through the same AVIF/JPG pipeline as the
 // real photos. Seeded per slot, so every placeholder is distinct and stable between runs.
+// hero-xray reuses the hero-photo seed in --oxblood-hi on --bg: the same layout, pixel-aligned,
+// which is what the real KiCad plot will be relative to the real photo.
 // Every file here is TODO(vedant): replace with the real photo/render.
 // Run: node scripts/placeholders.mjs
 import sharp from 'sharp';
 
-const SURFACE = '#1e1916';
-const RULE = '#352c27';
+const SURFACE_ = '#1e1916';
+const RULE_ = '#352c27';
+const BG = '#14100e';
+const OXBLOOD_HI = '#e25964';
 const out = 'src/assets/placeholders';
 
+// [file, width, height, seed?, palette?]
 const slots = [
   ['hero-photo', 2400, 1600],
-  ['client-cover', 2400, 1050],
+  ['hero-xray', 2400, 1600, 'hero-photo', 'xray'],
   ['saarthi-cover', 1600, 1200],
+  ['prahari-cover', 1600, 1200],
+  ['vajra-cover', 1600, 1200],
   ['skynet-cover', 1200, 1600],
+  ['fusion-artifact', 1600, 1000],
+  ['about-portrait', 1200, 1500],
   ['hall-saarthi', 1200, 1200],
   ['hall-setu', 1200, 1200],
 ];
@@ -40,7 +49,8 @@ const DIRS = [
   [1, -1],
 ];
 
-function layout(name, w, h) {
+function layout(name, w, h, palette = 'photo') {
+  const [SURFACE, RULE] = palette === 'xray' ? [BG, OXBLOOD_HI] : [SURFACE_, RULE_];
   const rand = rng(name);
   const g = Math.round(Math.max(w, h) / 48); // grid pitch in px
   const cols = Math.floor(w / g) - 1;
@@ -139,8 +149,8 @@ function layout(name, w, h) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="${SURFACE}"/>${parts.join('')}</svg>`;
 }
 
-for (const [name, w, h] of slots) {
-  const svg = layout(name, w, h);
+for (const [name, w, h, seed = name, palette] of slots) {
+  const svg = layout(seed, w, h, palette);
   const info = await sharp(Buffer.from(svg))
     .jpeg({ quality: 78, mozjpeg: true })
     .toFile(`${out}/${name}.jpg`);

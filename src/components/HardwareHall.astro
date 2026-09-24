@@ -1,0 +1,83 @@
+---
+// Hardware hall (03_PHASE3_MOTION §3). Without JS it is a list of objects with poster images. With
+// JS (html[data-motion], set before first paint) it is laid out as a carousel beside one stage from
+// the start, so nothing shifts; Three.js fills the stage once the hall is ≤ 1 viewport away. Names, lines, specs, and
+// links always stay HTML; the canvas only adds the object you can turn.
+import Figure from './Figure.astro';
+import Todo from './Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
+import { hall } from '../data/hall';
+import { getLabEntries } from '../lib/content';
+
+const published = new Set((await getLabEntries()).map((e) => `/lab/${e.id}`));
+const items = hall.map((item) => ({
+  ...item,
+  href:
+    item.href && (!item.href.startsWith('/lab/') || published.has(item.href)) ? item.href : null,
+  specs: item.specs.filter((s) => s || SHOW_TODOS),
+  glb: __MODELS__.includes(item.id),
+}));
+---
+
+<div class="hall" data-hall>
+  {/* role="img": the name comes from the active object; arrow keys rotate it when focused. */}
+  <div class="hall__stage" role="img" tabindex="0" aria-label="Hardware model" data-hall-stage>
+    <p class="hall__hint t-small" aria-hidden="true">
+      Drag to rotate
+    </p>
+  </div>
+
+  <ol class="hall__list" role="list" data-hall-list>
+    {items.map((item, i) => (
+      <li
+        class="hall__item"
+        data-hall-item={item.id}
+        data-glb={item.glb ? '' : undefined}
+        aria-label={`${i + 1} of ${items.length}: ${item.name}`}
+      >
+        <Figure
+          src={item.poster}
+          alt={item.posterAlt}
+          todo={item.glb ? undefined : 'GLB model + render'}
+          sizes="(min-width: 48rem) 40vw, 80vw"
+          widths={[480, 800, 1200]}
+          class="hall__poster"
+        />
+        <div class="hall__meta">
+          <h3>{item.name}</h3>
+          <p>{item.line}</p>
+          <ul class="hall__specs t-data" role="list">
+            {item.specs.map((s) => (
+              <li>{s ?? <Todo what="spec" />}</li>
+            ))}
+          </ul>
+          {item.href && (
+            <p class="hall__link">
+              <a href={item.href}>{item.linkLabel}</a>
+            </p>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="hall__controls" data-hall-controls>
+    <button type="button" class="hall__btn" data-hall-prev>
+      Previous object
+    </button>
+    <p class="hall__count t-data" aria-live="polite" data-hall-count></p>
+    <button type="button" class="hall__btn" data-hall-next>
+      Next object
+    </button>
+  </div>
+</div>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initHall } from '../scripts/hall';
+
+  onPage(() => {
+    const cleanups = [...document.querySelectorAll<HTMLElement>('[data-hall]')].map(initHall);
+    return () => cleanups.forEach((c) => c());
+  });
+</script>

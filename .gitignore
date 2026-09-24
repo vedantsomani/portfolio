@@ -27,8 +27,9 @@ pnpm-debug.log*
 .vercel/
 .env*.local
 
-# QA output
-qa/
+# QA output (the final acceptance screenshots and Lighthouse JSON are kept)
+qa/*
+!qa/final/
 
 # wrangler local secrets
 .dev.vars*

@@ -1,6 +1,8 @@
-# AGENTS.md — Vedant Somani Portfolio + Freelance Site
+# AGENTS.md — Vedant Somani engineering portfolio
 
 Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` is the source of truth for content, design, and motion. If a request conflicts with it, stop and ask.
+
+Scope: a portfolio for recruiters, research labs, collaborators, and future co-founders and investors. No freelancing: no services, pricing, process, budgets, or "Start a project" (FINAL_GOAL.md §0). `/services` is a 301 to `/`.
 
 ## Stack (fixed — do not substitute)
 - Astro 6, TypeScript strict, content collections (`src/content.config.ts`, Zod schemas), MDX
@@ -9,9 +11,9 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 - Native CSS scroll-driven animations (`animation-timeline: view()`) for simple scroll effects.
 - OGL for the hero shader (island). Three.js only for the hardware hall (lazy island).
 - Astro View Transitions (`<ClientRouter />`).
-- Cloudflare Workers via `@astrojs/cloudflare` (static assets + Worker). Every page is prerendered except `/contact` and the action endpoint. Config in `wrangler.jsonc`; images optimised at build (`imageService: 'compile'`), no Images or KV bindings. Worker entry `src/worker.ts` wraps the adapter handler and sends `X-Robots-Tag: noindex, nofollow` on every host except `vedantsomani.tech`; `assets.run_worker_first` routes static assets through it too. Canonicals are absolute on `https://vedantsomani.tech`, without `.html` or trailing slashes. Worker name `portfolio` (must match Workers Builds). `workers_dev` and `preview_urls` are on for now; **set `"workers_dev": false` at the Phase 4 launch** once the custom domain serves the site. (Vercel was dropped: Hobby forbids commercial use.)
+- Cloudflare Workers via `@astrojs/cloudflare` (static assets + Worker). Every page is prerendered except `/contact` and the action endpoint. Config in `wrangler.jsonc`; images optimised at build (`imageService: 'compile'`), no Images or KV bindings. Worker entry `src/worker.ts` wraps the adapter handler, adds the security headers, answers retired paths (`/services` → 301 `/`), and sends `X-Robots-Tag: noindex, nofollow` on every host except `vedantsomani.tech`, and on that host too while `PRE_LAUNCH = true` (the launch switch in `src/worker.ts`; local audits turn it off with `npm run preview:audit`). `assets.run_worker_first` routes static assets through it too. `"keep_vars": true` in `wrangler.jsonc`, so deploys never wipe dashboard variables. Canonicals are absolute on `https://vedantsomani.tech`, without `.html` or trailing slashes. Worker name `portfolio` (must match Workers Builds). `workers_dev` and `preview_urls` are on for now; **set `"workers_dev": false` at the Phase 4 launch** once the custom domain serves the site. (Vercel was dropped: Hobby forbids commercial use.)
 - Cloudflare Web Analytics beacon (cookieless page views) and `@astrojs/sitemap`. Custom events go through `track()` in `src/lib/track.ts` using the SITE_SPEC §7 names; it is a no-op until an event backend is chosen.
-- Forms: Astro Action + Zod → Resend (fetch-based, runs on workerd). Honeypot + Workers Rate Limiting binding `CONTACT_LIMITER` per IP. 5 per minute per IP (the binding supports only 10 s / 60 s windows). Decided: no hourly cap; add Cloudflare Turnstile only if spam appears. Secret via `wrangler secret put RESEND_API_KEY` (locally in `.dev.vars`). Mail goes to `hello@vedantsomani.tech` from `src/data/site.ts` and is sent from `Vedant Somani <hello@vedantsomani.tech>` (domain verified in Resend); `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL` are optional runtime overrides. A `resend.dev` sender is never used in production.
+- Forms: Astro Action + Zod → Resend REST API over `fetch` (no SDK; runs on workerd). Fields: Name, Email, Reason (Internship / Research collaboration / Hardware project / Other), Message; `?reason=` prefill; subject "New message — {name} ({reason})". `RESEND_API_URL` exists only so QA can point the call at a local stub. Honeypot + Workers Rate Limiting binding `CONTACT_LIMITER` per IP. 5 per minute per IP (the binding supports only 10 s / 60 s windows). Decided: no hourly cap; add Cloudflare Turnstile only if spam appears. Secret via `wrangler secret put RESEND_API_KEY` (locally in `.dev.vars`). Mail goes to `hello@vedantsomani.tech` from `src/data/site.ts` and is sent from `Vedant Somani <hello@vedantsomani.tech>` (domain verified in Resend); `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL` are optional runtime overrides. A `resend.dev` sender is never used in production.
 - Fonts self-hosted: `@fontsource-variable/archivo`, `@fontsource/ibm-plex-mono`, Latin subset.
 
 ## Hard rules
@@ -30,9 +32,9 @@ Read this file and `SITE_SPEC.md` at the start of every session. `SITE_SPEC.md` 
 - Lighthouse mobile: Performance ≥ 95, Accessibility 100, SEO 100, Best Practices 100.
 
 ## Workflow
-- Work only in the phase named in the current prompt. Never start the next phase.
+- Phases 0–4 are done (`FINAL_GOAL.md`); the `01`–`04` files are historical. New work follows `SITE_SPEC.md`.
 - Before coding UI: post a plan (files, components, motion list), then build.
-- After each phase: `astro check`, build, Lighthouse mobile on every changed route (measured against `wrangler dev` serving the production build: `npm run preview`), screenshots at 375 / 768 / 1440, a self-critique against the spec. Report scores, JS/CSS bytes per route, and TODOs.
+- After each change set: `npm run check` (astro check + ESLint + Prettier), `npm run build`, then the QA scripts in `scripts/qa/` against `npm run preview:audit` (routes, Lighthouse mobile, axe, bundle, Playwright JS-off / reduced-motion, contact stub) and screenshots at 375 / 768 / 1440 (`scripts/qa-screens.mjs`). Report scores, JS bytes per route, and TODOs.
 - If `figma/` frames or a Figma link are provided, implement them exactly (via the Figma MCP `get_design_context`). Don't redesign.
 - Conventional commits: `feat:`, `fix:`, `perf:`, `content:`, `style:`.
 

@@ -22,18 +22,18 @@ if (Astro.request.method === 'POST') {
 ---
 
 <BaseLayout
-  title="Start a project"
+  title="Get in touch"
+  og="contact"
   trackView="contact_open"
-  description="Tell me what you want to build. A rough scope is enough — no sales call needed."
+  description="Internships, research collaborations, and hardware projects: write to Vedant Somani about embedded systems, drones, and the software around them."
   underNav
 >
   <header class="contact-head field-oxblood on-oxblood grid">
     <div class="contact-head__title display-fit">
-      <h1 class="t-display">Start a project</h1>
+      <h1 class="t-display">Get in touch</h1>
     </div>
     <div class="contact-head__notes">
-      <p>No sales call needed for a rough scope.</p>
-      <p>Half-built product? Send what exists.</p>
+      <p>Internships, research collaborations, and hardware projects.</p>
       <p class="contact-head__email">
         {site.email ? (
           <a href={`mailto:${site.email}`} data-track="email_click">
@@ -46,7 +46,7 @@ if (Astro.request.method === 'POST') {
     </div>
   </header>
 
-  <section class="section grid contact-body" aria-label="Project enquiry form">
+  <section class="section grid contact-body" aria-label="Contact form">
     <ContactForm values={values} />
   </section>
 </BaseLayout>

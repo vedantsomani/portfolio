@@ -1,3 +1,5 @@
+> **Historical.** Superseded by `FINAL_GOAL.md` (portfolio only, no freelancing) and the updated `SITE_SPEC.md` / `AGENTS.md`. Kept as a record of how the site was built; do not follow it where it disagrees with those files.
+
 PHASE 3 — Signature motion. Read `AGENTS.md` and `SITE_SPEC.md` first; both are binding. This prompt is the detailed motion spec behind `SITE_SPEC.md §4`. Phases 1–2 are done: pages and content exist, with no motion yet.
 
 Reference: landonorris.com by OFF+BRAND (Awwwards Site of the Year 2025). Take the craft (the cursor mask reveal, sharp transitions, 3D objects the viewer can inspect), not the layout. My visitors are clients and must reach "Start a project" within 10 seconds.

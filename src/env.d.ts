@@ -22,3 +22,8 @@ interface ExecutionContext {
 interface ExportedHandler<E = unknown> {
   fetch?(request: Request, env: E, ctx: ExecutionContext): Response | Promise<Response>;
 }
+
+// Build-time constants from astro.config.mjs (vite.define): which supplied files exist.
+declare const __HAS_RESUME__: boolean;
+declare const __HAS_TELEMETRY__: boolean;
+declare const __MODELS__: string[];

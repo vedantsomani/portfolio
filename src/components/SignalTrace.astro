@@ -1,0 +1,13 @@
+---
+// Mounts the left-gutter signal trace on the page's [data-trace] scope (desktop only).
+---
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initTrace } from '../scripts/trace';
+
+  onPage(() => {
+    const scope = document.querySelector<HTMLElement>('[data-trace]');
+    return scope ? initTrace(scope) : undefined;
+  });
+</script>

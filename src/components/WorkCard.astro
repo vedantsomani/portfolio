@@ -1,0 +1,60 @@
+---
+// A project card: cover (clip-wiped in by scroll), title, status, summary, role. The cover link is a
+// mouse-only duplicate of the title link, so it is hidden from assistive tech and its image has alt="". The cover carries
+// the same transition:name as the case-study header image, so opening it morphs instead of wiping.
+import type { ImageMetadata } from 'astro';
+import Figure from './Figure.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  summary: string;
+  status?: string;
+  role?: string[];
+  cover: ImageMetadata;
+  coverTodo?: string;
+  morph?: string;
+  size?: 'large' | 'small';
+  /** Heading level for the title: h2 on the Projects index (no section heading above it). */
+  level?: 2 | 3;
+  sizes: string;
+}
+const {
+  href,
+  title,
+  summary,
+  status,
+  role = [],
+  cover,
+  coverTodo,
+  morph,
+  size = 'large',
+  sizes,
+  level = 3,
+} = Astro.props;
+const Heading = level === 2 ? 'h2' : 'h3';
+---
+
+<article class:list={['work-card', `work-card--${size}`]}>
+  <a
+    href={href}
+    class="work-card__cover"
+    tabindex="-1"
+    aria-hidden="true"
+    data-morph={morph ? '' : undefined}
+  >
+    <div class="cover-wipe" transition:name={morph}>
+      <Figure src={cover} alt="" todo={coverTodo} sizes={sizes} />
+    </div>
+  </a>
+  <div class="work-card__meta">
+    <Heading class="work-card__title">
+      <a href={href} data-track="project_open" data-morph={morph ? '' : undefined}>
+        {title}
+      </a>
+    </Heading>
+    {status && <p class="t-data work-card__status">{status}</p>}
+    <p class="work-card__summary">{summary}</p>
+    {role.length > 0 && <p class="work-card__role t-small">{role.join(', ')}</p>}
+  </div>
+</article>

@@ -9,6 +9,15 @@ export default [
   ...tseslint.configs.strict,
   ...astro.configs.recommended,
   {
-    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        // Build-time constants from astro.config.mjs (vite.define).
+        __HAS_RESUME__: 'readonly',
+        __HAS_TELEMETRY__: 'readonly',
+        __MODELS__: 'readonly',
+      },
+    },
   },
 ];

@@ -1,0 +1,44 @@
+---
+title: VAJRA
+slug: vajra
+summary: A post-quantum mesh protocol with a hybrid key exchange, modelled in ProVerif and implemented in Rust.
+kind: engineering
+status: prototype
+restricted: true
+cover: ../../assets/placeholders/vajra-cover.jpg
+coverAlt: Placeholder for a VAJRA cover image
+coverTodo: VAJRA cover image
+order: 3
+specs:
+  - { label: KEM, value: ML-KEM-768 + X25519 }
+  - { label: Signatures, value: ML-DSA-65 }
+  - { label: AEAD, value: ChaCha20-Poly1305 }
+---
+
+<CaseSection title="Objective">
+  A mesh protocol whose key exchange stays secure against a future quantum adversary.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="VAJRA architecture"
+    columns={[
+      { title: 'Key exchange', nodes: ['Hybrid KEM: ML-KEM-768 + X25519'] },
+      { title: 'Authentication', nodes: ['ML-DSA-65 signatures'] },
+      { title: 'Transport', nodes: ['ChaCha20-Poly1305'] },
+    ]}
+  />
+</CaseSection>
+
+<CaseSection title="Constraints" todo="constraints, at architecture level only" />
+
+<CaseSection title="Hardware and firmware">
+  The protocol is modelled in ProVerif and implemented in Rust. This project is restricted: this
+  page covers architecture and results only.
+</CaseSection>
+
+<CaseSection title="Bench setup" todo="test setup that can be published" />
+
+<CaseSection title="Measurements" todo="results that can be published" />
+
+<CaseSection title="Failures and iterations" todo="iterations that can be published" />

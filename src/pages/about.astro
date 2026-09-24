@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Figure from '../components/Figure.astro';
+import Todo from '../components/Todo.astro';
+import FinalCta from '../components/FinalCta.astro';
+import { about, site } from '../data/site';
+import portrait from '../assets/placeholders/about-portrait.jpg';
+
+// Person JSON-LD: only what the page shows.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  url: Astro.site?.href,
+  jobTitle: 'Head of Research, Technotix BU and BC3',
+  affiliation: { '@type': 'CollegeOrUniversity', name: 'Bennett University' },
+  ...(site.email && { email: `mailto:${site.email}` }),
+  sameAs: [site.github, site.linkedin].filter(Boolean),
+};
+---
+
+<BaseLayout
+  title="About"
+  og="about"
+  description="Vedant Somani is a CSE student at Bennett University and Head of Research at Technotix BU and BC3, building flight controllers, drones, and their software."
+>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)}></script>
+  <header class="page-head grid">
+    <h1 class="page-head__title">About</h1>
+  </header>
+
+  <section class="section grid about" aria-label="About Vedant">
+    <div class="about__photo">
+      <Figure
+        src={portrait}
+        alt={about.photoAlt}
+        todo="portrait or workspace photo"
+        priority
+        sizes="(min-width: 64rem) 33vw, 100vw"
+      />
+    </div>
+    <div class="about__text prose">
+      <p>
+        I'm Vedant Somani, a B.Tech computer science student at Bennett University (2024–28). I
+        build flight controllers, drones, and the software that runs on and around them.
+      </p>
+      <p>
+        My projects cross the line between hardware and software on purpose. Saarthi is a
+        flight-controller board and its firmware; PRAHARI targets that board with verified, shielded
+        navigation; VAJRA is a post-quantum mesh protocol. Each one only works if the layers under
+        it are understood.
+      </p>
+      <p>
+        I'm building toward defence technology: autonomous systems that can be trusted because their
+        hardware, software, and communication were designed together.
+      </p>
+      <Todo what="confirm the wording of all three paragraphs, especially the last" block />
+
+      <h2 class="about__heading">Roles</h2>
+      <ul class="about__roles" role="list">
+        {about.roles.map((r) => (
+          <li>
+            {r.title}, {r.org}
+          </li>
+        ))}
+        <li>{about.education}</li>
+      </ul>
+
+      {__HAS_RESUME__ ? (
+        <p class="about__resume">
+          <a href="/resume.pdf" data-track="resume_download">
+            Résumé (PDF)
+          </a>
+        </p>
+      ) : (
+        <Todo what="résumé PDF at public/resume.pdf (the link appears once it exists)" block />
+      )}
+    </div>
+  </section>
+
+  <FinalCta />
+</BaseLayout>

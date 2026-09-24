@@ -2,8 +2,7 @@
 import { actions, isInputError } from 'astro:actions';
 import Button from './Button.astro';
 import Todo from './Todo.astro';
-import { budgets, projectTypes } from '../data/services';
-import { site } from '../data/site';
+import { reasons, site } from '../data/site';
 
 // Renders the server result of a no-JS POST. With JS, the script below submits in place instead.
 interface Props {
@@ -17,17 +16,16 @@ const fieldErrors: Record<string, string[] | undefined> =
   result?.error && isInputError(result.error) ? result.error.fields : {};
 const formError = result?.error && !isInputError(result.error) ? result.error.message : null;
 
-const typeParam = Astro.url.searchParams.get('type') ?? '';
-const selectedType =
-  values.type ?? (projectTypes.some((t) => t.value === typeParam) ? typeParam : '');
+// ?reason=internship preselects the reason (links from elsewhere on the site, or shared links).
+const reasonParam = Astro.url.searchParams.get('reason') ?? '';
+const selectedReason =
+  values.reason ?? (reasons.some((r) => r.value === reasonParam) ? reasonParam : '');
 
 const fields = [
   ['name', 'Name'],
   ['email', 'Email'],
-  ['company', 'Company or site'],
-  ['type', 'Project type'],
-  ['budget', 'Budget'],
-  ['description', 'What are you building?'],
+  ['reason', 'Reason'],
+  ['message', 'Message'],
 ] as const;
 const errorList = fields.filter(([key]) => fieldErrors[key]?.length);
 const err = (key: string) => fieldErrors[key]?.[0];
@@ -37,7 +35,7 @@ const describedBy = (key: string, hint = false) =>
 
 <div class="contact-form" data-contact>
   <div class="form-status" role="status" tabindex="-1" data-form-success hidden={!sent}>
-    <p class="t-h2">Sent. I'll reply within 2 working days.</p>
+    <p class="t-h2">Sent. I'll reply by email.</p>
   </div>
 
   <form
@@ -49,7 +47,7 @@ const describedBy = (key: string, hint = false) =>
     aria-describedby="form-intro"
   >
     <p id="form-intro" class="form__intro t-small">
-      All fields are required unless marked optional.
+      All fields are required.
     </p>
 
     <div
@@ -70,7 +68,7 @@ const describedBy = (key: string, hint = false) =>
       <ul role="list" data-form-summary-list>
         {errorList.map(([key, text]) => (
           <li>
-            <a href={`#${key === 'budget' ? 'budget-0' : key}`}>
+            <a href={`#${key}`}>
               {text}: {err(key)}
             </a>
           </li>
@@ -115,94 +113,43 @@ const describedBy = (key: string, hint = false) =>
       </div>
     </div>
 
-    <div class="form__row">
-      <div class="field" data-field="company">
-        <label for="company">
-          Company or site <span class="field__optional">(optional)</span>
-        </label>
-        <input
-          id="company"
-          name="company"
-          type="text"
-          autocomplete="organization"
-          maxlength="200"
-          value={values.company}
-          aria-invalid={err('company') ? 'true' : undefined}
-          aria-describedby={describedBy('company')}
-        />
-        <p id="company-error" class="field__error" data-error hidden={!err('company')}>
-          {err('company')}
-        </p>
-      </div>
-
-      <div class="field" data-field="type">
-        <label for="type">Project type</label>
-        <select
-          id="type"
-          name="type"
-          required
-          aria-invalid={err('type') ? 'true' : undefined}
-          aria-describedby={describedBy('type')}
-        >
-          <option value="" selected={!selectedType}>
-            Choose one
+    <div class="field" data-field="reason">
+      <label for="reason">Reason</label>
+      <select
+        id="reason"
+        name="reason"
+        required
+        aria-invalid={err('reason') ? 'true' : undefined}
+        aria-describedby={describedBy('reason')}
+      >
+        <option value="" selected={!selectedReason}>
+          Choose one
+        </option>
+        {reasons.map((r) => (
+          <option value={r.value} selected={selectedReason === r.value}>
+            {r.label}
           </option>
-          {projectTypes.map((t) => (
-            <option value={t.value} selected={selectedType === t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        <p id="type-error" class="field__error" data-error hidden={!err('type')}>
-          {err('type')}
-        </p>
-      </div>
+        ))}
+      </select>
+      <p id="reason-error" class="field__error" data-error hidden={!err('reason')}>
+        {err('reason')}
+      </p>
     </div>
 
-    <fieldset
-      class="field field--choices"
-      data-field="budget"
-      aria-invalid={err('budget') ? 'true' : undefined}
-      aria-describedby={describedBy('budget')}
-    >
-      <legend>Budget</legend>
-      <div class="choices">
-        {budgets.map((b, i) => (
-          <label class="choice" for={`budget-${i}`}>
-            <input
-              type="radio"
-              id={`budget-${i}`}
-              name="budget"
-              value={b.value}
-              required
-              checked={values.budget === b.value}
-            />
-            <span class="t-num">{b.label}</span>
-          </label>
-        ))}
-      </div>
-      <p id="budget-error" class="field__error" data-error hidden={!err('budget')}>
-        {err('budget')}
-      </p>
-    </fieldset>
-
-    <div class="field" data-field="description">
-      <label for="description">What are you building?</label>
-      <p id="description-hint" class="field__hint t-small">
-        Half-built product? Send what exists.
-      </p>
+    <div class="field" data-field="message">
+      <label for="message">Message</label>
       <textarea
-        id="description"
-        name="description"
+        id="message"
+        name="message"
         rows="7"
         required
         minlength="20"
         maxlength="5000"
-        aria-invalid={err('description') ? 'true' : undefined}
-        aria-describedby={describedBy('description', true)}
-      >{values.description}</textarea>
-      <p id="description-error" class="field__error" data-error hidden={!err('description')}>
-        {err('description')}
+        aria-invalid={err('message') ? 'true' : undefined}
+        aria-describedby={describedBy('message')}
+      >{values.message}</textarea>
+      <p id="message-error" class="field__error" data-error hidden={!err('message')}>
+        {err('message')}
       </p>
     </div>
 
@@ -237,14 +184,11 @@ const describedBy = (key: string, hint = false) =>
   const labels: Record<string, string> = {
     name: 'Name',
     email: 'Email',
-    company: 'Company or site',
-    type: 'Project type',
-    budget: 'Budget',
-    description: 'What are you building?',
+    reason: 'Reason',
+    message: 'Message',
   };
 
-  const controlOf = (field: HTMLElement) =>
-    field.matches('fieldset') ? field : field.querySelector('input, select, textarea');
+  const controlOf = (field: HTMLElement) => field.querySelector('input, select, textarea');
 
   function initContactForm() {
     const root = document.querySelector<HTMLElement>('[data-contact]');
@@ -302,7 +246,7 @@ const describedBy = (key: string, hint = false) =>
 
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = `#${key === 'budget' ? 'budget-0' : key}`;
+        a.href = `#${key}`;
         a.textContent = `${labels[key]}: ${message}`;
         li.append(a);
         summaryList?.append(li);

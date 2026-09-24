@@ -1,0 +1,55 @@
+---
+title: Saarthi (H7-Pro)
+slug: saarthi
+summary: Flight-controller firmware on an STM32H753, fusing two IMUs, two barometers, and an airspeed sensor.
+kind: engineering
+status: prototype
+restricted: false
+cover: ../../assets/placeholders/saarthi-cover.jpg
+coverAlt: Placeholder for a top-down photo of the Saarthi H7-Pro board
+coverTodo: Saarthi top-down board photo
+featured: true
+order: 1
+specs:
+  - { label: MCU, value: STM32H753 }
+  - { label: IMU, value: 2× ICM-42688-P }
+  - { label: Barometer, value: DPS310 + BMP390 }
+  - { label: Airspeed, value: MS4525DO }
+---
+
+<CaseSection title="Objective">
+  Flight-controller firmware for the H7-Pro board, built on an STM32H753 microcontroller.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="Saarthi firmware architecture"
+    columns={[
+      {
+        title: 'Sensors',
+        nodes: ['2× ICM-42688-P IMU', 'DPS310 barometer', 'BMP390 barometer', 'MS4525DO airspeed'],
+      },
+      {
+        title: 'Firmware on STM32H753',
+        nodes: [
+          'Drivers over a frozen HAL contract',
+          'Mahony attitude filter',
+          'Math library over a frozen contract',
+        ],
+      },
+    ]}
+  />
+</CaseSection>
+
+<CaseSection title="Constraints" todo="constraints (timing, power, board size)" />
+
+<CaseSection title="Hardware and firmware">
+  Two ICM-42688-P IMUs, a DPS310 and a BMP390 barometer, and an MS4525DO airspeed sensor feed a
+  Mahony filter. The hardware abstraction layer and the math library sit behind frozen contracts.
+</CaseSection>
+
+<CaseSection title="Bench setup" todo="bench photo and a description of the test rig" />
+
+<CaseSection title="Measurements" todo="fusion benchmark CSV and the plots it produces" />
+
+<CaseSection title="Failures and iterations" todo="what broke and what changed between revisions" />

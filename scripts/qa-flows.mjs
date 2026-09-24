@@ -25,7 +25,7 @@ const focused = (page) =>
   }
   check(
     'desktop nav tab order',
-    order.join(' | ').includes('Projects') && order.join(' | ').includes('Start a project'),
+    order.join(' | ').includes('Projects') && order.join(' | ').includes('Get in touch'),
     order.join(' | '),
   );
   await page.goto(base + '/', { waitUntil: 'networkidle' });
@@ -82,8 +82,8 @@ const focused = (page) =>
 // 4. Form with JS: empty submit → inline errors + focused summary; valid → success.
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(base + '/contact?type=web-app', { waitUntil: 'networkidle' });
-  check('?type= prefills project type', (await page.inputValue('#type')) === 'web-app');
+  await page.goto(base + '/contact?reason=research', { waitUntil: 'networkidle' });
+  check('?reason= prefills the reason', (await page.inputValue('#reason')) === 'research');
   await page.fill('#name', 'Test Person');
   await page.click('[data-submit]');
   await page.waitForSelector('[data-form-summary]:not([hidden])');
@@ -95,8 +95,7 @@ const focused = (page) =>
     ((await page.getAttribute('#email', 'aria-describedby')) ?? '').includes('email-error'),
   );
   await page.fill('#email', 'test@example.com');
-  await page.check('#budget-1', { force: true });
-  await page.fill('#description', 'A small business site with five pages and a booking hook.');
+  await page.fill('#message', 'I run a drone lab and would like to talk about a collaboration.');
   await page.click('[data-submit]');
   await page
     .waitForSelector('[data-form-success]:not([hidden])', { timeout: 10000 })
@@ -120,9 +119,8 @@ const focused = (page) =>
   );
   await page.fill('#name', '   ');
   await page.fill('#email', 'kept@example.com');
-  await page.selectOption('#type', 'business');
-  await page.check('#budget-2', { force: true });
-  await page.fill('#description', 'A five page site for a dental clinic with booking.');
+  await page.selectOption('#reason', 'hardware');
+  await page.fill('#message', 'A hardware project about flight controllers for a student team.');
   await page.click('[data-submit]');
   await page.waitForLoadState('networkidle');
   check(
@@ -133,13 +131,12 @@ const focused = (page) =>
   check(
     'no-JS: values kept after POST',
     (await page.inputValue('#email')) === 'kept@example.com' &&
-      (await page.inputValue('#type')) === 'business',
+      (await page.inputValue('#reason')) === 'hardware',
   );
   await page.fill('#name', 'No Script');
   await page.fill('#email', 'test@example.com');
-  await page.selectOption('#type', 'launch');
-  await page.check('#budget-0', { force: true });
-  await page.fill('#description', 'A three page site for a local clinic with WhatsApp enquiry.');
+  await page.selectOption('#reason', 'internship');
+  await page.fill('#message', 'Asking about a summer internship on embedded firmware.');
   await page.click('[data-submit]');
   await page.waitForLoadState('networkidle');
   check('no-JS: success rendered', await page.locator('[data-form-success]').isVisible());
@@ -155,9 +152,8 @@ const focused = (page) =>
   });
   await page.fill('#name', 'Bot');
   await page.fill('#email', 'bot@example.com');
-  await page.selectOption('#type', 'other');
-  await page.check('#budget-4', { force: true });
-  await page.fill('#description', 'Buy cheap backlinks now, limited offer for your site.');
+  await page.selectOption('#reason', 'other');
+  await page.fill('#message', 'Buy cheap backlinks now, limited offer for your site.');
   await page.click('[data-submit]');
   await page
     .waitForSelector('[data-form-success]:not([hidden])', { timeout: 10000 })

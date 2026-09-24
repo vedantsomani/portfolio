@@ -1,3 +1,5 @@
+> **Historical.** Superseded by `FINAL_GOAL.md` (portfolio only, no freelancing) and the updated `SITE_SPEC.md` / `AGENTS.md`. Kept as a record of how the site was built; do not follow it where it disagrees with those files.
+
 PHASE 2 — Content system, case studies, Lab, About. Read `AGENTS.md` and `SITE_SPEC.md` first; both are binding. Phase 1 is done and deployed. Still no motion.
 
 ## 1. Content collections (`src/content.config.ts`)

@@ -1,3 +1,5 @@
+> **Historical.** Superseded by `FINAL_GOAL.md` (portfolio only, no freelancing) and the updated `SITE_SPEC.md` / `AGENTS.md`. Kept as a record of how the site was built; do not follow it where it disagrees with those files.
+
 PHASE 4 — SEO, analytics, QA, launch. Read `AGENTS.md` and `SITE_SPEC.md` first; both are binding. Phases 1–3 are done.
 
 ## 1. SEO

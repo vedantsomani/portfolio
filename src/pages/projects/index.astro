@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import { getProjects, statusLabel } from '../../lib/content';
+
+const [lead, ...rest] = await getProjects();
+---
+
+<BaseLayout
+  title="Projects"
+  og="projects"
+  description="Engineering projects by Vedant Somani: the Saarthi flight controller, PRAHARI verified navigation without GPS, and the VAJRA post-quantum mesh protocol."
+>
+  <header class="page-head grid">
+    <h1 class="page-head__title">Projects</h1>
+    <p class="page-head__lede">
+      Flight-controller firmware, verified autonomy, and post-quantum communication.
+    </p>
+  </header>
+
+  <section class="section grid" aria-label="All projects">
+    <div class="projects">
+      <WorkCard
+        href={`/projects/${lead.id}`}
+        title={lead.data.title}
+        summary={lead.data.summary}
+        status={statusLabel(lead.data.status)}
+        role={lead.data.role}
+        cover={lead.data.cover}
+        coverTodo={lead.data.coverTodo}
+        morph={`cover-${lead.id}`}
+        level={2}
+        sizes="(min-width: 80rem) 1280px, 100vw"
+      />
+      <div class="projects__pair">
+        {rest.map((p, i) => (
+          <WorkCard
+            href={`/projects/${p.id}`}
+            title={p.data.title}
+            summary={p.data.summary}
+            status={statusLabel(p.data.status)}
+            role={p.data.role}
+            cover={p.data.cover}
+            coverTodo={p.data.coverTodo}
+            morph={`cover-${p.id}`}
+            level={2}
+            size={i % 2 ? 'small' : 'large'}
+            sizes="(min-width: 64rem) 45vw, 100vw"
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <FinalCta />
+</BaseLayout>

@@ -3,17 +3,15 @@
 // Cloudflare Web Analytics (the beacon in BaseLayout) covers page views only, not custom events.
 
 export const EVENTS = [
-  'hero_start_project',
-  'hero_see_lab',
+  'hero_see_work',
+  'hero_get_in_touch',
   'hero_lens_used',
   'project_open',
   'hall_object_rotate',
-  'service_view',
   'contact_open',
   'form_start',
   'lead_submit',
   'email_click',
-  'whatsapp_click',
   'resume_download',
   'github_out',
 ] as const;

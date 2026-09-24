@@ -9,13 +9,17 @@ interface Props {
   href?: string;
 }
 const {
-  title = 'Have something worth building?',
-  button = 'Start a project',
+  title = 'Working on something hard?',
+  button = 'Get in touch',
   href = '/contact',
 } = Astro.props;
 ---
 
-<section class="final-cta field-oxblood on-oxblood grid" aria-labelledby="final-cta-title">
+<section
+  class="final-cta field-oxblood on-oxblood grid"
+  aria-labelledby="final-cta-title"
+  data-trace-stop
+>
   <div class="final-cta__title-wrap display-fit">
     <h2 id="final-cta-title" class="final-cta__title t-display">
       {title}

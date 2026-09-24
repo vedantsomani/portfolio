@@ -1,8 +1,9 @@
 """Build the self-hosted Archivo files from @fontsource-variable/archivo.
 
 Limits the variable axes to the ranges the type scale uses (wght 400-800,
-wdth 100-125) and splits the rupee sign into its own file so pages without
-prices never download it. Run after upgrading the font package:
+wdth 100-125). Also writes two static TTF instances to scripts/og-fonts/ for
+the Satori OG images (Satori can't read variable fonts or woff2). Run after
+upgrading the font package:
 
     python scripts/subset-fonts.py
 
@@ -36,7 +37,15 @@ def build(src: str, out: str, unicodes: str | None = None) -> None:
 
 OUT.mkdir(parents=True, exist_ok=True)
 build("archivo-latin-wdth-normal.woff2", "archivo-latin-var.woff2")
-build("archivo-latin-ext-wdth-normal.woff2", "archivo-rupee-var.woff2", "U+20B9")
+
+# Static instances for the OG images: display (wdth 125, wght 800) and body (wdth 100, wght 500).
+OG = ROOT / "scripts/og-fonts"
+OG.mkdir(parents=True, exist_ok=True)
+for name, loc in (("archivo-display", {"wdth": 125, "wght": 800}), ("archivo-body", {"wdth": 100, "wght": 500})):
+    font = instancer.instantiateVariableFont(TTFont(SRC / "archivo-latin-wdth-normal.woff2"), loc)
+    font.flavor = None
+    font.save(OG / f"{name}.ttf")
+    print(f"{name}.ttf: {(OG / f'{name}.ttf').stat().st_size / 1024:.1f} KB")
 
 # IBM Plex Mono ships as static weights; copy the Latin files as-is.
 PLEX = ROOT / "node_modules/@fontsource/ibm-plex-mono/files"

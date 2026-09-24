@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HardwareHall from '../../components/HardwareHall.astro';
+import Telemetry from '../../components/Telemetry.astro';
+import Todo from '../../components/Todo.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import { formatDate, getLabEntries, statusLabel, type LabEntry } from '../../lib/content';
+
+// Entries grouped by status, in the spec's order. Entries without a status only appear in dev.
+const entries = await getLabEntries();
+const ORDER = ['concept', 'prototype', 'validated', 'archived', undefined] as const;
+const groups = ORDER.map((status) => ({
+  status,
+  entries: entries.filter((e) => e.data.status === status),
+})).filter((g) => g.entries.length);
+const line = (e: LabEntry) => e.data.result ?? e.data.hypothesis;
+---
+
+<BaseLayout
+  title="Lab"
+  og="lab"
+  description="The hardware hall and build log: Vedant Somani's flight-controller board, the SETU airframe, and experiments, each with a status."
+>
+  <header class="page-head grid">
+    <h1 class="page-head__title">Lab</h1>
+    <p class="page-head__lede">The hardware behind the projects, and the experiments on it.</p>
+  </header>
+
+  <section class="section grid lab-hall" aria-labelledby="lab-hall-title">
+    <h2 id="lab-hall-title" class="lab-hall__title">
+      Hardware hall
+    </h2>
+    <HardwareHall />
+  </section>
+
+  <Telemetry />
+
+  {groups.length > 0 && (
+    <section class="section grid" aria-labelledby="log-title">
+      <h2 id="log-title">Build log</h2>
+      <div class="lab-groups">
+        {groups.map((g) => (
+          <div class="lab-group">
+            <h3 class="lab-group__status t-data">
+              {statusLabel(g.status) ?? (
+                <Todo what="entries without a status (hidden in production)" />
+              )}
+            </h3>
+            <ul class="lab-list" role="list">
+              {g.entries.map((e) => (
+                <li class="lab-list__item">
+                  <a href={`/lab/${e.id}`} class="lab-list__title">
+                    {e.data.title}
+                  </a>
+                  <span class="t-small lab-list__meta">
+                    {e.data.discipline}
+                    {e.data.date && <span class="t-data"> {formatDate(e.data.date)}</span>}
+                  </span>
+                  {line(e) ? <p>{line(e)}</p> : <Todo what="one-line hypothesis or result" />}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <FinalCta />
+</BaseLayout>

@@ -1,0 +1,115 @@
+---
+// Home hero: headline, supporting line, CTAs, and the X-ray lens (03_PHASE3_MOTION §1–2).
+// Everything readable is HTML outside the canvas. The photo <img> renders first; the lens mounts
+// over it after idle. Without JS the photo simply stays.
+import Button from './Button.astro';
+import Todo from './Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
+import { hero } from '../data/site';
+import { DESKTOP, DESK_SIZES, type HeroImages } from '../lib/hero-images';
+
+interface Props {
+  images: HeroImages;
+}
+const { images: im } = Astro.props;
+---
+
+<section class="hero grid" aria-labelledby="hero-title" data-hero>
+  <div class="hero__title-wrap">
+    <h1 id="hero-title" class="hero__title t-display" data-hero-title>
+      {hero.title}
+    </h1>
+  </div>
+
+  <div class="hero__media">
+    <figure class="figure lens" data-lens>
+      {SHOW_TODOS && (
+        <div class="figure__todo">
+          <Todo what="hero photo + KiCad x-ray plot + alt text" />
+        </div>
+      )}
+      <div class="lens__stage" data-lens-stage>
+        <picture class="lens__photo">
+          <source
+            media={DESKTOP}
+            type="image/avif"
+            srcset={im.deskAvif}
+            sizes={DESK_SIZES}
+            width={im.width}
+            height={im.height}
+          />
+          <source
+            media={DESKTOP}
+            type="image/jpeg"
+            srcset={im.deskJpg}
+            sizes={DESK_SIZES}
+            width={im.width}
+            height={im.height}
+          />
+          <source type="image/avif" srcset={im.mobAvif} sizes="100vw" />
+          <img
+            src={im.fallback.src}
+            srcset={im.mobJpg}
+            sizes="100vw"
+            width={im.fallback.width}
+            height={im.fallback.height}
+            alt={hero.photoAlt}
+            loading="eager"
+            decoding="async"
+            data-lens-photo
+          />
+        </picture>
+        {/* The x-ray only loads once the lens (or the toggle) needs it: data-srcset → srcset. */}
+        <picture class="lens__xray" data-lens-xray hidden>
+          <source media={DESKTOP} type="image/avif" data-srcset={im.xrayDesk} sizes={DESK_SIZES} />
+          <img
+            data-srcset={im.xrayMob}
+            sizes="100vw"
+            width={im.fallback.width}
+            height={im.fallback.height}
+            alt={hero.xrayAlt}
+            decoding="async"
+          />
+        </picture>
+        <span class="lens__ring" aria-hidden="true" data-lens-ring></span>
+      </div>
+      <figcaption class="figure__caption t-small">
+        <span>Saarthi H7-Pro flight controller</span>
+        <span class="t-data">STM32H753</span>
+        {/* Reduced motion: no lens, a plain toggle instead. Shown by the script. */}
+        <button type="button" class="lens__toggle" aria-pressed="false" data-lens-toggle hidden>
+          Show circuit layout
+        </button>
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="hero__copy" data-hero-copy>
+    <p class="hero__supporting">{hero.supporting}</p>
+    <div class="hero__actions">
+      <Button href="/projects" data-track="hero_see_work">
+        See the work
+      </Button>
+      <a href="/contact" class="hero__secondary" data-track="hero_get_in_touch">
+        Get in touch
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { onPage, reducedMotion } from '../scripts/lifecycle';
+  import { revealHeadline } from '../scripts/hero-type';
+  import { initLens } from '../scripts/lens';
+
+  onPage(() => {
+    const root = document.querySelector<HTMLElement>('[data-hero]');
+    if (!root) return;
+    const lens = initLens(root, reducedMotion());
+    const reveal = revealHeadline(root, () => lens.activate());
+    return () => {
+      reveal();
+      lens.destroy();
+    };
+  });
+</script>

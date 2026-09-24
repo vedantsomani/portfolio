@@ -1,3 +1,5 @@
+> **Historical.** Superseded by `FINAL_GOAL.md` (portfolio only, no freelancing) and the updated `SITE_SPEC.md` / `AGENTS.md`. Kept as a record of how the site was built; do not follow it where it disagrees with those files.
+
 # How to use these prompts
 
 1. Create an empty repo. Copy `AGENTS.md` and `SITE_SPEC.md` into its root.

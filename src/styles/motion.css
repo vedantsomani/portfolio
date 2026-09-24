@@ -1,0 +1,127 @@
+/* Motion that is pure CSS, plus the hooks the scripts in src/scripts/ rely on.
+   Rule 5 (AGENTS.md): prefers-reduced-motion resolves every animation to its final state. */
+
+@layer components {
+  /* ---------- Hero reveal hold (03_PHASE3_MOTION §2) ----------
+     <html data-reveal="pending"> is set before first paint by BaseLayout's head script. The
+     headline and copy wait for hero-type.ts; if it never runs, they appear after 2.5 s anyway. */
+  [data-reveal='pending'] .hero__title {
+    visibility: hidden;
+    animation: reveal-failsafe 0s 2.5s forwards;
+  }
+
+  [data-reveal='pending'] .hero__copy {
+    opacity: 0;
+    animation: reveal-failsafe 0s 2.5s forwards;
+  }
+
+  @keyframes reveal-failsafe {
+    to {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  /* SplitText line masks. */
+  .hero-line {
+    padding-block-end: 0.06em;
+    margin-block-end: -0.06em;
+  }
+
+  /* ---------- Page-transition panel (§4) ---------- */
+  .wipe {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--oxblood);
+    transform: translateY(100%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .wipe.is-active {
+    visibility: visible;
+  }
+
+  /* ---------- Scroll moment 1: case-cover clip wipe (§5) ----------
+     Scrubbed across 30% of the viewport as the cover enters. CSS scroll-driven animation only;
+     browsers without it (and reduced motion) show the cover whole. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .cover-wipe {
+        animation: cover-wipe linear both;
+        animation-timeline: view();
+        animation-range: cover 0vh cover 30vh;
+      }
+    }
+  }
+
+  @keyframes cover-wipe {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+
+  /* ---------- Scroll moment 2: signal trace (§5, drawn by src/scripts/trace.ts) ---------- */
+  .trace-scope {
+    position: relative;
+  }
+
+  /* An absolutely positioned child of a grid would take its column as containing block. */
+  .grid > .trace,
+  .trace {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    grid-column: auto;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .trace__path {
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 2;
+    stroke-linejoin: miter;
+  }
+
+  .trace__pad {
+    fill: var(--bg);
+    stroke: var(--rule-strong);
+    stroke-width: 2;
+    opacity: 0;
+    transition: opacity var(--dur-1) linear;
+  }
+
+  .trace__pad.is-on {
+    opacity: 1;
+  }
+
+  /* ---------- Scroll moment 3: telemetry line draws once on enter (§5) ---------- */
+  [data-motion='ok'] .telemetry__line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset var(--dur-5) var(--ease-out);
+  }
+
+  [data-motion='ok'] .telemetry.is-drawn .telemetry__line {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Final state, instantly, for everyone who asks for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

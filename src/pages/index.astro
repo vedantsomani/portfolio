@@ -1,286 +1,125 @@
 ---
+import { getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Button from '../components/Button.astro';
-import Figure from '../components/Figure.astro';
+import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
-import PriceTable from '../components/PriceTable.astro';
-import Process from '../components/Process.astro';
+import WorkCard from '../components/WorkCard.astro';
+import HardwareHall from '../components/HardwareHall.astro';
 import FinalCta from '../components/FinalCta.astro';
+import SignalTrace from '../components/SignalTrace.astro';
 import Todo from '../components/Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
-import { hero, site } from '../data/site';
-import { clientCase, engineering, hall, lab } from '../data/home';
-import { getImage } from 'astro:assets';
-import heroPhoto from '../assets/placeholders/hero-photo.jpg';
+import { formatDate, getLabEntries, getProjects, statusLabel } from '../lib/content';
+import { DESKTOP, DESK_SIZES, getHeroImages } from '../lib/hero-images';
 
-const [saarthi, skynet] = engineering;
+const images = await getHeroImages();
+const saarthi = (await getProjects()).find((p) => p.id === 'saarthi');
+const setu = await getEntry('lab', 'skynet-setu');
+if (!saarthi || !setu)
+  throw new Error('Home needs the saarthi project and the skynet-setu lab entry.');
+const lab = await getLabEntries();
+const setuPublished = lab.some((e) => e.id === 'skynet-setu');
 
-// In production an entry without its content is dropped, not rendered as an empty shell.
-const showClientCase = SHOW_TODOS || Boolean(clientCase.title);
-const labEntries = SHOW_TODOS ? lab : lab.filter((e) => e.title);
-const showStatus = SHOW_TODOS || labEntries.some((e) => e.status);
-const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
-// The lab preview only ships once at least one entry has a status and a result.
-const showLab = SHOW_TODOS || lab.some((e) => e.status && e.line);
-
-// Hero photo, art-directed. Mobile: 4:3 crop, ≤ 60 KB, normal priority, so the headline is
-// the intended LCP element. Desktop (≥ 1024px): full frame ≤ 150 KB, preloaded with
-// fetchpriority="high" through a media-scoped <link> (an <img> can't scope fetchpriority).
-const variants = (widths: number[], format: 'avif' | 'jpg', crop: boolean, quality: number) =>
-  Promise.all(
-    widths.map((width) =>
-      getImage({
-        src: heroPhoto,
-        width,
-        ...(crop ? { height: Math.round((width * 3) / 4), fit: 'cover' as const } : {}),
-        format,
-        quality,
-      }),
-    ),
-  );
-const srcset = (imgs: Awaited<ReturnType<typeof getImage>>[]) =>
-  imgs.map((i) => `${i.src} ${i.attributes.width}w`).join(', ');
-const deskWidths = [1280, 1600, 2400];
-const mobWidths = [480, 760, 1080];
-const [deskAvif, deskJpg, mobAvif, mobJpg] = await Promise.all([
-  variants(deskWidths, 'avif', false, 60),
-  variants(deskWidths, 'jpg', false, 70),
-  variants(mobWidths, 'avif', true, 50),
-  variants(mobWidths, 'jpg', true, 60),
-]);
-const DESKTOP = '(min-width: 64rem)';
-const deskSizes = '84vw';
-const mobFallback = mobJpg[mobJpg.length - 1];
+// The lab preview ships once at least one entry has a status and a result.
+const preview = lab.filter((e) => SHOW_TODOS || (e.data.status && e.data.result)).slice(0, 3);
 ---
 
 <BaseLayout
   title="Vedant Somani"
-  description="Business websites and web apps, designed, built, and deployed end to end by an engineer who also writes flight-controller firmware. Based in Greater Noida, working with clients anywhere."
+  fontPreload={false}
+  description="Vedant Somani builds flight controllers, autonomy, and secure comms from the silicon up: embedded systems, drones, and the software around them."
 >
   <link
     slot="head"
     rel="preload"
     as="image"
     type="image/avif"
-    imagesrcset={srcset(deskAvif)}
-    imagesizes={deskSizes}
+    imagesrcset={images.deskAvif}
+    imagesizes={DESK_SIZES}
     media={DESKTOP}
     fetchpriority="high"
   />
-  <section class="hero grid" aria-labelledby="hero-title">
-    {/* Size container: the title scales to its column so it holds 3 lines at every width.
-         On wide screens it sits above the photo in z-order and runs over its left edge. */}
-    <div class="hero__title-wrap">
-      <h1 id="hero-title" class="hero__title t-display">
-        {hero.title}
-      </h1>
-    </div>
+  <Hero images={images} />
 
-    {/* Phase 3 mounts the X-ray lens over this image; the <img> stays the LCP element. */}
-    <div class="hero__media">
-      <figure class="figure">
-        {SHOW_TODOS && (
-          <div class="figure__todo">
-            <Todo what="hero photo + alt text" />
-          </div>
-        )}
-        <picture>
-          <source
-            media={DESKTOP}
-            type="image/avif"
-            srcset={srcset(deskAvif)}
-            sizes={deskSizes}
-            width={heroPhoto.width}
-            height={heroPhoto.height}
-          />
-          <source
-            media={DESKTOP}
-            type="image/jpeg"
-            srcset={srcset(deskJpg)}
-            sizes={deskSizes}
-            width={heroPhoto.width}
-            height={heroPhoto.height}
-          />
-          <source type="image/avif" srcset={srcset(mobAvif)} sizes="100vw" />
-          <img
-            src={mobFallback.src}
-            srcset={srcset(mobJpg)}
-            sizes="100vw"
-            width={mobFallback.attributes.width}
-            height={mobFallback.attributes.height}
-            alt={hero.photoAlt}
-            loading="eager"
-            decoding="async"
-          />
-        </picture>
-        <figcaption class="figure__caption t-small">
-          <span>Saarthi H7-Pro flight controller</span>
-          <span class="t-data">STM32H753</span>
-        </figcaption>
-      </figure>
-    </div>
-
-    <div class="hero__copy">
-      <p class="hero__supporting">{hero.supporting}</p>
-      <div class="hero__actions">
-        <Button href="/contact" data-track="hero_start_project">
-          Start a project
-        </Button>
-        <a href="/lab" class="hero__secondary" data-track="hero_see_lab">
-          See the lab
-        </a>
-      </div>
-      <p class="hero__status">
-        <span class="pad-mark" aria-hidden="true"></span>
-        {site.availability}
-      </p>
-    </div>
-  </section>
-
-  <Section id="work" title="Selected work">
-    <a slot="aside" href="/projects">
-      All projects
-    </a>
-
-    {showClientCase && (
-      <article class="work-lead">
-        <Figure
-          src={clientCase.cover}
-          alt={clientCase.coverAlt}
-          todo="client case cover"
-          sizes="(min-width: 80rem) 1280px, 100vw"
-        />
-        <div class="work-lead__meta">
-          <h3>
-            {clientCase.title ?? (
-              <Todo what="client case #1 (candidate: BU IoT & Robotics Club site)" />
-            )}
-          </h3>
-          {(clientCase.outcome || SHOW_TODOS) && (
-            <p>{clientCase.outcome ?? <Todo what="one-line verified outcome" />}</p>
-          )}
-        </div>
-      </article>
-    )}
-
-    <div class:list={['work-pair', { 'work-pair--first': !showClientCase }]}>
-      <article class="work-card work-card--large">
-        <Figure
-          src={saarthi.cover}
-          alt={saarthi.coverAlt}
-          todo="Saarthi cover"
+  <div class="trace-scope" data-trace>
+    <Section id="work" title="Selected work">
+      <a slot="aside" href="/projects">
+        All projects
+      </a>
+      <div class="work-pair">
+        <WorkCard
+          href={`/projects/${saarthi.id}`}
+          title={saarthi.data.title}
+          summary={saarthi.data.summary}
+          status={statusLabel(saarthi.data.status)}
+          role={saarthi.data.role}
+          cover={saarthi.data.cover}
+          coverTodo={saarthi.data.coverTodo}
+          morph={`cover-${saarthi.id}`}
           sizes="(min-width: 64rem) 55vw, 100vw"
         />
-        <div class="work-card__meta">
-          <h3>
-            <a href={saarthi.href} data-track="project_open">
-              {saarthi.title}
-            </a>
-          </h3>
-          {saarthi.status && <p class="t-data work-card__status">{saarthi.status}</p>}
-          <p class="work-card__summary">{saarthi.summary}</p>
-        </div>
-      </article>
-      <article class="work-card work-card--small">
-        <Figure
-          src={skynet.cover}
-          alt={skynet.coverAlt}
-          todo="SETU cover"
+        <WorkCard
+          href={setuPublished ? `/lab/${setu.id}` : '/lab'}
+          title={setu.data.title}
+          summary="A heterogeneous autonomous swarm on a dual-brain pattern: a real-time flight controller plus a Linux SBC."
+          status={statusLabel(setu.data.status)}
+          cover={setu.data.artifact}
+          coverTodo={setu.data.artifactTodo}
+          size="small"
           sizes="(min-width: 64rem) 22vw, 60vw"
         />
-        <div class="work-card__meta">
-          <h3>
-            <a href={skynet.href} data-track="project_open">
-              {skynet.title}
-            </a>
-          </h3>
-          {(skynet.status || SHOW_TODOS) && (
-            <p class="t-data work-card__status">{skynet.status ?? <Todo what="status" />}</p>
-          )}
-          <p class="work-card__summary">{skynet.summary}</p>
-        </div>
-      </article>
-    </div>
-  </Section>
-
-  <Section
-    id="hall"
-    title="Hardware hall"
-    statement
-    class="field-oxblood on-oxblood section--field"
-  >
-    <a slot="aside" href="/lab">
-      Visit the lab
-    </a>
-    <ul class="hall" role="list">
-      {hall.map((item) => (
-        <li class="hall__item">
-          <Figure
-            src={item.image}
-            alt={item.imageAlt}
-            todo="model render"
-            sizes="(min-width: 48rem) 40vw, 80vw"
-            widths={[480, 800, 1200]}
-          />
-          <div class="hall__meta">
-            <h3>{item.name}</h3>
-            <p>{item.line}</p>
-            <ul class="hall__specs t-data" role="list">
-              {item.specs
-                .filter((s) => s || SHOW_TODOS)
-                .map((s) => (
-                  <li>{s ?? <Todo what="spec" />}</li>
-                ))}
-            </ul>
-          </div>
-        </li>
-      ))}
-    </ul>
-    <Todo what="GLB models for the hardware hall (Phase 3)" block />
-  </Section>
-
-  <Section id="services" title="Services">
-    <PriceTable variant="compact" caption="Website and app packages with starting prices" />
-    <p class="section__more">
-      <a href="/services">Services and pricing</a>
-    </p>
-  </Section>
-
-  {showLab && (
-    <Section id="lab" title="From the lab">
-      <a slot="aside" href="/lab">
-        The full lab
-      </a>
-      <table class="log">
-        <caption class="visually-hidden">Recent lab entries</caption>
-        <thead>
-          <tr>
-            {showStatus && <th scope="col">Status</th>}
-            {showDate && <th scope="col">Date</th>}
-            <th scope="col">Discipline</th>
-            <th scope="col">Entry</th>
-          </tr>
-        </thead>
-        <tbody>
-          {labEntries.map((entry) => (
-            <tr>
-              {showStatus && <td class="t-data">{entry.status ?? <Todo what="status" />}</td>}
-              {showDate && <td class="t-data">{entry.date ?? <Todo what="date" />}</td>}
-              <td>{entry.discipline ?? <Todo what="discipline" />}</td>
-              <td>
-                <span class="log__title">{entry.title ?? <Todo what="third lab entry" />}</span>
-                {(entry.line || SHOW_TODOS) && (
-                  <span class="log__line">{entry.line ?? <Todo what="one-line result" />}</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      </div>
     </Section>
-  )}
 
-  <Process />
+    <Section
+      id="hall"
+      title="Hardware hall"
+      statement
+      class="field-oxblood on-oxblood section--field"
+    >
+      <a slot="aside" href="/lab">
+        Visit the lab
+      </a>
+      <HardwareHall />
+    </Section>
 
-  <FinalCta />
+    {preview.length > 0 && (
+      <Section id="lab" title="From the lab">
+        <a slot="aside" href="/lab">
+          The full lab
+        </a>
+        <table class="log">
+          <caption class="visually-hidden">Recent lab entries</caption>
+          <thead>
+            <tr>
+              <th scope="col">Status</th>
+              <th scope="col">Date</th>
+              <th scope="col">Discipline</th>
+              <th scope="col">Entry</th>
+            </tr>
+          </thead>
+          <tbody>
+            {preview.map((entry) => (
+              <tr>
+                <td class="t-data">{statusLabel(entry.data.status) ?? <Todo what="status" />}</td>
+                <td class="t-data">{formatDate(entry.data.date) ?? <Todo what="date" />}</td>
+                <td>{entry.data.discipline}</td>
+                <td>
+                  <a class="log__title" href={`/lab/${entry.id}`}>
+                    {entry.data.title}
+                  </a>
+                  <span class="log__line">
+                    {entry.data.result ?? <Todo what="one-line result" />}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+    )}
+
+    <FinalCta />
+  </div>
+  <SignalTrace />
 </BaseLayout>

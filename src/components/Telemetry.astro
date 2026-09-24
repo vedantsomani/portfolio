@@ -1,0 +1,81 @@
+---
+// Scroll moment 3 (03_PHASE3_MOTION §5): the Saarthi fusion benchmark plotted as one line that
+// draws once on enter (1.2 s). Real data only: public/data/fusion-benchmark.csv, first two numeric
+// columns as x and y. Until it exists, dev shows a labelled placeholder series and production
+// renders nothing (no invented data ships).
+import Todo from './Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
+
+const files = import.meta.glob<string>('/public/data/fusion-benchmark.csv', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const csv = Object.values(files)[0];
+
+function parse(text: string): [number, number][] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.split(',').map(Number))
+    .filter((cols) => cols.length >= 2 && cols.slice(0, 2).every(Number.isFinite))
+    .map((cols) => [cols[0], cols[1]]);
+}
+
+// Dev-only placeholder: a deterministic damped oscillation, clearly labelled as not data.
+const placeholder = (): [number, number][] =>
+  Array.from({ length: 240 }, (_, i) => [
+    i,
+    Math.exp(-i / 90) * Math.sin(i / 6) * 8 + Math.sin(i * 1.7) * 0.6,
+  ]);
+
+const points = csv ? parse(csv) : SHOW_TODOS ? placeholder() : [];
+const W = 1000;
+const H = 240;
+let d = '';
+if (points.length > 1) {
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
+  const [y0, y1] = [Math.min(...ys), Math.max(...ys)];
+  d = points
+    .map(([x, y], i) => {
+      const px = ((x - x0) / (x1 - x0 || 1)) * W;
+      const py = H - 8 - ((y - y0) / (y1 - y0 || 1)) * (H - 16);
+      return `${i ? 'L' : 'M'}${px.toFixed(1)} ${py.toFixed(1)}`;
+    })
+    .join(' ');
+}
+---
+
+{d && (
+  <figure class="telemetry" data-telemetry>
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="telemetry-cap">
+      <line class="telemetry__axis" x1="0" x2={W} y1={H / 2} y2={H / 2} />
+      <path class="telemetry__line" d={d} pathLength="1" data-telemetry-line />
+    </svg>
+    <figcaption id="telemetry-cap" class="t-small">
+      Saarthi fusion benchmark, {points.length} samples
+      {!csv && <Todo what="placeholder series — add public/data/fusion-benchmark.csv" />}
+    </figcaption>
+  </figure>
+)}
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+
+  // motion.css hides the line (dashoffset 1) only when motion is allowed; this draws it once.
+  onPage(() => {
+    const fig = document.querySelector<HTMLElement>('[data-telemetry]');
+    if (!fig) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        fig.classList.add('is-drawn');
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(fig);
+    return () => io.disconnect();
+  });
+</script>

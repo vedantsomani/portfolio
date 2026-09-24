@@ -47,7 +47,11 @@
   }
 
   /* ---------- Buttons ---------- */
+  /* Micro-interaction (03_PHASE3_MOTION §6): the hover fill wipes in from the left through a
+     clip-path (and retracts the same way); press scales to 0.98. */
   .btn {
+    position: relative;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -55,34 +59,54 @@
     padding: 0 1.5rem;
     border: 0;
     border-radius: 0;
+    background: var(--btn-bg);
+    color: var(--btn-ink);
     font-size: var(--fs-body);
     font-stretch: 108%;
     font-weight: 650;
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
+    transition:
+      color var(--dur-2) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--btn-wipe);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--dur-2) var(--ease-out);
+  }
+
+  .btn:hover {
+    color: var(--btn-ink-hover, var(--btn-ink));
+  }
+
+  .btn:hover::before {
+    clip-path: inset(0);
+  }
+
+  .btn:active {
+    transform: scale(0.98);
   }
 
   /* Owned colour at full strength. Label is --bg: 5.27:1 (ink on oxblood-hi would be 3.04:1).
      #5A1E14 stays for large fields only. */
   .btn--primary {
-    background: var(--oxblood-hi);
-    color: var(--bg);
-  }
-
-  .btn--primary:hover {
-    background: var(--ink);
-    color: var(--bg);
+    --btn-bg: var(--oxblood-hi);
+    --btn-ink: var(--bg);
+    --btn-wipe: var(--ink);
   }
 
   .btn--inverted {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  .btn--inverted:hover {
-    background: var(--bg);
-    color: var(--ink);
+    --btn-bg: var(--ink);
+    --btn-ink: var(--bg);
+    --btn-wipe: var(--bg);
+    --btn-ink-hover: var(--ink);
   }
 
   .btn--small {
@@ -155,14 +179,18 @@
 
   .nav__primary a,
   .nav__menu {
+    --ul-rest: 0%;
     font-weight: 550;
     text-decoration: none;
   }
 
-  .nav__primary a:hover,
   .nav__primary a[aria-current='page'] {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
+    --ul-rest: 100%;
+  }
+
+  .nav__home,
+  .footer__home {
+    background: none;
   }
 
   .nav__menu {
@@ -221,6 +249,7 @@
   }
 
   .menu__nav a {
+    --ul-rest: 0%;
     font-size: var(--fs-h1);
     font-stretch: 112%;
     font-weight: 750;
@@ -314,9 +343,10 @@
     container-type: inline-size;
   }
 
-  /* 14cqi keeps "engineered." (6.93em wide) inside its column: 48px at 375, ~118px at 1440. */
+  /* 11cqi keeps "controllers," inside its column at 320; the long headline runs 5–7 lines. */
   .hero__title {
-    font-size: min(var(--fs-display), 14cqi);
+    font-size: min(var(--fs-display), 11cqi);
+    line-height: 0.95;
   }
 
   .hero__supporting {
@@ -337,29 +367,109 @@
     font-weight: 550;
   }
 
-  .hero__status {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1) 0.75rem;
-    margin-block-start: var(--space-4);
-    color: var(--ink-2);
-    font-size: var(--fs-small);
-  }
-
-  .pad-mark {
-    width: 0.625rem;
-    height: 0.625rem;
-    background: var(--ink-2);
-  }
-
   .grid > .hero__media {
     grid-column: bleed;
   }
 
-  .hero__media img {
+  /* ---------- X-ray lens ---------- */
+  .lens__stage {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    /* Vertical swipes scroll the page; horizontal drags move the lens. */
+    touch-action: pan-y;
+  }
+
+  .lens__photo img,
+  .lens__xray img {
+    display: block;
+    width: 100%;
+    height: auto;
     aspect-ratio: 4 / 3;
     object-fit: cover;
+  }
+
+  .lens__xray {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lens__xray[hidden] {
+    display: none;
+  }
+
+  .lens__xray img {
+    height: 100%;
+  }
+
+  /* CSS fallback: the x-ray shows through a soft circle at the smoothed pointer. */
+  .lens--css .lens__xray {
+    mask-image: radial-gradient(
+      circle var(--r, 0px) at var(--x, 50%) var(--y, 50%),
+      #000 60%,
+      transparent 100%
+    );
+  }
+
+  /* Reduced-motion toggle: a straight cut to the x-ray, no mask. */
+  .lens--xray .lens__xray {
+    mask-image: none;
+  }
+
+  .lens__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity var(--dur-2) linear;
+  }
+
+  .lens__canvas.is-ready {
+    opacity: 1;
+  }
+
+  /* Follows the lens on the hero only; the native cursor stays. */
+  .lens__ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: -0.875rem 0 0 -0.875rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: scale(0);
+  }
+
+  .lens:not(.lens--live) .lens__ring {
+    display: none;
+  }
+
+  @media (hover: none) {
+    .lens__ring {
+      display: none;
+    }
+  }
+
+  .lens__toggle {
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    background: none;
+    border: 0;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--ink-2);
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .lens__toggle[aria-pressed='true'] {
+    text-decoration-color: var(--ink);
+    text-decoration-thickness: 2px;
   }
 
   /* Caption sits on the photo as a label, so the photo can run to the hero's edges. */
@@ -367,6 +477,7 @@
     position: absolute;
     left: var(--margin);
     bottom: var(--space-2);
+    z-index: 2;
     margin: 0;
     padding: 0.375rem 0.625rem;
     background: var(--bg);
@@ -388,6 +499,11 @@
       grid-column: 2 / 10;
       grid-row: 1;
       padding-block-start: var(--space-5);
+      pointer-events: none;
+    }
+
+    .hero__title {
+      font-size: min(6.25rem, 8.6cqi);
     }
 
     .grid > .hero__media {
@@ -395,12 +511,13 @@
       grid-row: 1 / -1;
     }
 
-    .hero__media .figure,
-    .hero__media picture {
+    .hero__media .lens,
+    .lens__stage,
+    .lens__photo {
       height: 100%;
     }
 
-    .hero__media img {
+    .lens__photo img {
       height: 100%;
       aspect-ratio: auto;
     }
@@ -417,57 +534,47 @@
     }
   }
 
-  /* ---------- Selected work ---------- */
+  /* ---------- Work cards (Home, Projects) ---------- */
   .section__head a,
   .section__more a {
     font-weight: 550;
   }
 
-  .section__more {
-    margin-block-start: var(--space-4);
+  .work-card__cover {
+    display: block;
+    background: none;
   }
 
-  .work-lead__meta,
   .work-card__meta {
     display: grid;
     gap: var(--space-1);
     margin-block-start: var(--space-2);
   }
 
-  @media (min-width: 48rem) {
-    .work-lead__meta {
-      grid-template-columns: 1fr 1fr;
-      align-items: baseline;
-      gap: var(--space-4);
-    }
+  .work-card__title {
+    font-size: var(--fs-h3);
+    font-stretch: 100%;
+    font-weight: 650;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
   }
 
-  .work-card h3 a {
-    text-decoration: none;
+  .work-card__title a {
+    --ul-rest: 0%;
   }
 
-  .work-card h3 a:hover {
-    text-decoration: underline;
-  }
-
-  .work-card__status {
+  .work-card__status,
+  .work-card__summary,
+  .work-card__role {
     color: var(--ink-2);
   }
 
-  .work-card__summary {
-    color: var(--ink-2);
-  }
-
-  .work-pair {
+  .work-pair,
+  .projects__pair {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
     row-gap: var(--space-5);
-    margin-block-start: var(--space-5);
-  }
-
-  .work-pair--first {
-    margin-block-start: 0;
   }
 
   .work-card--large {
@@ -476,6 +583,17 @@
 
   .work-card--small {
     grid-column: 5 / -1;
+  }
+
+  .projects {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* The lead card spans the whole list; its --large column span belongs to the pair grids only
+     (in this one-column grid it would create implicit columns and squeeze the pair). */
+  .projects > .work-card {
+    grid-column: 1 / -1;
   }
 
   @media (min-width: 64rem) {
@@ -487,24 +605,27 @@
       grid-column: 10 / -1;
       margin-block-start: 10rem;
     }
+
+    .projects__pair .work-card--large {
+      grid-column: 1 / 8;
+    }
+
+    .projects__pair .work-card--small {
+      grid-column: 9 / -1;
+      margin-block-start: 8rem;
+    }
   }
 
   /* ---------- Hardware hall ---------- */
-  .hall {
+  .hall__list {
     display: grid;
     gap: var(--gutter);
   }
 
   @media (min-width: 48rem) {
-    .hall {
+    .hall__list {
       grid-template-columns: 1fr 1fr;
     }
-  }
-
-  /* Hardware hall sits on a full-bleed oxblood field; its cards are --bg surfaces on it. */
-  .section--field {
-    margin-block-start: var(--section);
-    padding-block: var(--section);
   }
 
   /* align-content: start keeps images the same height when one card has fewer spec lines. */
@@ -514,6 +635,11 @@
     gap: var(--space-3);
     padding: var(--space-3);
     background: var(--bg);
+    color: var(--ink);
+  }
+
+  .hall__item[hidden] {
+    display: none;
   }
 
   .hall__meta {
@@ -521,7 +647,7 @@
     gap: var(--space-1);
   }
 
-  .hall__meta > p {
+  .hall__meta > p:not(.hall__link) {
     color: var(--ink-2);
   }
 
@@ -531,116 +657,107 @@
     margin-block-start: var(--space-2);
   }
 
-  /* ---------- Price table ---------- */
-  .price {
-    container-type: inline-size;
-  }
-
-  .price__table {
-    width: 100%;
-    text-align: left;
-  }
-
-  .price__table thead th {
-    padding-block-end: var(--space-2);
-    color: var(--ink-2);
-    font-size: var(--fs-small);
-    font-weight: 450;
-  }
-
-  .price__table tbody tr {
-    border-top: 1px solid var(--rule);
-  }
-
-  .price__table tbody tr:last-child {
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .price__table th,
-  .price__table td {
-    padding: var(--space-3) var(--space-3) var(--space-3) 0;
-    vertical-align: baseline;
-  }
-
-  .price__table td:last-child,
-  .price__table th:last-child {
-    padding-inline-end: 0;
-  }
-
-  .price__scope {
-    color: var(--ink-2);
-  }
-
-  .price__amount {
-    font-weight: 650;
-    white-space: nowrap;
-  }
-
-  .price__target {
-    color: var(--ink-2);
-    white-space: nowrap;
-  }
-
-  @container (max-width: 44rem) {
-    .price__table,
-    .price__table tbody {
-      display: block;
-    }
-
-    .price__table thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-
-    .price__table tbody tr {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: var(--space-1) var(--space-2);
-      padding-block: var(--space-3);
-    }
-
-    .price__table th,
-    .price__table td {
-      padding: 0;
-    }
-
-    .price__scope {
-      grid-column: 1 / -1;
-      grid-row: 2;
-    }
-
-    .price__amount {
-      text-align: right;
-    }
-
-    .price__target {
-      grid-column: 1 / -1;
-    }
-  }
-
-  .price__band {
-    display: grid;
-    gap: var(--space-1) var(--space-4);
-    margin-block-start: var(--space-4);
-    padding: var(--space-3);
-    background: var(--surface);
-  }
-
-  .price__band-scope {
-    color: var(--ink-2);
-  }
-
-  .price__band-link {
+  .hall__link {
+    margin-block-start: var(--space-2);
     font-weight: 550;
   }
 
-  @container (min-width: 44rem) {
-    .price__band {
-      grid-template-columns: auto 1fr auto;
-      align-items: baseline;
+  /* The hall's cards are --bg surfaces, so links and focus rings use the canvas colours. */
+  .on-oxblood .hall__item a:hover {
+    color: var(--oxblood-hi);
+  }
+
+  .on-oxblood .hall__item :focus-visible,
+  .on-oxblood .hall__stage:focus-visible {
+    outline-color: var(--oxblood-hi);
+  }
+
+  .hall__stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--bg);
+    cursor: grab;
+    touch-action: pan-y;
+  }
+
+  .hall__stage:active {
+    cursor: grabbing;
+  }
+
+  .hall__canvas,
+  .hall__sprite {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hall__sprite {
+    background-repeat: no-repeat;
+    background-size: 2400% 100%;
+  }
+
+  .hall__hint {
+    position: absolute;
+    left: var(--space-3);
+    bottom: var(--space-2);
+    color: var(--ink-2);
+    pointer-events: none;
+  }
+
+  .hall__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .hall__btn {
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    background: none;
+    border: 1px solid currentColor;
+    color: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .hall__count {
+    min-width: 5ch;
+    text-align: center;
+  }
+
+  /* No JS: just the list. With JS (html[data-motion], set before first paint): one stage beside
+     the active object's details, controls underneath, from the first frame, so the hall never
+     shifts when Three.js arrives. */
+  html:not([data-motion]) .hall__stage,
+  html:not([data-motion]) .hall__controls {
+    display: none;
+  }
+
+  [data-motion] .hall {
+    display: grid;
+    gap: var(--gutter);
+  }
+
+  [data-motion] .hall__poster {
+    display: none;
+  }
+
+  [data-motion] .hall__list {
+    grid-template-columns: 1fr;
+  }
+
+  .hall:not(.hall--ready) .hall__item:not(:first-child) {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    [data-motion] .hall {
+      grid-template-columns: 7fr 5fr;
+    }
+
+    [data-motion] .hall__controls {
+      grid-column: 1 / -1;
     }
   }
 
@@ -668,7 +785,7 @@
   }
 
   .log__title {
-    display: block;
+    display: inline-block;
     font-weight: 650;
   }
 
@@ -703,77 +820,6 @@
     }
 
     .log td:nth-child(n + 3) {
-      grid-column: 1 / -1;
-    }
-  }
-
-  /* ---------- Process ---------- */
-  .process {
-    display: grid;
-    gap: var(--space-4);
-    padding: 0;
-  }
-
-  .process__step {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1.25rem auto 1fr;
-    column-gap: var(--space-2);
-    align-items: baseline;
-  }
-
-  .process__pad {
-    width: 0.875rem;
-    height: 0.875rem;
-    border: 2px solid var(--ink);
-    border-radius: 50%;
-    align-self: center;
-  }
-
-  /* The trace between pads. Vertical on small screens. */
-  .process__step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: calc(0.4375rem - 1px);
-    top: calc(50% + 0.5rem);
-    height: calc(100% + var(--space-4) - 1rem);
-    width: 2px;
-    background: var(--rule-strong);
-  }
-
-  .process__num {
-    color: var(--ink-2);
-  }
-
-  .process__line {
-    grid-column: 3;
-    color: var(--ink-2);
-  }
-
-  @media (min-width: 64rem) {
-    .process {
-      grid-template-columns: repeat(5, 1fr);
-      gap: var(--gutter);
-    }
-
-    .process__step {
-      grid-template-columns: auto 1fr;
-      row-gap: var(--space-1);
-    }
-
-    .process__pad {
-      grid-column: 1 / -1;
-      margin-block-end: var(--space-2);
-    }
-
-    .process__step:not(:last-child)::after {
-      left: 1rem;
-      top: calc(0.4375rem - 1px);
-      width: calc(100% + var(--gutter) - 1.125rem);
-      height: 2px;
-    }
-
-    .process__line {
       grid-column: 1 / -1;
     }
   }
@@ -835,14 +881,8 @@
     gap: var(--space-1) var(--space-3);
   }
 
-  .footer__nav a,
-  .footer__links a {
-    text-decoration: none;
-  }
-
-  .footer__nav a:hover,
-  .footer__links a:hover {
-    text-decoration: underline;
+  .footer__nav a {
+    --ul-rest: 0%;
   }
 
   .footer__legal {
@@ -860,7 +900,7 @@
     }
   }
 
-  /* ---------- Page header (Services) ---------- */
+  /* ---------- Page header (Projects, Lab, About) ---------- */
   .page-head {
     padding-block: var(--space-5) 0;
     row-gap: var(--space-3);
@@ -878,40 +918,6 @@
     .grid > .page-head__actions {
       grid-column: 2 / 10;
     }
-  }
-
-  /* ---------- Terms ---------- */
-  .terms {
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .terms__group > dt {
-    font-weight: 650;
-    margin-block-end: var(--space-1);
-  }
-
-  .terms__group > dd {
-    color: var(--ink-2);
-  }
-
-  .terms__split {
-    display: grid;
-    gap: var(--space-1);
-  }
-
-  .terms__split div {
-    display: flex;
-    gap: var(--space-3);
-  }
-
-  .terms__split dt {
-    min-width: 10rem;
-  }
-
-  .terms__split dd {
-    color: var(--ink);
-    font-weight: 650;
   }
 
   /* ---------- Contact ---------- */
@@ -1027,8 +1033,7 @@
     border-color: var(--oxblood-hi);
   }
 
-  .field [aria-invalid='true'],
-  .field[aria-invalid='true'] .choice {
+  .field [aria-invalid='true'] {
     border-color: var(--oxblood-hi);
   }
 
@@ -1036,48 +1041,6 @@
     color: var(--oxblood-hi);
     font-weight: 550;
     font-size: var(--fs-small);
-  }
-
-  .choices {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-  }
-
-  .choice {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.625rem;
-    min-height: 3rem;
-    padding: 0 1rem;
-    border: 1px solid var(--rule-strong);
-    background: var(--surface);
-    cursor: pointer;
-    font-weight: 450 !important;
-  }
-
-  .choice:hover {
-    border-color: var(--ink-2);
-  }
-
-  .choice:has(input:checked) {
-    border-color: var(--ink);
-  }
-
-  .choice:has(input:focus-visible) {
-    outline: 2px solid var(--oxblood-hi);
-    outline-offset: 2px;
-  }
-
-  .choice input {
-    accent-color: var(--ink);
-    width: 1.125rem;
-    height: 1.125rem;
-    margin: 0;
-  }
-
-  .choice input:focus-visible {
-    outline: none;
   }
 
   .form__summary {
@@ -1130,6 +1093,292 @@
 
   .form-status:focus {
     outline: none;
+  }
+
+  /* ---------- Case study / lab entry header (full-bleed oxblood) ---------- */
+  .case-head {
+    padding-block: calc(var(--nav-h) + var(--space-5)) var(--space-5);
+    row-gap: var(--space-3);
+  }
+
+  .case-head__back a {
+    font-weight: 550;
+  }
+
+  .case-head__summary {
+    max-width: 44ch;
+    font-size: var(--fs-h3);
+    line-height: 1.4;
+  }
+
+  .case-head__facts,
+  .case-head__specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .case-head__facts dt,
+  .case-head__specs dt {
+    color: var(--ink-2);
+  }
+
+  .case-head__specs {
+    padding-block-start: var(--space-3);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+
+  @media (min-width: 64rem) {
+    .grid > .case-head__title,
+    .grid > .case-head__summary {
+      grid-column: 2 / 11;
+    }
+  }
+
+  .case-cover {
+    padding-block-start: var(--space-5);
+  }
+
+  .case-body {
+    padding-block: var(--section) 0;
+  }
+
+  @media (min-width: 64rem) {
+    .grid > .case-body__inner {
+      grid-column: 4 / 12;
+    }
+  }
+
+  .case-section + .case-section {
+    margin-block-start: var(--space-6);
+  }
+
+  .case-section__title {
+    margin-block-end: var(--space-3);
+  }
+
+  .prose > * + * {
+    margin-block-start: 1em;
+  }
+
+  .case-links {
+    display: grid;
+    gap: var(--space-1);
+    font-weight: 550;
+  }
+
+  .case-nav {
+    padding-block: var(--section) 0;
+  }
+
+  .case-nav__list {
+    display: grid;
+    gap: var(--space-3) var(--gutter);
+    padding-block-start: var(--space-3);
+    border-top: 1px solid var(--rule);
+  }
+
+  .case-nav__list li {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .case-nav__list span {
+    color: var(--ink-2);
+  }
+
+  .case-nav__list a {
+    justify-self: start;
+    font-size: var(--fs-h2);
+    font-stretch: 108%;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  @media (min-width: 48rem) {
+    .case-nav__list {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .case-nav__list li:last-child {
+      justify-items: end;
+    }
+
+    .case-nav__list li:last-child a {
+      justify-self: end;
+    }
+  }
+
+  /* ---------- Architecture diagram ---------- */
+  .arch__flow {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .arch__col {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+  }
+
+  .arch__block {
+    flex: 1;
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+  }
+
+  .arch__title {
+    color: var(--ink-2);
+  }
+
+  .arch__nodes {
+    display: grid;
+    gap: 0.25rem;
+    font-weight: 550;
+  }
+
+  .arch__trace {
+    align-self: flex-start;
+    width: 2.5rem;
+    height: 1rem;
+    margin: var(--space-1) 0 var(--space-1) var(--space-3);
+    transform: rotate(90deg);
+    fill: var(--rule-strong);
+    stroke: var(--rule-strong);
+    stroke-width: 2;
+  }
+
+  @media (min-width: 64rem) {
+    .arch__flow {
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    .arch__col {
+      flex: 1;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .arch__block {
+      align-self: stretch;
+    }
+
+    .arch__trace {
+      flex: none;
+      align-self: center;
+      margin: 0;
+      transform: none;
+    }
+  }
+
+  /* ---------- Lab ---------- */
+  /* Off the oxblood field the hall needs a surface step to have edges at all. */
+  .lab-hall .hall__stage,
+  .lab-hall .hall__item {
+    background: var(--surface);
+  }
+
+  .lab-hall__title {
+    margin-block-end: var(--space-4);
+  }
+
+  .lab-groups {
+    display: grid;
+    gap: var(--space-5);
+    margin-block-start: var(--space-4);
+  }
+
+  .lab-group__status {
+    color: var(--ink-2);
+    margin-block-end: var(--space-2);
+  }
+
+  .lab-list__item {
+    display: grid;
+    gap: 0.25rem;
+    max-width: none;
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--rule);
+  }
+
+  .lab-list__title {
+    justify-self: start;
+    font-size: var(--fs-h3);
+    font-weight: 650;
+  }
+
+  .lab-list__meta,
+  .lab-list__item p {
+    color: var(--ink-2);
+  }
+
+  /* ---------- Telemetry ---------- */
+  .telemetry {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--section) 0;
+  }
+
+  .grid > .telemetry,
+  .telemetry {
+    width: min(100% - 2 * var(--margin), var(--max));
+    margin-inline: auto;
+  }
+
+  .telemetry svg {
+    width: 100%;
+    height: auto;
+    background: var(--surface);
+  }
+
+  .telemetry__axis {
+    stroke: var(--rule);
+    stroke-width: 1;
+  }
+
+  .telemetry__line {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .telemetry figcaption {
+    color: var(--ink-2);
+  }
+
+  /* ---------- About ---------- */
+  .about {
+    row-gap: var(--space-5);
+  }
+
+  .about__heading {
+    margin-block-start: var(--space-5);
+  }
+
+  .about__roles {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .about__resume {
+    margin-block-start: var(--space-4);
+    font-weight: 600;
+  }
+
+  @media (min-width: 64rem) {
+    .grid > .about__photo {
+      grid-column: 2 / 6;
+    }
+
+    .grid > .about__text {
+      grid-column: 7 / -2;
+    }
   }
 
   /* ---------- 404 ---------- */

@@ -1,133 +1,102 @@
-# SITE_SPEC.md — Vedant Somani: Engineering Lab × Freelance Studio
+# SITE_SPEC.md — Vedant Somani: engineering portfolio
+
+Source of truth for content, design, and motion. Updated to `FINAL_GOAL.md` (portfolio only, no freelancing). Where the phase files `01`–`04` disagree with this file, this file wins; they are historical.
 
 ## 1. Positioning
-One brand, two proof systems. The homepage sells to clients first; depth lives in /projects and /lab.
+A personal engineering portfolio. No freelance offer, pricing, or process.
+
+- Headline: "Flight controllers, autonomy, and secure comms — built from the silicon up."
+- Supporting: "I'm Vedant Somani, a CSE student at Bennett University building embedded systems, drones, and the software around them."
+- CTAs: "See the work" → `/projects` (primary) · "Get in touch" → `/contact` (secondary). The nav button is "Get in touch".
+- Final CTA field: "Working on something hard?" + "Get in touch".
+
+Audience: recruiters, research labs, collaborators, and future co-founders and investors for a defence-tech startup.
 Test for every page: understandable in 10 s, credible in 30 s, contactable in 60 s.
-
-- Headline: "Websites and apps, built by an engineer who also writes flight-controller firmware."
-- Supporting: "I design, build, and deploy business websites and web apps end to end — from Greater Noida, for clients anywhere."
-- CTAs: "Start a project" (primary) · "See the lab" (secondary)
-- Availability: "Taking select freelance projects" — TODO(vedant): confirm
-
-Audience priority: (1) local/SMB owner, (2) startup founder, (3) recruiter/tech lead, (4) engineering peer.
 
 ## 2. Information architecture
 ```
-/                    Home
-/projects            Index — filter: All / Client work / Engineering
-/projects/[slug]     Case study (client or engineering template)
-/services            Offers, pricing, process, FAQ
-/lab                 Build log + hardware hall
-/lab/[slug]          Experiment entry
-/about               Bio, workspace photo, résumé
+/                    Home: hero (X-ray lens) → selected work → hardware hall → lab preview → final CTA
+/projects            Engineering projects (no filter: one kind in production)
+/projects/[slug]     Engineering case study
+/lab                 Hardware hall + telemetry + build log (entries grouped by status)
+/lab/[slug]          Lab entry (only entries with a status are built in production)
+/about               Photo, three paragraphs, roles, résumé link
 /contact             Form + email
-/resume.pdf
-404                  Custom, with links to Projects and Contact
+/resume.pdf          TODO(vedant): the link appears once public/resume.pdf exists
+404                  Custom, with links to Projects, Contact, Home
+/services            301 → / (retired)
 ```
+Home's lab preview stays hidden until at least one lab entry has a status and a result.
 
 ## 3. Design system
 | Token | Value | Use |
 |---|---|---|
 | `--bg` | `#14100E` | Canvas |
-| `--surface` | derive: same hue, ~4% lighter | Panels |
-| `--ink` | derive warm off-white, ≥ 12:1 on `--bg` | Primary text |
-| `--ink-2` | derive, ≥ 4.5:1 on `--bg` | Secondary text |
-| `--rule` | derive, low contrast | Structural lines (sparingly) |
-| `--oxblood` | `#5A1E14` | Brand fields |
-| `--oxblood-hi` | `#E25964` (hsl 355° 70% 61.6%), 5.27:1 on `--bg` | Primary button fill, focus rings, error text, link hover, PCB traces |
+| `--surface` | `#1E1916` | Panels |
+| `--ink` | `#F2EBE4` (16.0:1 on bg) | Primary text |
+| `--ink-2` | `#A99D93` (7.1:1 on bg) | Secondary text, status marks |
+| `--rule` / `--rule-strong` | `#352C27` / `#75675E` | Structural lines / input borders, the signal trace |
+| `--oxblood` | `#5A1E14` | Large full-bleed fields only |
+| `--oxblood-hi` | `#E25964` (5.27:1 on bg), final | Buttons, focus rings, error text, link hover |
 
-**Oxblood rules (Lando principle: owned color, used boldly)**
-- Oxblood comes from a real object: Saarthi's red solder mask (TODO(vedant): next PCB revision) and the X-ray PCB render.
-- Use `--oxblood` (#5A1E14) in large fields only: the full-bleed contact/final-CTA section, the Hardware hall section on Home (full-bleed field, ink text, cards on `--bg` surfaces), case-study headers, and page-transition panels.
-- Primary buttons fill with `--oxblood-hi`, label `--bg` (5.27:1), hover to `--ink`.
-- Never on small text (`#5A1E14` fails contrast).
-- Small red accents are limited to buttons, focus rings, and error text. Links are `--ink` with an `--ink-2` underline and turn `--oxblood-hi` only on hover (`--ink` on oxblood fields). Status marks (e.g. the availability dot) are `--ink-2`.
-- Put the contrast ratios for every pair in a comment in `tokens.css`.
+**Red usage rule**
+- `--oxblood-hi` appears only on buttons, focus rings, and error text, plus the link hover colour. Button labels are `--bg` (5.27:1).
+- Prose links are `--ink` with an `--ink-2` underline; on hover a currentColor underline draws in and the text turns `--oxblood-hi` (`--ink` on oxblood fields, where oxblood-hi is only 3.59:1).
+- Status marks (the availability dot, status labels) are `--ink-2`.
+- `--oxblood` `#5A1E14` only as large full-bleed fields: Hardware hall (Home), final CTA, case-study and lab-entry headers, Contact header, page-transition panel. Never on small text.
+- Imagery is exempt: the X-ray layer is copper drawn in `--oxblood-hi`, as the real KiCad plot will be.
+- Contrast ratios for every pair are in `src/styles/tokens.css`.
 
-**Type**
-- Archivo variable. Display uses expanded `wdth` (~112–125) with heavy weight and tight tracking; body uses `wdth` 100, 17–18 px, measure ≤ 70ch.
-- IBM Plex Mono for real data only.
-- Modular scale (propose one). Sentence case everywhere.
+**Type**: Archivo variable (display `wdth` 125, weight 800, tight tracking; body `wdth` 100, 17–18 px, measure ≤ 70ch). IBM Plex Mono for real data only (part numbers, measurements, dates, status). Sentence case everywhere.
 
-**Surface & imagery**
-- No gradients, no shadows. Depth comes from photography, layering, and surface steps; rules are secondary.
-- Imagery: real photos (bench, boards, drones, one consistent lighting setup) > real CAD/3D > diagrams > screen recordings. Never stock or AI images.
-- Wordmark: "VEDANT" drawn with PCB-trace geometry (45° corners, pad terminals). TODO(vedant): final SVG. Agent makes a placeholder.
-- Grid: 12 columns, 1280 max width, fluid to 320 px.
+**Surface & imagery**: no gradients, no shadows, square corners. Real photos > real CAD/3D > diagrams > screen recordings. Never stock or AI images. Generated PCB-pattern placeholders stay until real files land (see `ASSETS.md`). Wordmark: "VEDANT" in PCB-trace geometry (placeholder; TODO(vedant): final SVG). Grid: 12 columns, 1280 max, fluid to 320.
 
-## 4. Motion system (summary — full spec in `03_PHASE3_MOTION.md`)
-1. **Hero X-ray lens** (signature): a photo of Saarthi; the cursor lens reveals the aligned KiCad copper layout. OGL shader with velocity-reactive radius, decaying trail, and noise edge. CSS mask fallback, scripted pass on mobile, toggle under reduced motion.
-2. **Hero type:** one line-masked SplitText reveal, once per session, ≤ 1.3 s total.
-3. **Hardware hall:** real GLB models (Saarthi PCB, SETU/F450) in a drag-to-rotate carousel with specs in mono.
-4. **Page transitions:** oxblood panel wipe between main routes; shared-element image morph into case studies.
-5. **Scroll moments (only three):** case-cover clip wipes, the left-gutter signal trace, the Lab telemetry line.
-6. **Micro:** button clip-wipe fill, drawn link underlines. Nothing else hovers.
+## 4. Motion system (full spec: `03_PHASE3_MOTION.md` §1–§6, all implemented)
+1. **Hero X-ray lens**: OGL shader (velocity-reactive radius up to 1.6×, decaying trail, simplex-noise edge, `--oxblood-hi` rim), CSS mask fallback (no WebGL, ≤ 4 cores, or saveData), one scripted Lissajous pass on touch, "Show circuit layout" toggle under reduced motion.
+2. **Hero type**: one SplitText line-masked reveal, once per session, ≤ 1.3 s.
+3. **Hardware hall**: Three.js (lazy), drag to rotate with inertia, 6°/s idle turn, carousel, AVIF-sprite fallback, procedural placeholder meshes until GLBs exist.
+4. **Page transitions**: `--oxblood` panel wipe between routes; shared-element morph from project card to case study.
+5. **Scroll moments (exactly three)**: case-cover clip wipe (CSS `view()` timeline), left-gutter signal trace (DrawSVG + ScrollTrigger, desktop, `--rule-strong` per the red rule), Lab telemetry line (draws once; real CSV only, so hidden in production until it exists).
+6. **Micro**: button clip-wipe fill + 0.98 press; drawn link underline. Nothing else hovers.
 
-Easing: `--ease-out: cubic-bezier(.16,1,.3,1)`, `--ease-in: cubic-bezier(.7,0,.84,0)`. Durations: 150 / 250 / 400 / 700 / 1200 ms only.
+Rules: kill and re-init on `astro:before-swap` / `astro:page-load`; `prefers-reduced-motion` resolves everything to its final state; no content lives only inside a canvas. Easing `--ease-out: cubic-bezier(.16,1,.3,1)`, `--ease-in: cubic-bezier(.7,0,.84,0)`.
 
 ## 5. Page blueprints
+**Home**: nav (wordmark; Projects, Lab, About; "Get in touch"), hero (copy left, lens right; lens full-bleed under the headline on mobile), selected work (Saarthi large, SETU small), hardware hall (full-bleed oxblood field), lab preview (gated, see §2), final CTA field.
 
-### Home
-1. Nav: wordmark; Projects, Lab, Services, About; "Start a project" button. Transparent → `--bg` after 40 px scroll. No glass blur.
-2. Hero: copy on the left 5 columns, X-ray lens on the right 7 (full-bleed on mobile, below the copy).
-3. Selected work: one full-width client case + an asymmetric pair (Saarthi large, one engineering card small).
-4. Hardware hall: full-bleed `--oxblood` field with a display-size heading, 2 objects on `--bg` cards, and a link to /lab.
-5. Services: 3 offers with "from" prices + a narrow "Connected prototypes" band.
-6. Lab preview: 3 entries with status.
-7. Process: Scope → Prototype → Build → Test → Launch (a real sequence, so numbering is allowed).
-8. Final CTA: full-bleed oxblood field, "Have something worth building?", button, email, GitHub, LinkedIn.
+**Engineering case study**: oxblood header (title, summary, status, year, role, specs in mono) → cover → Objective → Architecture (inline diagram, HTML labels) → Constraints → Hardware/firmware → Bench setup → Measurements → Failures & iterations → Status → Links (public only) → prev/next → final CTA. Empty sections are TODO blocks in dev and absent in production.
 
-### Case study — client
-Problem → Constraints → Approach → Solution (screens/video) → Implementation → Outcome (verified only) → Next improvements → CTA "Build something similar".
+**Lab entry**: oxblood header (status, date, discipline) → artifact image → body → final CTA.
 
-### Case study — engineering
-Objective → Architecture diagram → Constraints → Hardware/firmware → Bench setup → Measurements → Failures & iterations → Status → Links (public only).
+**About**: photo placeholder, three short paragraphs (who I am; why hardware and software together; what I'm building toward), roles, résumé link. No skill logos.
 
-### Services
-| Package | Price | Scope | Target |
-|---|---|---|---|
-| Launch | from ₹15,000 | 1–3 pages, custom responsive UI, enquiry/WhatsApp, analytics, basic SEO, deploy | ~1 week |
-| Business | ₹30,000–45,000 | 5–7 pages, CMS/Git content, forms, maps/booking hooks, technical SEO | 2–3 weeks |
-| Web app / MVP | ₹60,000–1,20,000 | Auth, database, dashboard/admin, APIs, deploy | 3–6 weeks |
-| Care | ₹3,000–8,000/month | Updates, small changes, monitoring | Ongoing |
-| Connected prototypes | Scoped individually | Software + embedded | — |
-
-- "Mobile MVP" stays behind a feature flag until a shipped mobile case exists.
-- Payment: 50/50 for small sites; 40/30/30 for larger projects.
-- Exclusions: domains, paid APIs, third-party subscriptions, app-store fees.
-- FAQ: TODO(vedant): 5 real questions.
-
-### Contact
-- Fields: name, email, company/site (optional), project type, budget (<₹20k / ₹20–50k / ₹50k–1L / ₹1L+ / Not sure), description. Honeypot. No phone field.
-- Microcopy: "No sales call needed for a rough scope." "Half-built product? Send what exists."
-- Success: "Sent. I'll reply within 2 working days." TODO(vedant): confirm.
-
-### Lab
-Status per entry: Concept / Prototype / Validated / Archived. Each entry has status, date, discipline, one real artifact image, and a one-line hypothesis/result. The hardware hall sits at the top.
+**Contact**
+- Fields: Name, Email, Reason (Internship / Research collaboration / Hardware project / Other), Message. Honeypot. `?reason=` prefills the reason.
+- Email subject "New message — {name} ({reason})"; plain-text and HTML bodies, one field per line, then `Message:`; all input escaped.
+- Recipient `CONTACT_TO_EMAIL` if set, else `hello@vedantsomani.tech`. Sender `Vedant Somani <hello@vedantsomani.tech>`; the shared Resend test domain is never used in production.
+- Success: "Sent. I'll reply by email."
 
 ## 6. Content (verified facts only)
+**Saarthi (H7-Pro)**: engineering, flagship. Flight-controller firmware on STM32H753. Sensors: dual ICM-42688-P IMUs, DPS310 + BMP390 barometers, MS4525DO airspeed. Mahony filter, fusion benchmark lab, frozen HAL/math contracts. Status: Prototype. Needs: role, year, benchmark CSV, top-down board photo, KiCad plots, GLB model, repo visibility decision.
 
-**Client case #1** — TODO(vedant). Candidate: Bennett University IoT & Robotics Club website redesign (Next.js). Needs: scope, your role, screens, outcome. No Services page ships without at least one client case.
+**PRAHARI**: engineering, restricted. Formally verified, automaton-shielded RL navigation for GPS-denied flight: PPO/SAC over belief state (Isaac Lab), LTL→Büchi shield synthesis, Mealy mission controller. Targets Saarthi on F450; PMW3901 optical flow, VL53L0X rangefinder. Status: TODO(vedant).
 
-**Saarthi (H7-Pro)** — engineering, flagship. Flight-controller firmware on STM32H753. Sensors: dual ICM-42688-P IMUs, DPS310 + BMP390 barometers, MS4525DO airspeed. Mahony filter, fusion benchmark lab, frozen HAL/math contracts. Status: Prototype. Needs: benchmark CSV, top-down board photo, KiCad plots, GLB model, repo visibility decision.
+**VAJRA**: engineering, restricted. Post-quantum mesh protocol: ML-KEM-768 + X25519 hybrid KEM, ML-DSA-65, ChaCha20-Poly1305. ProVerif models; Rust implementation. Status: Prototype.
 
-**PRAHARI** — engineering, restricted. Formally verified, automaton-shielded RL navigation for GPS-denied flight: PPO/SAC over belief state (Isaac Lab), LTL→Büchi shield synthesis, Mealy mission controller. Targets Saarthi on F450; PMW3901 optical flow, VL53L0X rangefinder. Status: TODO(vedant).
+**SKYNET / SETU**: lab entry. Heterogeneous autonomous swarm; dual-brain pattern (real-time FC + Linux SBC); SETU airframe (F450-class). Needs: status, third spec, GLB of the frame, photos.
 
-**VAJRA** — engineering, restricted. Post-quantum mesh protocol: ML-KEM-768 + X25519 hybrid KEM, ML-DSA-65, ChaCha20-Poly1305. ProVerif models; Rust implementation. Status: Prototype.
+**Saarthi fusion benchmark**: lab entry. Needs: status, date, one-line result, CSV.
 
-**SKYNET / SETU** — Lab entry. Heterogeneous autonomous swarm; dual-brain pattern (real-time FC + Linux SBC); SETU airframe. Needs: GLB of the F450/SETU frame, photos.
+**About**: B.Tech CSE, Bennett University (2024–28). Head of Research, Technotix BU and BC3. Core member, BURS. Needs: portrait/workspace photo, résumé PDF, confirmation of the three paragraphs.
 
-**About** — B.Tech CSE, Bennett University (2024–28). Head of Research, Technotix BU and BC3. Core member, BURS. Needs: portrait/workspace photo, résumé PDF.
+Restricted projects (PRAHARI, VAJRA, SKYNET): architecture and results only. No control laws, protocol internals, key handling, or repo links.
 
 ## 7. SEO & measurement
-- Per-page title, description, canonical. OG images generated at build with Satori using the tokens and wordmark.
-- `sitemap.xml`, `robots.txt`. JSON-LD `Person` (/about) and `Service` (/services) only for visible content.
-- Targets: /services → "freelance web developer India"; /services#websites → "business website developer India".
-- Events: `hero_start_project`, `hero_see_lab`, `hero_lens_used`, `project_open`, `hall_object_rotate`, `service_view`, `contact_open`, `form_start`, `lead_submit`, `email_click`, `whatsapp_click`, `resume_download`, `github_out`.
+- Per-page title (≤ 60 chars), description (≤ 155), canonical on `https://vedantsomani.tech` (no `.html`, no trailing slash). OG images generated at build with Satori (`scripts/og.mjs`): tokens + wordmark.
+- `sitemap-index.xml`, `robots.txt`. JSON-LD: `Person` on /about, `CreativeWork` on project pages. No `Service`, `Offer`, reviews, or ratings.
+- **Pre-launch**: `PRE_LAUNCH = true` in `src/worker.ts`, so production sends `X-Robots-Tag: noindex, nofollow`. Local audits override it with `npm run preview:audit` (`wrangler dev --var PRE_LAUNCH:false`).
+- Security headers in `public/_headers` and on every Worker response; CSP allows `static.cloudflareinsights.com` (script) and `cloudflareinsights.com` (reports).
+- Analytics: Cloudflare Web Analytics beacon, gated on `PUBLIC_CF_BEACON_TOKEN`. Custom events through `track()` (a no-op until a backend is chosen): `hero_see_work`, `hero_get_in_touch`, `hero_lens_used`, `project_open`, `hall_object_rotate`, `contact_open`, `form_start`, `lead_submit`, `email_click`, `resume_download`, `github_out`.
 
 ## 8. Phases
-- **P0** Design plan → approval (`01_PHASE0_PHASE1.md`)
-- **P1** Foundation: scaffold, tokens, layout, Home (static), Services, Contact (`01_PHASE0_PHASE1.md`)
-- **P2** Content system, templates, Projects, Lab, About (`02_PHASE2_CONTENT.md`)
-- **P3** Signature motion (`03_PHASE3_MOTION.md`)
-- **P4** SEO, analytics, QA, launch (`04_PHASE4_LAUNCH.md`)
+All phases are complete as of `FINAL_GOAL.md`. The phase files (`01`–`04`) are kept as historical records. Launch steps are at the end of `REPORT.md`.

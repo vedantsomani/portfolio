@@ -1,0 +1,47 @@
+---
+title: PRAHARI
+slug: prahari
+summary: Formally verified, automaton-shielded reinforcement-learning navigation for GPS-denied flight.
+kind: engineering
+restricted: true
+cover: ../../assets/placeholders/prahari-cover.jpg
+coverAlt: Placeholder for a PRAHARI flight or simulation image
+coverTodo: PRAHARI cover image
+order: 2
+specs:
+  - { label: Target, value: Saarthi on F450 }
+  - { label: Optical flow, value: PMW3901 }
+  - { label: Rangefinder, value: VL53L0X }
+---
+
+<CaseSection title="Objective">
+  Navigation without GPS, where a learned policy can only act inside limits that are verified in
+  advance.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="PRAHARI architecture"
+    columns={[
+      { title: 'Sensing', nodes: ['PMW3901 optical flow', 'VL53L0X rangefinder'] },
+      { title: 'Policy', nodes: ['PPO / SAC over a belief state', 'Trained in Isaac Lab'] },
+      { title: 'Shield', nodes: ['LTL → Büchi shield synthesis', 'Mealy mission controller'] },
+      { title: 'Vehicle', nodes: ['Saarthi on F450'] },
+    ]}
+  />
+  <Todo what="confirm the diagram's grouping" block />
+</CaseSection>
+
+<CaseSection title="Constraints" todo="constraints, at architecture level only" />
+
+<CaseSection title="Hardware and firmware">
+  PRAHARI targets the Saarthi flight controller on an F450 frame, with a PMW3901 optical-flow sensor
+  and a VL53L0X rangefinder. This project is restricted: this page covers architecture and results
+  only.
+</CaseSection>
+
+<CaseSection title="Bench setup" todo="bench or simulation setup, architecture level" />
+
+<CaseSection title="Measurements" todo="results that can be published" />
+
+<CaseSection title="Failures and iterations" todo="iterations that can be published" />

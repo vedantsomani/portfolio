@@ -1,0 +1,148 @@
+---
+// Engineering case study: Objective → Architecture → Constraints → Hardware/firmware → Bench setup →
+// Measurements → Failures & iterations (all from the MDX) → Status → Links (from frontmatter).
+// Restricted projects (AGENTS.md rule 3) never show a repository link; the schema refuses one.
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Figure from './Figure.astro';
+import CaseSection from './CaseSection.astro';
+import ArchDiagram from './ArchDiagram.astro';
+import Todo from './Todo.astro';
+import FinalCta from './FinalCta.astro';
+import SignalTrace from './SignalTrace.astro';
+import { SHOW_TODOS } from '../lib/todo';
+import { statusLabel, type Project } from '../lib/content';
+
+interface Props {
+  project: Project;
+  prev: Project;
+  next: Project;
+}
+const { project, prev, next } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+const status = statusLabel(d.status);
+const url = new URL(`/projects/${project.id}`, Astro.site).href;
+
+// Only what the page shows: name, summary, author, status, year.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: d.title,
+  description: d.summary,
+  url,
+  image: new URL(`/og/project-${project.id}.png`, Astro.site).href,
+  author: { '@type': 'Person', name: 'Vedant Somani', url: Astro.site?.href },
+  ...(status && { creativeWorkStatus: status }),
+  ...(d.year && { dateCreated: d.year }),
+};
+const facts = [
+  { label: 'Status', value: status, todo: 'status' },
+  { label: 'Year', value: d.year, todo: 'year' },
+  { label: 'Role', value: d.role.join(', ') || undefined, todo: 'role' },
+].filter((f) => f.value || SHOW_TODOS);
+const links = d.restricted
+  ? []
+  : [
+      d.repoUrl && { href: d.repoUrl, label: 'Source repository', track: 'github_out' },
+      d.demoUrl && { href: d.demoUrl, label: 'Live demo', track: undefined },
+    ].filter((l): l is { href: string; label: string; track: string | undefined } => Boolean(l));
+---
+
+<BaseLayout title={d.title} og={`project-${project.id}`} description={d.summary} underNav>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)}></script>
+  <header class="case-head field-oxblood on-oxblood grid">
+    <p class="case-head__back t-small">
+      <a href="/projects">All projects</a>
+    </p>
+    <div class="case-head__title display-fit">
+      <h1 class="t-display">{d.title}</h1>
+    </div>
+    <p class="case-head__summary">{d.summary}</p>
+    {facts.length > 0 && (
+      <dl class="case-head__facts">
+        {facts.map((f) => (
+          <div>
+            <dt class="t-small">{f.label}</dt>
+            <dd>{f.value ?? <Todo what={f.todo} />}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
+    {d.specs && (
+      <dl class="case-head__specs">
+        {d.specs.map((s) => (
+          <div>
+            <dt class="t-small">{s.label}</dt>
+            <dd class="t-data">{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
+  </header>
+
+  <div class="case-cover grid">
+    <div class="case-cover__media" transition:name={`cover-${project.id}`}>
+      <Figure
+        src={d.cover}
+        alt={d.coverAlt}
+        todo={d.coverTodo}
+        priority
+        sizes="(min-width: 80rem) 1280px, 100vw"
+      />
+    </div>
+  </div>
+
+  <div class="case-body trace-scope grid" data-trace>
+    <div class="case-body__inner">
+      <Content components={{ CaseSection, ArchDiagram, Todo }} />
+
+      {status ? (
+        <CaseSection title="Status">
+          <p>{status}.</p>
+        </CaseSection>
+      ) : (
+        <CaseSection title="Status" todo="status" />
+      )}
+
+      {d.restricted ? (
+        <CaseSection title="Links">
+          <p>
+            Restricted project: no public repository, and no implementation details beyond
+            architecture and results.
+          </p>
+        </CaseSection>
+      ) : links.length ? (
+        <CaseSection title="Links">
+          <ul class="case-links" role="list">
+            {links.map((l) => (
+              <li>
+                <a href={l.href} data-track={l.track}>
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </CaseSection>
+      ) : (
+        <CaseSection title="Links" todo="repository visibility decision; public links" />
+      )}
+    </div>
+  </div>
+
+  <nav class="case-nav grid" aria-label="More projects">
+    <ul class="case-nav__list" role="list">
+      <li>
+        <span class="t-small">Previous</span>
+        <a href={`/projects/${prev.id}`}>{prev.data.title}</a>
+      </li>
+      <li>
+        <span class="t-small">Next</span>
+        <a href={`/projects/${next.id}`}>{next.data.title}</a>
+      </li>
+    </ul>
+  </nav>
+
+  <FinalCta />
+  <SignalTrace />
+</BaseLayout>

@@ -1,0 +1,82 @@
+[
+  {
+    "route": "/",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.84",
+    "cls": "0.022",
+    "pass": true
+  },
+  {
+    "route": "/projects",
+    "perf": 100,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.75",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/saarthi",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.83",
+    "cls": "0.014",
+    "pass": true
+  },
+  {
+    "route": "/projects/prahari",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.83",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/vajra",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.85",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/lab",
+    "perf": 97,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.68",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/about",
+    "perf": 100,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.68",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/contact",
+    "perf": 100,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.52",
+    "cls": "0.000",
+    "pass": true
+  }
+]

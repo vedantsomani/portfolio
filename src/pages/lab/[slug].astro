@@ -1,0 +1,71 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Figure from '../../components/Figure.astro';
+import CaseSection from '../../components/CaseSection.astro';
+import ArchDiagram from '../../components/ArchDiagram.astro';
+import Todo from '../../components/Todo.astro';
+import FinalCta from '../../components/FinalCta.astro';
+import { formatDate, getLabEntries, statusLabel, type LabEntry } from '../../lib/content';
+
+export const getStaticPaths = (async () =>
+  (await getLabEntries()).map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  entry: LabEntry;
+}
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const summary =
+  d.result ?? d.hypothesis ?? `${d.title}, a ${d.discipline.toLowerCase()} entry in the lab.`;
+---
+
+<BaseLayout title={d.title} og={`lab-${entry.id}`} description={summary} underNav>
+  <header class="case-head field-oxblood on-oxblood grid">
+    <p class="case-head__back t-small">
+      <a href="/lab">The lab</a>
+    </p>
+    <div class="case-head__title display-fit">
+      <h1 class="t-display">{d.title}</h1>
+    </div>
+    <dl class="case-head__facts">
+      <div>
+        <dt class="t-small">Status</dt>
+        <dd class="t-data">{statusLabel(d.status) ?? <Todo what="status" />}</dd>
+      </div>
+      <div>
+        <dt class="t-small">Date</dt>
+        <dd class="t-data">{formatDate(d.date) ?? <Todo what="date" />}</dd>
+      </div>
+      <div>
+        <dt class="t-small">Discipline</dt>
+        <dd>{d.discipline}</dd>
+      </div>
+    </dl>
+  </header>
+
+  <div class="case-cover grid">
+    <div class="case-cover__media">
+      <Figure
+        src={d.artifact}
+        alt={d.artifactAlt}
+        todo={d.artifactTodo}
+        priority
+        sizes="(min-width: 80rem) 1280px, 100vw"
+      />
+    </div>
+  </div>
+
+  <div class="case-body grid">
+    <div class="case-body__inner">
+      <Content components={{ CaseSection, ArchDiagram, Todo }} />
+    </div>
+  </div>
+
+  <FinalCta />
+</BaseLayout>

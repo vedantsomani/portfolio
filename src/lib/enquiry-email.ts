@@ -1,27 +1,27 @@
-// Builds the enquiry email sent to Vedant: subject, plain text, and an HTML version with the
-// same structure (one field per line, blank line, then the message).
+// Builds the contact email sent to Vedant: subject, plain text, and an HTML version with the
+// same structure (one field per line, blank line, then the message). All input is escaped in HTML.
 
 // vedantsomani.tech is verified in Resend, so the site's own address is the default sender.
 export const DEFAULT_FROM = 'Vedant Somani <hello@vedantsomani.tech>';
 
-// Resend's shared test sender only delivers to the account owner (a live send returned 403),
-// so a resend.dev address is never used in production, even if it is configured.
+// Resend's shared test domain only delivers to the account owner (a live send returned 403), so a
+// sender on it is never used in production, even if one is configured.
+const SHARED_TEST_DOMAIN = /@resend\.dev>?$/i;
+
 export function resolveFrom(configured: string | undefined, isProd: boolean): string {
   const value = configured?.trim();
   if (!value) return DEFAULT_FROM;
-  if (isProd && /@resend\.dev>?$/i.test(value)) {
-    console.warn('[contact] CONTACT_FROM_EMAIL uses resend.dev; sending from', DEFAULT_FROM);
+  if (isProd && SHARED_TEST_DOMAIN.test(value)) {
+    console.warn('[contact] CONTACT_FROM_EMAIL is on the shared test domain; using', DEFAULT_FROM);
     return DEFAULT_FROM;
   }
   return value;
 }
 
-export interface Enquiry {
+export interface Message {
   name: string;
   email: string;
-  company?: string;
-  projectType: string;
-  budget: string;
+  reason: string;
   message: string;
 }
 
@@ -33,20 +33,21 @@ const escapeHtml = (s: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-export function buildEnquiryEmail(e: Enquiry): { subject: string; text: string; html: string } {
+// Header-safe: no line breaks can reach the subject line.
+const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
+
+export function buildMessageEmail(m: Message): { subject: string; text: string; html: string } {
   const fields: [string, string][] = [
-    ['Name', e.name],
-    ['Email', e.email],
-    ['Company / site', e.company?.trim() || '—'],
-    ['Project type', e.projectType],
-    ['Budget', e.budget],
+    ['Name', m.name],
+    ['Email', m.email],
+    ['Reason', m.reason],
   ];
 
   const text = [
     ...fields.map(([label, value]) => `${label}: ${value}`),
     '',
     'Message:',
-    e.message,
+    m.message,
   ].join('\n');
 
   const html = [
@@ -56,9 +57,9 @@ export function buildEnquiryEmail(e: Enquiry): { subject: string; text: string; 
     ),
     '<br>',
     '<div><strong>Message:</strong></div>',
-    `<div style="white-space: pre-wrap;">${escapeHtml(e.message)}</div>`,
+    `<div style="white-space: pre-wrap;">${escapeHtml(m.message)}</div>`,
     '</div>',
   ].join('\n');
 
-  return { subject: `New enquiry — ${e.name} (${e.projectType})`, text, html };
+  return { subject: `New message — ${oneLine(m.name)} (${m.reason})`, text, html };
 }
