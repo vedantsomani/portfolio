@@ -1,6 +1,8 @@
 ---
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
+import Todo from './Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
 
 // AVIF with a JPG fallback, intrinsic width/height always set, lazy unless `priority`.
 interface Props {
@@ -10,6 +12,8 @@ interface Props {
   widths?: number[];
   priority?: boolean;
   caption?: string;
+  /** Placeholder slot: shows a dev-only TODO badge on the image. */
+  todo?: string;
   class?: string;
 }
 const {
@@ -19,12 +23,18 @@ const {
   widths = [480, 800, 1200, 1600, 2400],
   priority = false,
   caption,
+  todo,
   class: className,
 } = Astro.props;
 const usable = widths.filter((w) => w <= src.width);
 ---
 
 <figure class:list={['figure', className]}>
+  {todo && SHOW_TODOS && (
+    <div class="figure__todo">
+      <Todo what={todo} />
+    </div>
+  )}
   <Picture
     src={src}
     alt={alt}

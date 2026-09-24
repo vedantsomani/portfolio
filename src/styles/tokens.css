@@ -75,6 +75,7 @@
     --space-4: 2rem;
     --space-5: clamp(2.5rem, 1.9rem + 2.5vw, 4rem);
     --space-6: clamp(4rem, 2.8rem + 5vw, 7.5rem);
+    --section: clamp(4rem, 8vw, 8rem); /* gap between page sections */
 
     --nav-h: 4.5rem;
 

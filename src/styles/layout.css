@@ -31,11 +31,22 @@
   }
 
   .section {
-    padding-block: var(--space-6) 0;
+    padding-block: var(--section) 0;
   }
 
   .section:last-child {
-    padding-block-end: var(--space-6);
+    padding-block-end: var(--section);
+  }
+
+  /* Statement heading: display type across the full width, the aside link underneath. */
+  .section--statement > .section__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .section__statement {
+    width: 100%;
   }
 
   /* Section heading hangs in columns 1–3; content runs 4–12. */

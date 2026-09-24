@@ -6,9 +6,10 @@ import AxeBuilder from '@axe-core/playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const base = process.argv[2] ?? 'http://localhost:4321';
+const out = process.argv[3] ?? 'qa';
 const routes = ['/', '/services', '/contact', '/this-page-does-not-exist'];
 const widths = [375, 768, 1440];
-mkdirSync('qa', { recursive: true });
+mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch({ channel: 'msedge' });
 const report = {};
@@ -20,7 +21,7 @@ for (const width of widths) {
     await page.goto(base + route, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     const name = route === '/' ? 'home' : route.slice(1).replace(/\W+/g, '-');
-    await page.screenshot({ path: `qa/${name}-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `${out}/${name}-${width}.png`, fullPage: true });
 
     const probe = await page.evaluate(() => {
       const lines = (el) => {
@@ -47,5 +48,5 @@ for (const width of widths) {
 }
 
 await browser.close();
-writeFileSync('qa/report.json', JSON.stringify(report, null, 2));
+writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));

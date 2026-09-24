@@ -64,14 +64,15 @@
     white-space: nowrap;
   }
 
+  /* Owned colour at full strength. Label is --bg: 5.27:1 (ink on oxblood-hi would be 3.04:1).
+     #5A1E14 stays for large fields only. */
   .btn--primary {
-    background: var(--oxblood);
-    color: var(--ink);
+    background: var(--oxblood-hi);
+    color: var(--bg);
   }
 
-  /* ink on oxblood-hi is 3.04:1, so the label flips to --bg (5.27:1). */
   .btn--primary:hover {
-    background: var(--oxblood-hi);
+    background: var(--ink);
     color: var(--bg);
   }
 
@@ -122,17 +123,7 @@
     background: transparent;
   }
 
-  /* Over an oxblood field the primary button would vanish; use the inverted variant. */
-  .under-nav .nav[data-js]:not([data-scrolled]) .btn--primary {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
-  .under-nav .nav[data-js]:not([data-scrolled]) .btn--primary:hover {
-    background: var(--bg);
-    color: var(--ink);
-  }
-
+  /* Over an oxblood field, focus rings switch to ink (oxblood-hi is only 3.59:1 there). */
   .under-nav .nav[data-js]:not([data-scrolled]) :focus-visible {
     outline-color: var(--ink);
   }
@@ -282,6 +273,18 @@
   }
 
   /* ---------- Figure ---------- */
+  .figure {
+    position: relative;
+  }
+
+  .figure__todo {
+    position: absolute;
+    top: var(--space-1);
+    left: var(--space-1);
+    z-index: 1;
+    background: var(--bg);
+  }
+
   .figure img {
     width: 100%;
     height: auto;
@@ -298,6 +301,7 @@
   }
 
   /* ---------- Hero ---------- */
+  /* Mobile: headline, then the photo full-bleed at 4:3, then the copy. */
   .hero {
     padding-block: var(--space-4) 0;
     row-gap: var(--space-4);
@@ -350,30 +354,63 @@
     grid-column: bleed;
   }
 
-  .hero__media .figure__caption {
-    padding-inline: var(--margin);
+  .hero__media img {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
   }
 
+  /* Caption sits on the photo as a label, so the photo can run to the hero's edges. */
+  .hero__media .figure__caption {
+    position: absolute;
+    left: var(--margin);
+    bottom: var(--space-2);
+    margin: 0;
+    padding: 0.375rem 0.625rem;
+    background: var(--bg);
+  }
+
+  /* Desktop: photo cols 7–12 from the top of the hero to its bottom, bleeding right. The headline
+     (cols 1–8) sits above it in z-order and runs over its left edge. */
   @media (min-width: 64rem) {
     .hero {
-      padding-block-start: var(--space-5);
-      row-gap: var(--space-5);
+      grid-template-rows: auto 1fr;
+      min-height: clamp(38rem, calc(100svh - var(--nav-h)), 60rem);
+      padding: 0;
+      row-gap: 0;
     }
 
     .grid > .hero__title-wrap {
+      position: relative;
+      z-index: 2;
       grid-column: 2 / 10;
+      grid-row: 1;
+      padding-block-start: var(--space-5);
+    }
+
+    .grid > .hero__media {
+      grid-column: 8 / -1;
+      grid-row: 1 / -1;
+    }
+
+    .hero__media .figure,
+    .hero__media picture {
+      height: 100%;
+    }
+
+    .hero__media img {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .hero__media .figure__caption {
+      left: var(--gutter);
     }
 
     .grid > .hero__copy {
       grid-column: 2 / 7;
-    }
-
-    .grid > .hero__media {
-      grid-column: 7 / -1;
-    }
-
-    .hero__media .figure__caption {
-      padding-inline: 0 var(--margin);
+      grid-row: 2;
+      align-self: end;
+      padding-block: var(--space-4) var(--space-5);
     }
   }
 
@@ -423,7 +460,11 @@
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
     row-gap: var(--space-5);
-    margin-block-start: var(--space-6);
+    margin-block-start: var(--space-5);
+  }
+
+  .work-pair--first {
+    margin-block-start: 0;
   }
 
   .work-card--large {
@@ -457,19 +498,13 @@
     }
   }
 
+  /* align-content: start keeps images the same height when one card has fewer spec lines. */
   .hall__item {
-    container-type: inline-size;
     display: grid;
+    align-content: start;
     gap: var(--space-3);
     padding: var(--space-3);
     background: var(--surface);
-  }
-
-  @container (min-width: 34rem) {
-    .hall__item {
-      grid-template-columns: 1.2fr 1fr;
-      align-items: end;
-    }
   }
 
   .hall__meta {
@@ -746,8 +781,8 @@
 
   /* ---------- Final CTA (full-bleed oxblood) ---------- */
   .final-cta {
-    padding-block: var(--space-6);
-    margin-block-start: var(--space-6);
+    padding-block: var(--section);
+    margin-block-start: var(--section);
     row-gap: var(--space-5);
   }
 
@@ -1090,7 +1125,7 @@
 
   /* ---------- 404 ---------- */
   .not-found {
-    padding-block: var(--space-6);
+    padding-block: var(--section);
     row-gap: var(--space-4);
   }
 

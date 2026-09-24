@@ -7,11 +7,18 @@ import PriceTable from '../components/PriceTable.astro';
 import Process from '../components/Process.astro';
 import FinalCta from '../components/FinalCta.astro';
 import Todo from '../components/Todo.astro';
+import { SHOW_TODOS } from '../lib/todo';
 import { hero, site } from '../data/site';
 import { clientCase, engineering, hall, lab } from '../data/home';
 import heroPhoto from '../assets/placeholders/hero-photo.jpg';
 
 const [saarthi, skynet] = engineering;
+
+// In production an entry without its content is dropped, not rendered as an empty shell.
+const showClientCase = SHOW_TODOS || Boolean(clientCase.title);
+const labEntries = SHOW_TODOS ? lab : lab.filter((e) => e.title);
+const showStatus = SHOW_TODOS || labEntries.some((e) => e.status);
+const showDate = SHOW_TODOS || labEntries.some((e) => e.date);
 ---
 
 <BaseLayout
@@ -19,11 +26,29 @@ const [saarthi, skynet] = engineering;
   description="Business websites and web apps, designed, built, and deployed end to end by an engineer who also writes flight-controller firmware. Based in Greater Noida, working with clients anywhere."
 >
   <section class="hero grid" aria-labelledby="hero-title">
-    <!-- Size container: the title scales to its column so it holds 3 lines at every width. -->
+    {/* Size container: the title scales to its column so it holds 3 lines at every width.
+         On wide screens it sits above the photo in z-order and runs over its left edge. */}
     <div class="hero__title-wrap">
       <h1 id="hero-title" class="hero__title t-display">
         {hero.title}
       </h1>
+    </div>
+
+    {/* Phase 3 mounts the X-ray lens over this image; the <img> stays the LCP element. */}
+    <div class="hero__media">
+      <Figure
+        src={heroPhoto}
+        alt={hero.photoAlt}
+        priority
+        todo="hero photo + alt text"
+        sizes="(min-width: 64rem) 84vw, 100vw"
+        widths={[640, 960, 1280, 1600, 2400]}
+      >
+        <Fragment slot="caption">
+          <span>Saarthi H7-Pro flight controller</span>
+          <span class="t-data">STM32H753</span>
+        </Fragment>
+      </Figure>
     </div>
 
     <div class="hero__copy">
@@ -41,23 +66,6 @@ const [saarthi, skynet] = engineering;
         {site.availability}
       </p>
     </div>
-
-    <!-- Phase 3 mounts the X-ray lens over this image; the <img> stays the LCP element. -->
-    <div class="hero__media">
-      <Figure
-        src={heroPhoto}
-        alt={hero.photoAlt}
-        priority
-        sizes="(min-width: 64rem) 58vw, 100vw"
-        widths={[640, 960, 1280, 1600, 2400]}
-      >
-        <Fragment slot="caption">
-          <span>Saarthi H7-Pro flight controller</span>
-          <span class="t-data">STM32H753</span>
-          <Todo what="hero photo + alt text" />
-        </Fragment>
-      </Figure>
-    </div>
   </section>
 
   <Section id="work" title="Selected work">
@@ -65,51 +73,68 @@ const [saarthi, skynet] = engineering;
       All projects
     </a>
 
-    <article class="work-lead">
-      <Figure
-        src={clientCase.cover}
-        alt={clientCase.coverAlt}
-        sizes="(min-width: 80rem) 1280px, 100vw"
-      />
-      <div class="work-lead__meta">
-        <h3>
-          {clientCase.title ?? (
-            <Todo what="client case #1 (candidate: BU IoT & Robotics Club site)" />
+    {showClientCase && (
+      <article class="work-lead">
+        <Figure
+          src={clientCase.cover}
+          alt={clientCase.coverAlt}
+          todo="client case cover"
+          sizes="(min-width: 80rem) 1280px, 100vw"
+        />
+        <div class="work-lead__meta">
+          <h3>
+            {clientCase.title ?? (
+              <Todo what="client case #1 (candidate: BU IoT & Robotics Club site)" />
+            )}
+          </h3>
+          {(clientCase.outcome || SHOW_TODOS) && (
+            <p>{clientCase.outcome ?? <Todo what="one-line verified outcome" />}</p>
           )}
-        </h3>
-        <p>{clientCase.outcome ?? <Todo what="one-line verified outcome" />}</p>
-      </div>
-    </article>
+        </div>
+      </article>
+    )}
 
-    <div class="work-pair">
+    <div class:list={['work-pair', { 'work-pair--first': !showClientCase }]}>
       <article class="work-card work-card--large">
-        <Figure src={saarthi.cover} alt={saarthi.coverAlt} sizes="(min-width: 64rem) 55vw, 100vw" />
+        <Figure
+          src={saarthi.cover}
+          alt={saarthi.coverAlt}
+          todo="Saarthi cover"
+          sizes="(min-width: 64rem) 55vw, 100vw"
+        />
         <div class="work-card__meta">
           <h3>
             <a href={saarthi.href} data-track="project_open">
               {saarthi.title}
             </a>
           </h3>
-          <p class="t-data work-card__status">{saarthi.status}</p>
+          {saarthi.status && <p class="t-data work-card__status">{saarthi.status}</p>}
           <p class="work-card__summary">{saarthi.summary}</p>
         </div>
       </article>
       <article class="work-card work-card--small">
-        <Figure src={skynet.cover} alt={skynet.coverAlt} sizes="(min-width: 64rem) 22vw, 60vw" />
+        <Figure
+          src={skynet.cover}
+          alt={skynet.coverAlt}
+          todo="SETU cover"
+          sizes="(min-width: 64rem) 22vw, 60vw"
+        />
         <div class="work-card__meta">
           <h3>
             <a href={skynet.href} data-track="project_open">
               {skynet.title}
             </a>
           </h3>
-          <p class="t-data work-card__status">{skynet.status ?? <Todo what="status" />}</p>
+          {(skynet.status || SHOW_TODOS) && (
+            <p class="t-data work-card__status">{skynet.status ?? <Todo what="status" />}</p>
+          )}
           <p class="work-card__summary">{skynet.summary}</p>
         </div>
       </article>
     </div>
   </Section>
 
-  <Section id="hall" title="Hardware hall">
+  <Section id="hall" title="Hardware hall" statement>
     <a slot="aside" href="/lab">
       Visit the lab
     </a>
@@ -119,6 +144,7 @@ const [saarthi, skynet] = engineering;
           <Figure
             src={item.image}
             alt={item.imageAlt}
+            todo="model render"
             sizes="(min-width: 48rem) 40vw, 80vw"
             widths={[480, 800, 1200]}
           />
@@ -126,9 +152,11 @@ const [saarthi, skynet] = engineering;
             <h3>{item.name}</h3>
             <p>{item.line}</p>
             <ul class="hall__specs t-data" role="list">
-              {item.specs.map((s) => (
-                <li>{s ?? <Todo what="spec" />}</li>
-              ))}
+              {item.specs
+                .filter((s) => s || SHOW_TODOS)
+                .map((s) => (
+                  <li>{s ?? <Todo what="spec" />}</li>
+                ))}
             </ul>
           </div>
         </li>
@@ -137,42 +165,46 @@ const [saarthi, skynet] = engineering;
     <Todo what="GLB models for the hardware hall (Phase 3)" block />
   </Section>
 
-  <Section id="services" title="Services" hang>
+  <Section id="services" title="Services">
     <PriceTable variant="compact" caption="Website and app packages with starting prices" />
     <p class="section__more">
       <a href="/services">Services and pricing</a>
     </p>
   </Section>
 
-  <Section id="lab" title="From the lab">
-    <a slot="aside" href="/lab">
-      The full lab
-    </a>
-    <table class="log">
-      <caption class="visually-hidden">Recent lab entries with status and date</caption>
-      <thead>
-        <tr>
-          <th scope="col">Status</th>
-          <th scope="col">Date</th>
-          <th scope="col">Discipline</th>
-          <th scope="col">Entry</th>
-        </tr>
-      </thead>
-      <tbody>
-        {lab.map((entry) => (
+  {labEntries.length > 0 && (
+    <Section id="lab" title="From the lab">
+      <a slot="aside" href="/lab">
+        The full lab
+      </a>
+      <table class="log">
+        <caption class="visually-hidden">Recent lab entries</caption>
+        <thead>
           <tr>
-            <td class="t-data">{entry.status ?? <Todo what="status" />}</td>
-            <td class="t-data">{entry.date ?? <Todo what="date" />}</td>
-            <td>{entry.discipline ?? <Todo what="discipline" />}</td>
-            <td>
-              <span class="log__title">{entry.title ?? <Todo what="third lab entry" />}</span>
-              <span class="log__line">{entry.line ?? <Todo what="one-line result" />}</span>
-            </td>
+            {showStatus && <th scope="col">Status</th>}
+            {showDate && <th scope="col">Date</th>}
+            <th scope="col">Discipline</th>
+            <th scope="col">Entry</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </Section>
+        </thead>
+        <tbody>
+          {labEntries.map((entry) => (
+            <tr>
+              {showStatus && <td class="t-data">{entry.status ?? <Todo what="status" />}</td>}
+              {showDate && <td class="t-data">{entry.date ?? <Todo what="date" />}</td>}
+              <td>{entry.discipline ?? <Todo what="discipline" />}</td>
+              <td>
+                <span class="log__title">{entry.title ?? <Todo what="third lab entry" />}</span>
+                {(entry.line || SHOW_TODOS) && (
+                  <span class="log__line">{entry.line ?? <Todo what="one-line result" />}</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Section>
+  )}
 
   <Process />
 

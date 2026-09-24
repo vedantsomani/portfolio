@@ -62,7 +62,7 @@ const beacon =
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     {canonicalURL && <meta property="og:url" content={canonicalURL} />}
-    <!-- TODO(vedant): OG image is generated with Satori in Phase 4 -->
+    {/* TODO(vedant): OG image is generated with Satori in Phase 4 */}
     <slot name="head" />
 
     <ClientRouter fallback="swap" />

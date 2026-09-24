@@ -7,6 +7,7 @@ import Process from '../components/Process.astro';
 import FinalCta from '../components/FinalCta.astro';
 import Todo from '../components/Todo.astro';
 import { exclusions, payment } from '../data/services';
+import { SHOW_TODOS } from '../lib/todo';
 ---
 
 <BaseLayout
@@ -54,16 +55,20 @@ import { exclusions, payment } from '../data/services';
     </dl>
   </Section>
 
-  <Section id="proof" title="Client work" hang>
-    <!-- SITE_SPEC §6: no Services page ships without at least one client case. -->
-    <Todo what="client case #1 card — blocks launch" block />
-  </Section>
+  {SHOW_TODOS && (
+    <Section id="proof" title="Client work" hang>
+      {/* SITE_SPEC §6: no Services page ships without at least one client case. */}
+      <Todo what="client case #1 card — blocks launch" block />
+    </Section>
+  )}
 
   <Process />
 
-  <Section id="faq" title="Questions" hang>
-    <Todo what="5 real FAQ questions and answers" block />
-  </Section>
+  {SHOW_TODOS && (
+    <Section id="faq" title="Questions" hang>
+      <Todo what="5 real FAQ questions and answers" block />
+    </Section>
+  )}
 
   <FinalCta />
 </BaseLayout>

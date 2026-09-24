@@ -1,5 +1,8 @@
 ---
-// Visible marker for content Vedant still has to supply. Status text, so it is set in mono.
+// Visible marker for content Vedant still has to supply. Dev only: renders nothing in production.
+// Status text, so it is set in mono.
+import { SHOW_TODOS } from '../lib/todo';
+
 interface Props {
   what: string;
   block?: boolean;
@@ -8,4 +11,6 @@ const { what, block = false } = Astro.props;
 const Tag = block ? 'p' : 'span';
 ---
 
-<Tag class:list={['todo', 't-data', { 'todo--block': block }]}>TODO(vedant): {what}</Tag>
+{SHOW_TODOS && (
+  <Tag class:list={['todo', 't-data', { 'todo--block': block }]}>TODO(vedant): {what}</Tag>
+)}

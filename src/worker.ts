@@ -7,7 +7,16 @@ const PRODUCTION_HOST = 'vedantsomani.tech';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const response = await handle(request, env, ctx);
+    let response = await handle(request, env, ctx);
+
+    // With run_worker_first, `astro dev` routes public/ files here and the adapter 404s them.
+    // One lookup in the assets binding before accepting a 404 keeps dev working; in production
+    // it only runs for real 404s.
+    if (response.status === 404 && request.method === 'GET') {
+      const asset = await env.ASSETS.fetch(request);
+      if (asset.ok) response = asset;
+    }
+
     if (new URL(request.url).hostname === PRODUCTION_HOST) return response;
 
     // Asset and redirect responses can have immutable headers; copy before setting.
