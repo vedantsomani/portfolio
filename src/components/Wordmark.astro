@@ -1,0 +1,185 @@
+---
+/*
+  Placeholder "VEDANT" wordmark drawn as PCB traces. TODO(vedant): final SVG.
+
+  Construction (1u = 1/8 cap height):
+  - Trace centrelines sit on a 4u × 8u box per letter; stroke is 1u, so each glyph is 5u wide.
+  - Letter advance is 7u, leaving 2u clearance between traces of neighbouring letters.
+  - Routing is 0°/45°/90° only. Direction changes are 45° chamfers; right angles only at T-junctions
+    and on the square back of the D.
+  - Free trace ends terminate in a round pad (2u across) with a 0.9u drill that shows the background.
+  - ViewBox pads 1u on every side for pad overhang: 41u × 10u.
+*/
+interface Props {
+  size?: 'nav' | 'footer' | 'large';
+  class?: string;
+}
+const { size = 'nav', class: className } = Astro.props;
+
+type Pt = [number, number];
+type Letter = { paths: Pt[][]; closed?: boolean; pads: Pt[] };
+
+const letters: Letter[] = [
+  // V: two stems turn 45° inward and meet at the bottom pad
+  {
+    paths: [
+      [
+        [0, 0],
+        [0, 6],
+        [2, 8],
+      ],
+      [
+        [4, 0],
+        [4, 6],
+        [2, 8],
+      ],
+    ],
+    pads: [
+      [0, 0],
+      [4, 0],
+      [2, 8],
+    ],
+  },
+  // E: chamfered spine, three arms ending in pads
+  {
+    paths: [
+      [
+        [4, 0],
+        [1, 0],
+        [0, 1],
+        [0, 7],
+        [1, 8],
+        [4, 8],
+      ],
+      [
+        [0, 4],
+        [3, 4],
+      ],
+    ],
+    pads: [
+      [4, 0],
+      [4, 8],
+      [3, 4],
+    ],
+  },
+  // D: closed net, 2u chamfers on the bowl, no pads
+  {
+    paths: [
+      [
+        [0, 0],
+        [2, 0],
+        [4, 2],
+        [4, 6],
+        [2, 8],
+        [0, 8],
+      ],
+    ],
+    closed: true,
+    pads: [],
+  },
+  // A: the V inverted, with a crossbar on T-junctions
+  {
+    paths: [
+      [
+        [0, 8],
+        [0, 2],
+        [2, 0],
+      ],
+      [
+        [4, 8],
+        [4, 2],
+        [2, 0],
+      ],
+      [
+        [0, 5],
+        [4, 5],
+      ],
+    ],
+    pads: [
+      [0, 8],
+      [4, 8],
+      [2, 0],
+    ],
+  },
+  // N: full stems, one 45° diagonal from the top of the left stem
+  {
+    paths: [
+      [
+        [0, 8],
+        [0, 0],
+        [4, 4],
+      ],
+      [
+        [4, 0],
+        [4, 8],
+      ],
+    ],
+    pads: [
+      [0, 8],
+      [4, 0],
+      [4, 8],
+    ],
+  },
+  // T: bar with pads at both ends, stem on a T-junction
+  {
+    paths: [
+      [
+        [0, 0],
+        [4, 0],
+      ],
+      [
+        [2, 0],
+        [2, 8],
+      ],
+    ],
+    pads: [
+      [0, 0],
+      [4, 0],
+      [2, 8],
+    ],
+  },
+];
+
+const ADVANCE = 7;
+const PAD = 1;
+const toD = (pts: Pt[], dx: number, closed?: boolean) =>
+  pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x + dx + PAD} ${y + PAD}`).join(' ') +
+  (closed ? ' Z' : '');
+
+const traces: string[] = [];
+const pads: Pt[] = [];
+letters.forEach((l, i) => {
+  const dx = i * ADVANCE;
+  l.paths.forEach((p) => traces.push(toD(p, dx, l.closed)));
+  l.pads.forEach(([x, y]) => pads.push([x + dx + PAD, y + PAD]));
+});
+
+const width = 5 * ADVANCE + 4 + 2 * PAD;
+const height = 8 + 2 * PAD;
+const maskId = `wm-drill-${size}`;
+---
+
+<svg
+  class:list={['wordmark', `wordmark--${size}`, className]}
+  viewBox={`0 0 ${width} ${height}`}
+  role="img"
+  aria-label="Vedant Somani"
+  focusable="false"
+>
+  <defs>
+    <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
+      <rect width={width} height={height} fill="#fff"></rect>
+      {pads.map(([x, y]) => (
+        <circle cx={x} cy={y} r="0.45" fill="#000" />
+      ))}
+    </mask>
+  </defs>
+  <g mask={`url(#${maskId})`} fill="none" stroke="currentColor" stroke-width="1">
+    {traces.map((d) => (
+      <path d={d} stroke-linejoin="miter" stroke-linecap="square" />
+    ))}
+    {pads.map(([x, y]) => (
+      <circle cx={x} cy={y} r="1" fill="currentColor" stroke="none" />
+    ))}
+  </g>
+</svg>

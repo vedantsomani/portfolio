@@ -1,0 +1,48 @@
+---
+import { connectedPrototypes, packages, type Package } from '../data/services';
+
+// full: every package with its exact range and timeline (Services).
+// compact: the three build offers with "from" prices (Home).
+interface Props {
+  variant?: 'full' | 'compact';
+  caption: string;
+}
+const { variant = 'full', caption } = Astro.props;
+const rows: Package[] = variant === 'full' ? packages : packages.filter((p) => p.id !== 'care');
+---
+
+<div class:list={['price', `price--${variant}`]}>
+  <table class="price__table">
+    <caption class="visually-hidden">{caption}</caption>
+    <thead>
+      <tr>
+        <th scope="col">Package</th>
+        <th scope="col">Scope</th>
+        <th scope="col">Price</th>
+        <th scope="col">Timeline</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr id={variant === 'full' ? row.id : undefined}>
+          <th scope="row" class="price__name t-h3">
+            {row.name}
+          </th>
+          <td class="price__scope">{row.scope}</td>
+          <td class="price__amount t-num">{variant === 'full' ? row.price : row.from}</td>
+          <td class="price__target t-data">{row.target}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <div class="price__band">
+    <p class="price__band-name t-h3">{connectedPrototypes.name}</p>
+    <p class="price__band-scope">
+      {connectedPrototypes.scope}. {connectedPrototypes.price}.
+    </p>
+    <a href="/contact?type=prototype" class="price__band-link">
+      Ask about a prototype
+    </a>
+  </div>
+</div>

@@ -1,0 +1,115 @@
+---
+import Wordmark from './Wordmark.astro';
+import Button from './Button.astro';
+import { nav } from '../data/site';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner wrap">
+    <a href="/" class="nav__home" aria-current={path === '/' ? 'page' : undefined}>
+      <Wordmark size="nav" />
+    </a>
+
+    <nav class="nav__primary" aria-label="Main">
+      <ul role="list">
+        {nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <Button href="/contact" size="small" class="nav__cta">
+      Start a project
+    </Button>
+
+    <!-- Without JS the menu is the footer nav; with JS it opens the full-screen panel. -->
+    <a href="#footer-nav" class="nav__menu" data-menu-fallback>
+      Menu
+    </a>
+    <button
+      type="button"
+      class="nav__menu"
+      data-menu-open
+      aria-haspopup="dialog"
+      aria-controls="site-menu"
+      hidden
+    >
+      Menu
+    </button>
+  </div>
+
+  <dialog id="site-menu" class="menu" aria-label="Menu" data-menu>
+    <div class="menu__bar wrap">
+      <a href="/" class="nav__home">
+        <Wordmark size="nav" />
+      </a>
+      <button type="button" class="nav__menu" data-menu-close>
+        Close
+      </button>
+    </div>
+    <nav class="menu__nav wrap" aria-label="Menu">
+      <ul role="list">
+        <li>
+          <a href="/" aria-current={path === '/' ? 'page' : undefined}>
+            Home
+          </a>
+        </li>
+        {nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="/contact" aria-current={isCurrent('/contact') ? 'page' : undefined}>
+            Contact
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="menu__cta wrap">
+      <Button href="/contact" block>
+        Start a project
+      </Button>
+    </div>
+  </dialog>
+</header>
+<div class="nav-sentinel" data-nav-sentinel aria-hidden="true"></div>
+
+<script>
+  function initNav() {
+    const header = document.querySelector<HTMLElement>('[data-nav]');
+    const sentinel = document.querySelector('[data-nav-sentinel]');
+    const dialog = document.querySelector<HTMLDialogElement>('[data-menu]');
+    const open = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+    const fallback = document.querySelector<HTMLElement>('[data-menu-fallback]');
+    const close = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+    if (!header || !sentinel || !dialog || !open || !fallback || !close) return;
+
+    // Transparent until the page has scrolled 40px; solid --bg without JS.
+    header.dataset.js = '';
+    new IntersectionObserver(([entry]) => {
+      header.toggleAttribute('data-scrolled', !entry.isIntersecting);
+    }).observe(sentinel);
+
+    // showModal() makes the rest of the page inert (focus trap) and closes on Esc.
+    fallback.hidden = true;
+    open.hidden = false;
+    open.addEventListener('click', () => dialog.showModal());
+    close.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => open.focus());
+    matchMedia('(min-width: 56rem)').addEventListener('change', (e) => {
+      if (e.matches && dialog.open) dialog.close();
+    });
+  }
+
+  document.addEventListener('astro:page-load', initNav);
+</script>

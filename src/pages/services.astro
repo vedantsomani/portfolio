@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Section from '../components/Section.astro';
+import PriceTable from '../components/PriceTable.astro';
+import Process from '../components/Process.astro';
+import FinalCta from '../components/FinalCta.astro';
+import Todo from '../components/Todo.astro';
+import { exclusions, payment } from '../data/services';
+---
+
+<BaseLayout
+  title="Services and pricing"
+  description="Freelance web developer in India: business websites from ₹15,000, web apps and MVPs, care plans, and connected hardware prototypes. Clear scope, clear prices."
+>
+  <header class="page-head grid">
+    <h1 class="page-head__title">Services and pricing</h1>
+    <p class="page-head__lede">
+      I design, build, and deploy business websites and web apps end to end — from Greater Noida,
+      for clients anywhere.
+    </p>
+    <div class="page-head__actions">
+      <Button href="/contact">Start a project</Button>
+    </div>
+  </header>
+
+  <section id="websites" class="section grid" aria-labelledby="websites-title">
+    <h2 id="websites-title" class="visually-hidden">
+      Packages
+    </h2>
+    <PriceTable variant="full" caption="Packages, scope, price, and timeline" />
+  </section>
+
+  <Section id="terms" title="Payment and scope" hang>
+    <dl class="terms">
+      <div class="terms__group">
+        <dt>Payment</dt>
+        <dd>
+          <dl class="terms__split">
+            {payment.map((p) => (
+              <div>
+                <dt>{p.label}</dt>
+                <dd class="t-num">{p.split}</dd>
+              </div>
+            ))}
+          </dl>
+        </dd>
+      </div>
+      <div class="terms__group">
+        <dt>Not included</dt>
+        <dd>{exclusions.join(', ')}.</dd>
+      </div>
+    </dl>
+  </Section>
+
+  <Section id="proof" title="Client work" hang>
+    <!-- SITE_SPEC §6: no Services page ships without at least one client case. -->
+    <Todo what="client case #1 card — blocks launch" block />
+  </Section>
+
+  <Process />
+
+  <Section id="faq" title="Questions" hang>
+    <Todo what="5 real FAQ questions and answers" block />
+  </Section>
+
+  <FinalCta />
+</BaseLayout>

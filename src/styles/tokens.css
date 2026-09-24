@@ -1,0 +1,92 @@
+/* Layer order for the whole site. Declared once, here, before anything else loads. */
+@layer tokens, reset, base, layout, components, utilities;
+
+/*
+  Contrast ratios (WCAG 2.x relative luminance), computed from the hex values below.
+
+  Text on canvas / surface
+    ink        #F2EBE4 on bg       #14100E  16.01  AAA
+    ink        #F2EBE4 on surface  #1E1916  14.74  AAA
+    ink-2      #A99D93 on bg                 7.14  AAA
+    ink-2      #A99D93 on surface            6.58  AA
+    oxblood-hi #E25964 on bg                 5.27  AA
+    oxblood-hi #E25964 on surface            4.85  AA
+
+  Text on oxblood fields
+    ink        on oxblood #5A1E14           10.90  AAA  (all text on oxblood)
+    ink-2      on oxblood                    4.86  AA   (small meta only)
+    bg         on ink (inverted button)     16.01  AAA
+    bg         on oxblood-hi (button hover)  5.27  AA
+
+  Non-text (WCAG 1.4.11, needs 3:1)
+    rule-strong #75675E on bg                3.48  input borders
+    rule-strong on surface                   3.20
+    ink focus ring on oxblood               10.90
+    oxblood-hi focus ring on bg / surface    5.27 / 4.85
+    rule #352C27 on bg                       1.39  decorative only, never the sole cue
+
+  Banned pairs
+    ink on oxblood-hi                        3.04  fails (can't pass: see SITE_SPEC fix, button text flips to bg)
+    oxblood as text on bg                    1.47  fails
+
+  --oxblood-hi candidates (all hsl saturation 70%, pick one; TODO(vedant): choose)
+    0°   #E25A5A  bg 5.26  surface 4.85  oxblood 3.58  bg-on 5.26
+    355° #E25964  bg 5.27  surface 4.85  oxblood 3.59  bg-on 5.27  ← current default
+    350° #E2596F  bg 5.31  surface 4.89  oxblood 3.61  bg-on 5.31
+*/
+
+@layer tokens {
+  :root {
+    color-scheme: dark;
+
+    /* Colour */
+    --bg: #14100e;
+    --surface: #1e1916;
+    --ink: #f2ebe4;
+    --ink-2: #a99d93;
+    --rule: #352c27;
+    --rule-strong: #75675e;
+    --oxblood: #5a1e14;
+    --oxblood-hi: #e25964;
+
+    /* Type */
+    --font-sans: 'Archivo', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    /* Scale: 1.25 from 17px at 375, 1.333 from 18px at 1440, interpolated. */
+    --fs-display: clamp(3rem, 1.063rem + 8.26vw, 8.5rem);
+    --fs-h1: clamp(2.125rem, 1.64rem + 2.07vw, 3.5rem);
+    --fs-h2: clamp(1.6875rem, 1.578rem + 0.47vw, 2rem);
+    --fs-h3: clamp(1.3125rem, 1.246rem + 0.28vw, 1.5rem);
+    --fs-body: clamp(1.0625rem, 1.04rem + 0.094vw, 1.125rem);
+    --fs-small: clamp(0.875rem, 0.853rem + 0.094vw, 0.9375rem);
+    --fs-data: clamp(0.8125rem, 0.791rem + 0.094vw, 0.875rem);
+
+    --measure: 66ch;
+
+    /* Grid: 12 columns, 1280 max, fluid to 320. */
+    --max: 80rem;
+    --gutter: clamp(0.75rem, 0.486rem + 1.127vw, 1.5rem);
+    --margin: clamp(1rem, -0.17rem + 5vw, 5rem);
+    --col: calc((var(--max) - 11 * var(--gutter)) / 12);
+
+    /* Vertical rhythm */
+    --space-1: 0.5rem;
+    --space-2: 1rem;
+    --space-3: 1.5rem;
+    --space-4: 2rem;
+    --space-5: clamp(2.5rem, 1.9rem + 2.5vw, 4rem);
+    --space-6: clamp(4rem, 2.8rem + 5vw, 7.5rem);
+
+    --nav-h: 4.5rem;
+
+    /* Motion tokens (used from Phase 3) */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --dur-1: 150ms;
+    --dur-2: 250ms;
+    --dur-3: 400ms;
+    --dur-4: 700ms;
+    --dur-5: 1200ms;
+  }
+}

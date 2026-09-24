@@ -1,0 +1,22 @@
+---
+import Section from './Section.astro';
+import Todo from './Todo.astro';
+import { process } from '../data/site';
+---
+
+<Section id="process" title="How a project runs">
+  <!-- A real sequence, so it is an ordered list and the numbers are earned. -->
+  <ol class="process" role="list">
+    {process.map((step, i) => (
+      <li class="process__step">
+        <span class="process__pad" aria-hidden="true" />
+        <span class="process__num t-data" aria-hidden="true">
+          {i + 1}
+        </span>
+        <h3 class="process__name">{step.name}</h3>
+        <p class="process__line t-small">{step.line}</p>
+      </li>
+    ))}
+  </ol>
+  <Todo what="confirm process step wording" block />
+</Section>

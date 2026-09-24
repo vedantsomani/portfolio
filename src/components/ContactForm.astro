@@ -1,0 +1,334 @@
+---
+import { actions, isInputError } from 'astro:actions';
+import Button from './Button.astro';
+import Todo from './Todo.astro';
+import { budgets, projectTypes } from '../data/services';
+import { site } from '../data/site';
+
+// Renders the server result of a no-JS POST. With JS, the script below submits in place instead.
+interface Props {
+  values?: Record<string, string>;
+}
+const { values = {} } = Astro.props;
+
+const result = Astro.getActionResult(actions.contact);
+const sent = result?.data?.sent === true;
+const fieldErrors: Record<string, string[] | undefined> =
+  result?.error && isInputError(result.error) ? result.error.fields : {};
+const formError = result?.error && !isInputError(result.error) ? result.error.message : null;
+
+const typeParam = Astro.url.searchParams.get('type') ?? '';
+const selectedType =
+  values.type ?? (projectTypes.some((t) => t.value === typeParam) ? typeParam : '');
+
+const fields = [
+  ['name', 'Name'],
+  ['email', 'Email'],
+  ['company', 'Company or site'],
+  ['type', 'Project type'],
+  ['budget', 'Budget'],
+  ['description', 'What are you building?'],
+] as const;
+const errorList = fields.filter(([key]) => fieldErrors[key]?.length);
+const err = (key: string) => fieldErrors[key]?.[0];
+const describedBy = (key: string, hint = false) =>
+  [hint && `${key}-hint`, err(key) && `${key}-error`].filter(Boolean).join(' ') || undefined;
+---
+
+<div class="contact-form" data-contact>
+  <div class="form-status" role="status" tabindex="-1" data-form-success hidden={!sent}>
+    <p class="t-h2">Sent. I'll reply within 2 working days.</p>
+    <Todo what="confirm reply-time wording" />
+  </div>
+
+  <form
+    method="POST"
+    action={actions.contact}
+    class="form"
+    data-contact-form
+    hidden={sent}
+    aria-describedby="form-intro"
+  >
+    <p id="form-intro" class="form__intro t-small">
+      All fields are required unless marked optional.
+    </p>
+
+    <div
+      class="form__summary"
+      role="alert"
+      tabindex="-1"
+      data-form-summary
+      hidden={!errorList.length && !formError}
+    >
+      {formError ? (
+        <p class="form__summary-title">{formError}</p>
+      ) : (
+        <p class="form__summary-title">
+          {errorList.length === 1 ? 'There is 1 problem' : `There are ${errorList.length} problems`}{' '}
+          with the form.
+        </p>
+      )}
+      <ul role="list" data-form-summary-list>
+        {errorList.map(([key, text]) => (
+          <li>
+            <a href={`#${key === 'budget' ? 'budget-0' : key}`}>
+              {text}: {err(key)}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="form__row">
+      <div class="field" data-field="name">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          required
+          maxlength="100"
+          value={values.name}
+          aria-invalid={err('name') ? 'true' : undefined}
+          aria-describedby={describedBy('name')}
+        />
+        <p id="name-error" class="field__error" data-error hidden={!err('name')}>
+          {err('name')}
+        </p>
+      </div>
+
+      <div class="field" data-field="email">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required
+          value={values.email}
+          aria-invalid={err('email') ? 'true' : undefined}
+          aria-describedby={describedBy('email')}
+        />
+        <p id="email-error" class="field__error" data-error hidden={!err('email')}>
+          {err('email')}
+        </p>
+      </div>
+    </div>
+
+    <div class="form__row">
+      <div class="field" data-field="company">
+        <label for="company">
+          Company or site <span class="field__optional">(optional)</span>
+        </label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          autocomplete="organization"
+          maxlength="200"
+          value={values.company}
+          aria-invalid={err('company') ? 'true' : undefined}
+          aria-describedby={describedBy('company')}
+        />
+        <p id="company-error" class="field__error" data-error hidden={!err('company')}>
+          {err('company')}
+        </p>
+      </div>
+
+      <div class="field" data-field="type">
+        <label for="type">Project type</label>
+        <select
+          id="type"
+          name="type"
+          required
+          aria-invalid={err('type') ? 'true' : undefined}
+          aria-describedby={describedBy('type')}
+        >
+          <option value="" selected={!selectedType}>
+            Choose one
+          </option>
+          {projectTypes.map((t) => (
+            <option value={t.value} selected={selectedType === t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+        <p id="type-error" class="field__error" data-error hidden={!err('type')}>
+          {err('type')}
+        </p>
+      </div>
+    </div>
+
+    <fieldset
+      class="field field--choices"
+      data-field="budget"
+      aria-invalid={err('budget') ? 'true' : undefined}
+      aria-describedby={describedBy('budget')}
+    >
+      <legend>Budget</legend>
+      <div class="choices">
+        {budgets.map((b, i) => (
+          <label class="choice" for={`budget-${i}`}>
+            <input
+              type="radio"
+              id={`budget-${i}`}
+              name="budget"
+              value={b.value}
+              required
+              checked={values.budget === b.value}
+            />
+            <span class="t-num">{b.label}</span>
+          </label>
+        ))}
+      </div>
+      <p id="budget-error" class="field__error" data-error hidden={!err('budget')}>
+        {err('budget')}
+      </p>
+    </fieldset>
+
+    <div class="field" data-field="description">
+      <label for="description">What are you building?</label>
+      <p id="description-hint" class="field__hint t-small">
+        Half-built product? Send what exists.
+      </p>
+      <textarea
+        id="description"
+        name="description"
+        rows="7"
+        required
+        minlength="20"
+        maxlength="5000"
+        aria-invalid={err('description') ? 'true' : undefined}
+        aria-describedby={describedBy('description', true)}
+      >{values.description}</textarea>
+      <p id="description-error" class="field__error" data-error hidden={!err('description')}>
+        {err('description')}
+      </p>
+    </div>
+
+    <div class="form__hp" aria-hidden="true">
+      <label for="website">Leave this empty</label>
+      <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <div class="form__submit">
+      <Button type="submit" data-submit>
+        Send
+      </Button>
+      <p class="t-small form__alt">
+        Prefer email?{' '}
+        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+      </p>
+    </div>
+  </form>
+</div>
+
+<script>
+  import { actions, isInputError } from 'astro:actions';
+
+  // Progressive enhancement: submit without leaving the page so typed values survive errors.
+  const labels: Record<string, string> = {
+    name: 'Name',
+    email: 'Email',
+    company: 'Company or site',
+    type: 'Project type',
+    budget: 'Budget',
+    description: 'What are you building?',
+  };
+
+  const controlOf = (field: HTMLElement) =>
+    field.matches('fieldset') ? field : field.querySelector('input, select, textarea');
+
+  function initContactForm() {
+    const root = document.querySelector<HTMLElement>('[data-contact]');
+    const form = root?.querySelector<HTMLFormElement>('[data-contact-form]');
+    const success = root?.querySelector<HTMLElement>('[data-form-success]');
+    const summary = form?.querySelector<HTMLElement>('[data-form-summary]');
+    const summaryTitle = summary?.querySelector<HTMLElement>('.form__summary-title');
+    const summaryList = summary?.querySelector<HTMLElement>('[data-form-summary-list]');
+    const submit = form?.querySelector<HTMLButtonElement>('[data-submit]');
+    if (!form || !success || !summary || !summaryTitle || !summaryList || !submit) return;
+
+    form.noValidate = true;
+    // Keep the ClientRouter from also handling this form.
+    form.dataset.astroReload = '';
+
+    function showSummary(title: string) {
+      if (!summary || !summaryTitle) return;
+      summaryTitle.textContent = title;
+      summary.hidden = false;
+      summary.focus();
+    }
+
+    function clearErrors() {
+      form?.querySelectorAll<HTMLElement>('[data-field]').forEach((field) => {
+        const control = controlOf(field);
+        const error = field.querySelector<HTMLElement>('[data-error]');
+        const hint = field.querySelector('.field__hint');
+        control?.removeAttribute('aria-invalid');
+        if (hint) control?.setAttribute('aria-describedby', hint.id);
+        else control?.removeAttribute('aria-describedby');
+        if (error) {
+          error.hidden = true;
+          error.textContent = '';
+        }
+      });
+      if (summary) summary.hidden = true;
+      summaryList?.replaceChildren();
+    }
+
+    function showErrors(fields: Record<string, string[] | undefined>) {
+      let count = 0;
+      for (const key of Object.keys(labels)) {
+        const message = fields[key]?.[0];
+        const field = form?.querySelector<HTMLElement>(`[data-field="${key}"]`);
+        const error = field?.querySelector<HTMLElement>('[data-error]');
+        if (!message || !field || !error) continue;
+        count++;
+        const control = controlOf(field);
+        const hint = field.querySelector('.field__hint');
+        error.textContent = message;
+        error.hidden = false;
+        control?.setAttribute('aria-invalid', 'true');
+        control?.setAttribute('aria-describedby', [hint?.id, error.id].filter(Boolean).join(' '));
+
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `#${key === 'budget' ? 'budget-0' : key}`;
+        a.textContent = `${labels[key]}: ${message}`;
+        li.append(a);
+        summaryList?.append(li);
+      }
+      showSummary(
+        `${count === 1 ? 'There is 1 problem' : `There are ${count} problems`} with the form.`,
+      );
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearErrors();
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+      const { data, error } = await actions.contact(new FormData(form));
+      submit.disabled = false;
+      submit.textContent = 'Send';
+      if (error) {
+        if (isInputError(error)) showErrors(error.fields as Record<string, string[] | undefined>);
+        else showSummary(error.message);
+        return;
+      }
+      if (data?.sent) {
+        form.hidden = true;
+        success.hidden = false;
+        success.focus();
+      }
+    });
+
+    // After a no-JS round trip, move focus to whatever the server rendered.
+    if (!success.hidden) success.focus();
+    else if (!summary.hidden) summary.focus();
+  }
+
+  document.addEventListener('astro:page-load', initContactForm);
+</script>

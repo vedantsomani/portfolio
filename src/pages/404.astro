@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Wordmark from '../components/Wordmark.astro';
+---
+
+<BaseLayout title="Page not found" description="This page does not exist." noindex>
+  <section class="not-found grid" aria-labelledby="nf-title">
+    <Wordmark size="large" class="not-found__mark" />
+    <div class="not-found__title display-fit">
+      <h1 id="nf-title" class="t-display">
+        Nothing at this address.
+      </h1>
+    </div>
+    <p class="not-found__lede">The page may have moved, or the link has a typo.</p>
+    <ul class="not-found__links" role="list">
+      <li>
+        <a href="/projects">Projects</a>
+      </li>
+      <li>
+        <a href="/contact">Contact</a>
+      </li>
+      <li>
+        <a href="/">Home</a>
+      </li>
+    </ul>
+  </section>
+</BaseLayout>

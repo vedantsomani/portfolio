@@ -1,0 +1,43 @@
+---
+import Wordmark from './Wordmark.astro';
+import Todo from './Todo.astro';
+import { nav, site } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="footer__inner wrap">
+    <a href="/" class="footer__home">
+      <Wordmark size="footer" />
+    </a>
+
+    <nav id="footer-nav" class="footer__nav" aria-label="Footer">
+      <ul role="list">
+        <li>
+          <a href="/">Home</a>
+        </li>
+        {nav.map((item) => (
+          <li>
+            <a href={item.href}>{item.label}</a>
+          </li>
+        ))}
+        <li>
+          <a href="/contact">Contact</a>
+        </li>
+      </ul>
+    </nav>
+
+    <ul class="footer__links" role="list">
+      <li>
+        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+      </li>
+      <li>{site.github ? <a href={site.github}>GitHub</a> : <Todo what="GitHub URL" />}</li>
+      <li>{site.linkedin ? <a href={site.linkedin}>LinkedIn</a> : <Todo what="LinkedIn URL" />}</li>
+    </ul>
+
+    <p class="footer__legal t-small">
+      © {year} {site.name}, {site.location}
+    </p>
+  </div>
+</footer>

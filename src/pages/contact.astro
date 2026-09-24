@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/ContactForm.astro';
+import Todo from '../components/Todo.astro';
+import { site } from '../data/site';
+
+// Rendered on demand so a no-JS form POST can show its result on this page.
+export const prerender = false;
+
+// Re-fill the fields after a no-JS submission that came back with errors.
+let values: Record<string, string> = {};
+if (Astro.request.method === 'POST') {
+  try {
+    const data = await Astro.request.clone().formData();
+    values = Object.fromEntries(
+      [...data.entries()].filter(([k, v]) => k !== 'website' && typeof v === 'string'),
+    ) as Record<string, string>;
+  } catch {
+    values = {};
+  }
+}
+---
+
+<BaseLayout
+  title="Start a project"
+  description="Tell me what you want to build. A rough scope is enough — no sales call needed."
+  underNav
+>
+  <header class="contact-head field-oxblood on-oxblood grid">
+    <div class="contact-head__title display-fit">
+      <h1 class="t-display">Start a project</h1>
+    </div>
+    <div class="contact-head__notes">
+      <p>No sales call needed for a rough scope.</p>
+      <p>Half-built product? Send what exists.</p>
+      <p class="contact-head__email">
+        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+      </p>
+    </div>
+  </header>
+
+  <section class="section grid contact-body" aria-label="Project enquiry form">
+    <ContactForm values={values} />
+  </section>
+</BaseLayout>

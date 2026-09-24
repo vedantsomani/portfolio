@@ -1,0 +1,11 @@
+---
+// Visible marker for content Vedant still has to supply. Status text, so it is set in mono.
+interface Props {
+  what: string;
+  block?: boolean;
+}
+const { what, block = false } = Astro.props;
+const Tag = block ? 'p' : 'span';
+---
+
+<Tag class:list={['todo', 't-data', { 'todo--block': block }]}>TODO(vedant): {what}</Tag>

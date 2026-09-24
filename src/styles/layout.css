@@ -1,0 +1,89 @@
+@layer layout {
+  /*
+    Page grid: 12 content columns (max 1280) with a bleed track either side.
+    Line 1 = viewport left edge, lines 2–14 = columns 1–12, line -1 = viewport right edge.
+    Column n starts at line n + 1. Everything sits on columns 1–12 unless it asks to bleed.
+  */
+  .grid {
+    display: grid;
+    grid-template-columns:
+      [bleed-start] minmax(calc(var(--margin) - var(--gutter)), 1fr)
+      repeat(12, minmax(0, var(--col)))
+      minmax(calc(var(--margin) - var(--gutter)), 1fr) [bleed-end];
+    column-gap: var(--gutter);
+  }
+
+  .grid > * {
+    grid-column: 2 / -2;
+  }
+
+  .grid > .bleed {
+    grid-column: bleed;
+  }
+
+  .wrap {
+    width: min(100% - 2 * var(--margin), var(--max));
+    margin-inline: auto;
+  }
+
+  main {
+    display: block;
+  }
+
+  .section {
+    padding-block: var(--space-6) 0;
+  }
+
+  .section:last-child {
+    padding-block-end: var(--space-6);
+  }
+
+  /* Section heading hangs in columns 1–3; content runs 4–12. */
+  @media (min-width: 64rem) {
+    .section--hang > .section__head {
+      grid-column: 2 / 5;
+    }
+
+    .section--hang > .section__body {
+      grid-column: 5 / -2;
+    }
+  }
+
+  .section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+    margin-block-end: var(--space-4);
+  }
+
+  .section--hang > .section__head {
+    align-self: start;
+  }
+
+  @media (min-width: 64rem) {
+    .section--hang > .section__head {
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+  }
+
+  /* Full-bleed oxblood field: case-study headers, contact, final CTA. */
+  .field-oxblood {
+    background: var(--oxblood);
+    color: var(--ink);
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}

@@ -1,0 +1,36 @@
+---
+import Button from './Button.astro';
+import Todo from './Todo.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  button?: string;
+  href?: string;
+}
+const {
+  title = 'Have something worth building?',
+  button = 'Start a project',
+  href = '/contact',
+} = Astro.props;
+---
+
+<section class="final-cta field-oxblood on-oxblood grid" aria-labelledby="final-cta-title">
+  <div class="final-cta__title-wrap display-fit">
+    <h2 id="final-cta-title" class="final-cta__title t-display">
+      {title}
+    </h2>
+  </div>
+  <div class="final-cta__actions">
+    <Button href={href} variant="inverted">
+      {button}
+    </Button>
+    <ul class="final-cta__links" role="list">
+      <li>
+        {site.email ? <a href={`mailto:${site.email}`}>{site.email}</a> : <Todo what="email" />}
+      </li>
+      <li>{site.github ? <a href={site.github}>GitHub</a> : <Todo what="GitHub URL" />}</li>
+      <li>{site.linkedin ? <a href={site.linkedin}>LinkedIn</a> : <Todo what="LinkedIn URL" />}</li>
+    </ul>
+  </div>
+</section>

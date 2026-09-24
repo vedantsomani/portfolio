@@ -1,0 +1,36 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+// primary: oxblood fill on dark canvas. inverted: ink fill, for use on oxblood fields.
+type Props = {
+  variant?: 'primary' | 'inverted';
+  href?: string;
+  size?: 'default' | 'small';
+  block?: boolean;
+} & Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'class'> & { class?: string };
+
+const {
+  variant = 'primary',
+  href,
+  size = 'default',
+  block = false,
+  class: className,
+  ...rest
+} = Astro.props;
+const classes = [
+  'btn',
+  `btn--${variant}`,
+  { 'btn--small': size === 'small', 'btn--block': block },
+  className,
+];
+---
+
+{href ? (
+  <a href={href} class:list={classes} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button class:list={classes} {...(rest as HTMLAttributes<'button'>)}>
+    <slot />
+  </button>
+)}
