@@ -3,6 +3,7 @@
 // it shows a TODO block in dev and disappears in production (no empty headings ship).
 import Todo from './Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
+import { sectionId } from '../lib/content';
 
 interface Props {
   title: string;
@@ -10,14 +11,11 @@ interface Props {
 }
 const { title, todo } = Astro.props;
 const hasContent = Astro.slots.has('default');
-const id = title
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-|-$/g, '');
+const id = sectionId(title);
 ---
 
 {(hasContent || (todo && SHOW_TODOS)) && (
-  <section class="case-section" aria-labelledby={`${id}-title`} data-trace-stop>
+  <section id={id} class="case-section" aria-labelledby={`${id}-title`} data-trace-stop>
     <h2 id={`${id}-title`} class="case-section__title">
       {title}
     </h2>

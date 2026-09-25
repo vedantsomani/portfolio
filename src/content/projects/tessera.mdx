@@ -12,11 +12,15 @@ cover: ../../assets/work/tessera-cover.jpg
 coverAlt: TESSERA results on two of five held-out Landsat test scenes (forest and agriculture). Each row shows the thermal input, the baseline colourisation, TESSERA's colourisation, the true colour image and the hallucination-risk map. All five scenes are in the Measurements section.
 featured: true
 order: 2
+glance:
+  problem: Colourise single-band thermal Landsat tiles so they are easier to interpret, and show where the colour is a guess.
+  exists: A trained two-stage pipeline, evaluated on held-out Landsat test scenes.
+  result: Kept the model with the lower hallucination proxy (0.024) over a distilled student with higher PSNR (26.23 vs 24.84 dB) but a proxy of 0.121.
 specs:
   - { label: Input, value: Landsat ST_B10 (thermal) }
-  - { label: PSNR, value: '24.835786' }
-  - { label: Hallucination proxy, value: '0.023902' }
-  - { label: Time per tile, value: 226.78 ms }
+  - { label: PSNR, value: 24.84 dB }
+  - { label: Hallucination proxy, value: 0.024 (lower is better) }
+  - { label: Time per tile, value: 227 ms }
 ---
 
 import Figure from '../../components/Figure.astro';
@@ -61,6 +65,15 @@ import grid from '../../assets/work/tessera-grid.jpg';
     widths={[480, 800, 1200, 1600]}
     caption="Held-out test scenes. Columns: thermal input, baseline, TESSERA, ground truth, absolute error, risk."
   />
+  <p>
+    Exact values. PSNR (peak signal-to-noise ratio, in dB) compares the colour output with the true
+    colour image: higher is better. The hallucination proxy scores colour that the thermal input
+    does not support: lower is better.
+  </p>
+  <Todo
+    what="confirm the one-line hallucination-proxy definition against the evaluation code"
+    block
+  />
   <table>
     <caption class="visually-hidden">TESSERA pipeline results on the teacher-student split</caption>
     <thead>
@@ -102,7 +115,7 @@ import grid from '../../assets/work/tessera-grid.jpg';
   </p>
   <p>
     Distilling the teacher into a thermal-only student raised PSNR, but its hallucination proxy was
-    0.121392 against 0.023902, so it was rejected. On the pilot split, the largest model tried
-    (8,748,239 parameters) was worse than the baseline on PSNR and much slower.
+    0.121 against 0.024, so it was rejected. On the pilot split, the largest model tried (8,748,239
+    parameters) was worse than the baseline on PSNR and much slower.
   </p>
 </CaseSection>

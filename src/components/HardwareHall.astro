@@ -1,13 +1,24 @@
 ---
 // Hardware hall (03_PHASE3_MOTION §3). Without JS it is a list of objects with poster images. With
 // JS (html[data-motion], set before first paint) it is laid out as a carousel beside one stage from
-// the start, so nothing shifts; Three.js fills the stage once the hall is ≤ 1 viewport away. Names, lines, specs, and
+// the start, so nothing shifts. The stage shows the first object's render at once; Three.js replaces
+// it when the hall comes within a viewport, or, if it is already on screen at load (the Lab), on the
+// first hover, touch, focus, or scroll, so it never competes with the page load. Names, lines, specs, and
 // links always stay HTML; the canvas only adds the object you can turn.
+import { Picture } from 'astro:assets';
 import Figure from './Figure.astro';
+import BoardMap from './BoardMap.astro';
+import { BOARD_SOURCE, VIEWS } from '../data/saarthi-board';
 import Todo from './Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
 import { hall } from '../data/hall';
 import { getLabEntries } from '../lib/content';
+
+interface Props {
+  /** Above the fold (the Lab): the stage's stand-in render is the LCP image, so load it at once. */
+  eager?: boolean;
+}
+const { eager = false } = Astro.props;
 
 const published = new Set((await getLabEntries()).map((e) => `/lab/${e.id}`));
 const items = hall.map((item) => ({
@@ -22,6 +33,23 @@ const items = hall.map((item) => ({
 <div class="hall" data-hall>
   {/* role="img": the name comes from the active object; arrow keys rotate it when focused. */}
   <div class="hall__stage" role="img" tabindex="0" aria-label="Hardware model" data-hall-stage>
+    {/* Lightweight stand-in until the 3D view loads; the stage's aria-label names the object. */}
+    <Picture
+      src={items[0].poster}
+      alt=""
+      formats={['avif']}
+      fallbackFormat="jpg"
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 64rem) 55vw, 100vw"
+      class="hall__stage-poster"
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      quality={50}
+    />
+    {/* No-WebGL stand-in for the guided views; shown by the script only in that case. */}
+    {items[0].guided && <BoardMap view="overview" class="hall__map" />}
+    {/* Part labels for the guided views, positioned over the canvas by the stage. */}
+    <div class="hall__labels" aria-hidden="true" data-hall-labels></div>
     <p class="hall__hint t-small" aria-hidden="true">
       Drag to rotate
     </p>
@@ -51,6 +79,45 @@ const items = hall.map((item) => ({
               <li>{s ?? <Todo what="spec" />}</li>
             ))}
           </ul>
+          {item.guided && (
+            <div class="hall__views" data-hall-views>
+              {/* With JS: one explanation at a time, picked with these buttons, and the board
+                  turns to show it. Without JS: the buttons stay hidden and all three read as a list. */}
+              <div class="hall__view-buttons" role="group" aria-label="Guided views" hidden>
+                <button
+                  type="button"
+                  class="hall__view-btn"
+                  aria-pressed="true"
+                  data-view="overview"
+                >
+                  Overview
+                </button>
+                {VIEWS.map((v) => (
+                  <button
+                    type="button"
+                    class="hall__view-btn"
+                    aria-pressed="false"
+                    data-view={v.id}
+                  >
+                    {v.title}
+                  </button>
+                ))}
+              </div>
+              <dl class="hall__view-list" aria-live="polite">
+                <div class="hall__view" data-view-panel="overview" hidden>
+                  <dt>Overview</dt>
+                  <dd>Pick a part of the board to see what it does and where it sits.</dd>
+                </div>
+                {VIEWS.map((v) => (
+                  <div class="hall__view" data-view-panel={v.id}>
+                    <dt>{v.title}</dt>
+                    <dd>{v.text}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p class="hall__view-source t-small">{BOARD_SOURCE}</p>
+            </div>
+          )}
           {item.href && (
             <p class="hall__link">
               <a href={item.href}>{item.linkLabel}</a>

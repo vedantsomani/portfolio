@@ -16,6 +16,8 @@ export const hall = [
     linkLabel: 'Saarthi case study',
     poster: hallSaarthi,
     posterAlt: 'KiCad 3D render of the Saarthi H7-Pro board at an angle, on a dark background.',
+    /** Guided views (src/data/saarthi-board.ts): flight computer, safety controller, sensors. */
+    guided: true,
   },
 ] as const;
 

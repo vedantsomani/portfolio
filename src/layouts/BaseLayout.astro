@@ -66,9 +66,10 @@ const beacon =
     <meta name="theme-color" content="#14100E" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {/* Preloaded so the swap to Archivo lands before layout settles: the expanded display cut has no
-         metric-compatible fallback, so a late swap shifts headings (CLS). Home opts out: its headline
-         is held for the reveal until after the font arrives, and there the preload only competes
-         with the LCP photo for bandwidth. */}
+         metric-compatible fallback, so a late swap shifts headings (CLS). Pages whose LCP is an image
+         and whose opening type barely moves on swap opt out, because there the preload only competes
+         with that image for bandwidth: Home (headline held for its reveal) and Projects (measured
+         CLS 0.008 without it). */}
     {fontPreload && (
       <link
         rel="preload"

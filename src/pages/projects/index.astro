@@ -9,6 +9,7 @@ const [lead, ...rest] = await getProjects();
 
 <BaseLayout
   title="Projects"
+  fontPreload={false}
   og="projects"
   description="Engineering projects by Vedant Somani: the Saarthi flight controller, TESSERA infrared colourisation for ISRO's hackathon, the VAJRA post-quantum link, and more."
 >
@@ -31,6 +32,7 @@ const [lead, ...rest] = await getProjects();
         coverTodo={lead.data.coverTodo}
         morph={`cover-${lead.id}`}
         level={2}
+        eager
         sizes="(min-width: 80rem) 1280px, 100vw"
       />
       <div class="projects__pair">

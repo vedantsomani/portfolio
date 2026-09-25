@@ -14,6 +14,10 @@ specs:
   - { label: KEM, value: ML-KEM-768 + X25519 }
   - { label: Signatures, value: ML-DSA-65 }
   - { label: AEAD, value: ChaCha20-Poly1305 }
+glance:
+  problem: 'A controller-to-node link whose key exchange stays secure against a future quantum adversary.'
+  exists: 'A Rust implementation frozen at v1.0, and a Python reference.'
+  result: '16 Rust tests pass at v1.0; the Python reference passes 53 of 53.'
 ---
 
 <CaseSection title="Objective">

@@ -7,6 +7,8 @@ import { reducedMotion } from '../lifecycle';
 
 export interface HallStage {
   show(index: number): void;
+  /** Guided view ('overview', 'flight', 'safety', 'sensors'). false: this stage can't show it. */
+  focus?(view: string): boolean;
   dispose(): void;
 }
 
@@ -102,6 +104,33 @@ export function initHall(root: HTMLElement): () => void {
   const onPrev = () => show(index - 1);
   const onNext = () => show(index + 1);
 
+  // Guided views: one explanation at a time; the 3D stage turns to it, or, without WebGL, the
+  // static board map highlights it. Without JS all explanations stay visible as a list.
+  const viewButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-view]')];
+  const viewPanels = [...root.querySelectorAll<HTMLElement>('[data-view-panel]')];
+  const map = root.querySelector<SVGElement>('[data-board-map]');
+  root.querySelector<HTMLElement>('.hall__view-buttons')?.removeAttribute('hidden');
+  let view = 'overview';
+  const applyView = () => {
+    const in3d = stage?.focus?.(view) ?? false;
+    // No 3D board to turn: the map explains the view (overview keeps the sprite or render).
+    root.classList.toggle('hall--map', !in3d && view !== 'overview' && booted);
+    if (map) map.dataset.view = view;
+  };
+  const setView = (next: string) => {
+    view = next;
+    viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === next)));
+    viewPanels.forEach((p) => (p.hidden = p.dataset.viewPanel !== next));
+    if (!booted) bootOnce();
+    applyView();
+  };
+  const onView = (e: Event) => {
+    const next = (e.currentTarget as HTMLButtonElement).dataset.view;
+    if (next) setView(next);
+  };
+  viewButtons.forEach((b) => b.addEventListener('click', onView));
+  viewPanels.forEach((p) => (p.hidden = p.dataset.viewPanel !== view));
+
   // The carousel works at once; the stage fills in when Three.js (or the sprite) is ready.
   root.classList.add('hall--ready');
   show(0);
@@ -120,13 +149,31 @@ export function initHall(root: HTMLElement): () => void {
     }
     root.classList.add('hall--live');
     stage.show(index);
+    applyView();
   }
 
+  // Boot once. A hall that is already in range at load waits for intent (hover, touch, focus, or
+  // the first scroll) so Three.js and the GLB never compete with the page load; one reached by
+  // scrolling boots as it comes within a viewport.
+  let booted = false;
+  const intents = ['pointerenter', 'pointerdown', 'focus'] as const;
+  const bootOnce = () => {
+    if (booted) return;
+    booted = true;
+    io.disconnect();
+    intents.forEach((t) => stageEl.removeEventListener(t, bootOnce));
+    window.removeEventListener('scroll', bootOnce);
+    void boot();
+  };
+  let first = true;
   const io = new IntersectionObserver(
     ([entry]) => {
+      const atLoad = first;
+      first = false;
       if (!entry.isIntersecting) return;
-      io.disconnect();
-      void boot();
+      if (!atLoad) return bootOnce();
+      intents.forEach((t) => stageEl.addEventListener(t, bootOnce));
+      window.addEventListener('scroll', bootOnce, { once: true, passive: true });
     },
     { rootMargin: '100% 0px' },
   );
@@ -137,8 +184,11 @@ export function initHall(root: HTMLElement): () => void {
   return () => {
     destroyed = true;
     io.disconnect();
+    intents.forEach((t) => stageEl.removeEventListener(t, bootOnce));
+    window.removeEventListener('scroll', bootOnce);
     prev.removeEventListener('click', onPrev);
     next.removeEventListener('click', onNext);
+    viewButtons.forEach((b) => b.removeEventListener('click', onView));
     stage?.dispose();
   };
 }

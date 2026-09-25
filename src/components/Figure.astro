@@ -4,13 +4,15 @@ import type { ImageMetadata } from 'astro';
 import Todo from './Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
 
-// AVIF with a JPG fallback, intrinsic width/height always set, lazy unless `priority`.
+// AVIF with a JPG fallback, intrinsic width/height always set, lazy unless `priority` or `eager`.
+// `eager`: above the fold but not the page's hero, so loaded at once without fetchpriority.
 interface Props {
   src: ImageMetadata;
   alt: string;
   sizes: string;
   widths?: number[];
   priority?: boolean;
+  eager?: boolean;
   caption?: string;
   /** Placeholder slot: shows a dev-only TODO badge on the image. */
   todo?: string;
@@ -22,6 +24,7 @@ const {
   sizes,
   widths = [480, 800, 1200, 1600, 2400],
   priority = false,
+  eager = false,
   caption,
   todo,
   class: className,
@@ -44,10 +47,10 @@ const usable = widths.filter((w) => w <= src.width);
     sizes={sizes}
     width={src.width}
     height={src.height}
-    loading={priority ? 'eager' : 'lazy'}
+    loading={priority || eager ? 'eager' : 'lazy'}
     decoding={priority ? 'sync' : 'async'}
     fetchpriority={priority ? 'high' : undefined}
-    quality={priority ? 60 : 55}
+    quality={priority ? 50 : 55}
   />
   {(caption || Astro.slots.has('caption')) && (
     <figcaption class="figure__caption t-small">

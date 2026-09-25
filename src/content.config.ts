@@ -38,6 +38,15 @@ const projects = defineCollection({
         specs: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
         /** Credit for work this project builds on (shown in the case header). */
         builtOn: z.string().optional(),
+        /** Quick-scan block at the top of the case study. Restates the page; never new claims. */
+        glance: z
+          .object({
+            problem: z.string().optional(),
+            part: z.string().optional(),
+            exists: z.string().optional(),
+            result: z.string().optional(),
+          })
+          .optional(),
       })
       .refine((p) => !(p.restricted && p.repoUrl), {
         message: 'Restricted projects cannot have a repoUrl (AGENTS.md hard rule 3).',

@@ -1,4 +1,6 @@
 ---
+// Closing field: one ask, the kinds of conversation that are welcome, and direct routes (email with
+// a copy action, GitHub, LinkedIn). Heading scale, not display scale: the hero owns that.
 import Button from './Button.astro';
 import Todo from './Todo.astro';
 import { site } from '../data/site';
@@ -20,10 +22,11 @@ const {
   aria-labelledby="final-cta-title"
   data-trace-stop
 >
-  <div class="final-cta__title-wrap display-fit">
-    <h2 id="final-cta-title" class="final-cta__title t-display">
+  <div class="final-cta__head">
+    <h2 id="final-cta-title" class="final-cta__title">
       {title}
     </h2>
+    <p class="final-cta__lede">Internships, research collaborations, and hardware projects.</p>
   </div>
   <div class="final-cta__actions">
     <Button href={href} variant="inverted">
@@ -39,6 +42,21 @@ const {
           <Todo what="email" />
         )}
       </li>
+      {site.email && (
+        <li>
+          {/* Needs the Clipboard API, so it only appears with JS. */}
+          <button
+            type="button"
+            class="final-cta__copy"
+            data-copy-email={site.email}
+            aria-describedby="copy-status"
+            hidden
+          >
+            Copy address
+          </button>
+          <span id="copy-status" class="visually-hidden" role="status" data-copy-status></span>
+        </li>
+      )}
       <li>
         {site.github ? (
           <a href={site.github} data-track="github_out">
@@ -52,3 +70,36 @@ const {
     </ul>
   </div>
 </section>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { track } from '../lib/track';
+
+  onPage(() => {
+    const button = document.querySelector<HTMLButtonElement>('[data-copy-email]');
+    const status = document.querySelector<HTMLElement>('[data-copy-status]');
+    if (!button || !status || !navigator.clipboard) return;
+    button.hidden = false;
+    let timer = 0;
+    const onClick = async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copyEmail ?? '');
+        button.textContent = 'Copied';
+        status.textContent = 'Email address copied.';
+        track('email_click', { action: 'copy' });
+      } catch {
+        status.textContent = 'Could not copy. Select the address instead.';
+      }
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        button.textContent = 'Copy address';
+        status.textContent = '';
+      }, 2000);
+    };
+    button.addEventListener('click', onClick);
+    return () => {
+      clearTimeout(timer);
+      button.removeEventListener('click', onClick);
+    };
+  });
+</script>

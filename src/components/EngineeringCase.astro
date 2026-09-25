@@ -11,7 +11,7 @@ import Todo from './Todo.astro';
 import FinalCta from './FinalCta.astro';
 import SignalTrace from './SignalTrace.astro';
 import { SHOW_TODOS } from '../lib/todo';
-import { statusLabel, type Project } from '../lib/content';
+import { renderedSections, sectionId, statusLabel, type Project } from '../lib/content';
 
 interface Props {
   project: Project;
@@ -49,6 +49,24 @@ const links = d.restricted
       d.repoUrl && { href: d.repoUrl, label: 'Source repository', track: 'github_out' },
       d.demoUrl && { href: d.demoUrl, label: 'Live demo', track: undefined },
     ].filter((l): l is { href: string; label: string; track: string | undefined } => Boolean(l));
+
+// Quick scan: problem, your part, what exists today, key result. Only restates the page.
+const glance = d.glance
+  ? [
+      { label: 'Problem', value: d.glance.problem },
+      { label: 'My part', value: d.glance.part },
+      { label: 'What exists today', value: d.glance.exists },
+      { label: 'Key result', value: d.glance.result },
+    ].filter((g) => g.value || SHOW_TODOS)
+  : [];
+
+// "On this page": the sections that actually render, plus Status and Links. Long pages only.
+const sections = [
+  ...renderedSections(project.body, SHOW_TODOS),
+  ...(status || SHOW_TODOS ? ['Status'] : []),
+  ...(d.restricted || links.length || SHOW_TODOS ? ['Links'] : []),
+];
+const showNav = sections.length >= 4;
 ---
 
 <BaseLayout title={d.title} og={`project-${project.id}`} description={d.summary} underNav>
@@ -97,6 +115,35 @@ const links = d.restricted
 
   <div class="case-body trace-scope grid" data-trace>
     <div class="case-body__inner">
+      {glance.length > 0 && (
+        <section class="glance" aria-labelledby="glance-title">
+          <h2 id="glance-title" class="glance__title t-h3">
+            At a glance
+          </h2>
+          <dl class="glance__list">
+            {glance.map((g) => (
+              <div class="glance__row">
+                <dt class="t-small">{g.label}</dt>
+                <dd>{g.value ?? <Todo what={g.label.toLowerCase()} />}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
+      {showNav && (
+        <nav class="on-page" aria-label="On this page">
+          <p class="on-page__title t-small">On this page</p>
+          <ul class="on-page__list" role="list">
+            {sections.map((title) => (
+              <li>
+                <a href={`#${sectionId(title)}`}>{title}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
       <Content components={{ CaseSection, ArchDiagram, Todo, Figure }} />
 
       {status ? (

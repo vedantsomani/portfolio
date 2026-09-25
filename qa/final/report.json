@@ -1,7 +1,7 @@
 {
   "home@375": {
     "overflowX": false,
-    "h1": "Flight controllers, autonomy, and secure comms — built from "
+    "h1": "Flight hardware, secure comms, and space data — built from t"
   },
   "projects@375": {
     "overflowX": false,
@@ -11,17 +11,41 @@
     "overflowX": false,
     "h1": "Saarthi (H7-Pro)"
   },
-  "projects-prahari@375": {
+  "projects-tessera@375": {
     "overflowX": false,
-    "h1": "PRAHARI"
+    "h1": "TESSERA"
   },
   "projects-vajra@375": {
     "overflowX": false,
     "h1": "VAJRA"
   },
+  "projects-smriti@375": {
+    "overflowX": false,
+    "h1": "SMRITI"
+  },
+  "projects-dhwani-kavach@375": {
+    "overflowX": false,
+    "h1": "Dhwani-Kavach"
+  },
+  "projects-pitsense@375": {
+    "overflowX": false,
+    "h1": "PitSense"
+  },
+  "projects-iot-club-website@375": {
+    "overflowX": false,
+    "h1": "IoT & Robotics Club website"
+  },
   "lab@375": {
     "overflowX": false,
     "h1": "Lab"
+  },
+  "lab-skynet@375": {
+    "overflowX": false,
+    "h1": "SKYNET"
+  },
+  "lab-prahari@375": {
+    "overflowX": false,
+    "h1": "PRAHARI"
   },
   "about@375": {
     "overflowX": false,
@@ -37,7 +61,7 @@
   },
   "home@768": {
     "overflowX": false,
-    "h1": "Flight controllers, autonomy, and secure comms — built from "
+    "h1": "Flight hardware, secure comms, and space data — built from t"
   },
   "projects@768": {
     "overflowX": false,
@@ -47,17 +71,41 @@
     "overflowX": false,
     "h1": "Saarthi (H7-Pro)"
   },
-  "projects-prahari@768": {
+  "projects-tessera@768": {
     "overflowX": false,
-    "h1": "PRAHARI"
+    "h1": "TESSERA"
   },
   "projects-vajra@768": {
     "overflowX": false,
     "h1": "VAJRA"
   },
+  "projects-smriti@768": {
+    "overflowX": false,
+    "h1": "SMRITI"
+  },
+  "projects-dhwani-kavach@768": {
+    "overflowX": false,
+    "h1": "Dhwani-Kavach"
+  },
+  "projects-pitsense@768": {
+    "overflowX": false,
+    "h1": "PitSense"
+  },
+  "projects-iot-club-website@768": {
+    "overflowX": false,
+    "h1": "IoT & Robotics Club website"
+  },
   "lab@768": {
     "overflowX": false,
     "h1": "Lab"
+  },
+  "lab-skynet@768": {
+    "overflowX": false,
+    "h1": "SKYNET"
+  },
+  "lab-prahari@768": {
+    "overflowX": false,
+    "h1": "PRAHARI"
   },
   "about@768": {
     "overflowX": false,
@@ -73,7 +121,7 @@
   },
   "home@1440": {
     "overflowX": false,
-    "h1": "Flight controllers, autonomy, and secure comms — built from "
+    "h1": "Flight hardware, secure comms, and space data — built from t"
   },
   "projects@1440": {
     "overflowX": false,
@@ -83,17 +131,41 @@
     "overflowX": false,
     "h1": "Saarthi (H7-Pro)"
   },
-  "projects-prahari@1440": {
+  "projects-tessera@1440": {
     "overflowX": false,
-    "h1": "PRAHARI"
+    "h1": "TESSERA"
   },
   "projects-vajra@1440": {
     "overflowX": false,
     "h1": "VAJRA"
   },
+  "projects-smriti@1440": {
+    "overflowX": false,
+    "h1": "SMRITI"
+  },
+  "projects-dhwani-kavach@1440": {
+    "overflowX": false,
+    "h1": "Dhwani-Kavach"
+  },
+  "projects-pitsense@1440": {
+    "overflowX": false,
+    "h1": "PitSense"
+  },
+  "projects-iot-club-website@1440": {
+    "overflowX": false,
+    "h1": "IoT & Robotics Club website"
+  },
   "lab@1440": {
     "overflowX": false,
     "h1": "Lab"
+  },
+  "lab-skynet@1440": {
+    "overflowX": false,
+    "h1": "SKYNET"
+  },
+  "lab-prahari@1440": {
+    "overflowX": false,
+    "h1": "PRAHARI"
   },
   "about@1440": {
     "overflowX": false,

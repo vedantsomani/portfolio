@@ -1,0 +1,54 @@
+---
+// Top-down map of the Saarthi board, drawn in KiCad board millimetres (viewBox = board coordinates),
+// so every outline sits exactly where the board file puts it. It is the static explanation behind
+// the hall's guided views: in the case study it shows all three groups at once; in the hall it is
+// the no-WebGL stand-in, and data-view highlights one group at a time.
+import { BOARD, HOLES, PARTS } from '../data/saarthi-board';
+
+interface Props {
+  /** Group to highlight; 'all' labels every group (the case-study figure). */
+  view?: 'all' | 'overview' | 'flight' | 'safety' | 'sensors';
+  class?: string;
+  /** Accessible description; the hall's copy uses the view text instead and hides the map. */
+  label?: string;
+}
+const { view = 'all', class: className, label } = Astro.props;
+const C = 3; // chamfer, mm
+const { x0, y0, x1, y1 } = BOARD;
+const outline = [
+  [x0 + C, y0],
+  [x1 - C, y0],
+  [x1, y0 + C],
+  [x1, y1 - C],
+  [x1 - C, y1],
+  [x0 + C, y1],
+  [x0, y1 - C],
+  [x0, y0 + C],
+]
+  .map((p) => p.join(','))
+  .join(' ');
+---
+
+<svg
+  class:list={['board-map', className]}
+  viewBox={`${x0 - 2} ${y0 - 2} ${x1 - x0 + 4} ${y1 - y0 + 4}`}
+  data-board-map
+  data-view={view}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  <polygon class="board-map__board" points={outline}></polygon>
+  {HOLES.map(([x, y]) => (
+    <circle class="board-map__hole" cx={x} cy={y} r="1.6" />
+  ))}
+  {PARTS.map((p) => (
+    <g class={`board-map__part board-map__part--${p.group}`}>
+      <rect x={p.x - p.w / 2} y={p.y - p.h / 2} width={p.w} height={p.h} />
+      <text x={p.lx} y={p.ly} text-anchor={p.la}>
+        {p.label}
+      </text>
+    </g>
+  ))}
+</svg>

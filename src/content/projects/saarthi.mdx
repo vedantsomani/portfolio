@@ -12,6 +12,11 @@ cover: ../../assets/work/saarthi-cover.jpg
 coverAlt: KiCad 3D render of the Saarthi H7-Pro board at an angle, with the STM32H753 at the centre-left, JST-GH connectors along the top edge and twelve servo headers along the bottom.
 featured: true
 order: 1
+glance:
+  problem: A fixed-wing and glider flight controller that keeps actuator authority away from the flight computer.
+  part: Hardware architecture, KiCad schematic and layout, and the FlightCore software.
+  exists: A KiCad board file (ERC clean, routing in progress) and a host-tested C11 core. Not fabricated, not flown.
+  result: 72 of 72 FlightCore host tests pass, on a simulation model only.
 specs:
   - { label: Flight MCU, value: STM32H753ZIT6 }
   - { label: Safety MCU, value: STM32G431CBU6 }
@@ -21,6 +26,7 @@ specs:
 ---
 
 import Figure from '../../components/Figure.astro';
+import BoardMap from '../../components/BoardMap.astro';
 import top from '../../assets/work/saarthi-top.jpg';
 
 <CaseSection title="Objective">
@@ -51,6 +57,17 @@ import top from '../../assets/work/saarthi-top.jpg';
       },
     ]}
   />
+
+  <figure class="figure board-figure">
+    <BoardMap
+      view="all"
+      label="Top-down map of the Saarthi board: the STM32H753 flight MCU at the left, the STM32G431 safety MCU below it, the twelve servo outputs along the bottom edge with the RC input and safety switch on the right edge, and the IMUs and barometers in the centre."
+    />
+    <figcaption class="figure__caption t-small">
+      Where the parts sit. Drawn from the KiCad board file of 24 September 2026; a diagram, not a
+      photograph: the board has not been fabricated.
+    </figcaption>
+  </figure>
 </CaseSection>
 
 <CaseSection title="Constraints">

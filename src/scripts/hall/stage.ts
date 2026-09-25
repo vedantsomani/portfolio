@@ -3,8 +3,14 @@
 // Drag rotates with damped inertia; after 1.2 s idle the object turns at 6°/s. The wheel is left
 // alone so the page scrolls. Switching objects: the current one scales 1 → 0.85 and fades while
 // the next rotates in from −30°, 500 ms.
+// Guided views (Saarthi only, and only from the real GLB): focus(view) eases the camera to a pose
+// that shows one part group, outlines those parts on the model, and places HTML labels over the
+// canvas. Positions come from the KiCad file (src/data/saarthi-board.ts); the GLB shares its origin,
+// so board millimetre (x, y) is model metre (x / 1000, z / 1000).
 import {
   Box3,
+  MeshBasicMaterial,
+  PlaneGeometry,
   DirectionalLight,
   Group,
   Mesh,
@@ -19,12 +25,66 @@ import {
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { buildModel } from './models';
+import { PARTS, type BoardGroup } from '../../data/saarthi-board';
 import type { HallStage, StageOptions } from './index';
 
 const IDLE_SPEED = (6 * Math.PI) / 180; // rad/s
 const IDLE_AFTER = 1.2; // s
 const SWITCH = 0.5; // s
 const TILT = -0.35; // rad, a three-quarter view from above
+const EASE_T = 0.12; // s time constant for view moves: settles in ~400 ms
+const MARK_Y = 0.0032; // m above the board's underside: clears the tallest part in each group
+const BG = 0x14100e;
+
+export type ViewId = 'overview' | BoardGroup;
+
+// Camera pose per view: tilt (0 = edge-on, π/2 = top-down), camera distance in normalised units,
+// and the board point (mm) to centre. Overview keeps the three-quarter turntable.
+const POSES: Record<ViewId, { tilt: number; dist: number; focus: [number, number] | null }> = {
+  overview: { tilt: -TILT, dist: 9, focus: null },
+  flight: { tilt: 1.1, dist: 4, focus: [44, 68] },
+  safety: { tilt: 1.1, dist: 5.8, focus: [70, 91] },
+  sensors: { tilt: 1.15, dist: 3.6, focus: [64, 55] },
+};
+
+// A dark frame (0.9 mm, as meshes: WebGL lines are always 1 px) and a dark tint for each part, in
+// GLB space, hidden until its group is shown. Dark reads on the board's light solder mask.
+const FRAME = 0.0009; // m
+function buildMarks(): Map<BoardGroup, Group> {
+  const groups = new Map<BoardGroup, Group>();
+  const tint = new MeshBasicMaterial({
+    color: BG,
+    transparent: true,
+    opacity: 0.28,
+    depthTest: false,
+    depthWrite: false,
+  });
+  const edge = new MeshBasicMaterial({ color: BG, depthTest: false, depthWrite: false });
+  const flat = (w: number, h: number, x: number, z: number, material: MeshBasicMaterial) => {
+    const m = new Mesh(new PlaneGeometry(w, h), material);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, MARK_Y, z);
+    m.renderOrder = material === edge ? 11 : 10;
+    return m;
+  };
+  for (const p of PARTS) {
+    let g = groups.get(p.group);
+    if (!g) {
+      g = new Group();
+      g.visible = false;
+      groups.set(p.group, g);
+    }
+    const [cx, cz, w, h] = [p.x / 1000, p.y / 1000, p.w / 1000 + FRAME * 2, p.h / 1000 + FRAME * 2];
+    g.add(
+      flat(w, h, cx, cz, tint),
+      flat(w, FRAME, cx, cz - h / 2, edge),
+      flat(w, FRAME, cx, cz + h / 2, edge),
+      flat(FRAME, h, cx - w / 2, cz, edge),
+      flat(FRAME, h, cx + w / 2, cz, edge),
+    );
+  }
+  return groups;
+}
 
 async function loadGLB(url: string): Promise<Object3D> {
   const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([
@@ -95,11 +155,31 @@ export async function createStage(
   const camera = new PerspectiveCamera(30, 1, 0.1, 100);
   camera.position.set(0, 0, 9);
 
+  // Guided views need the real board: its GLB shares the KiCad origin the part positions use.
+  const guidedIndex = opts.glb.includes('saarthi') ? ids.indexOf('saarthi') : -1;
+  let guidedRaw: Object3D | null = null;
+  const marks = buildMarks();
   const objects = await Promise.all(
-    ids.map(async (id) =>
-      normalise(opts.glb.includes(id) ? await loadGLB(`/models/${id}.glb`) : buildModel(id)),
-    ),
+    ids.map(async (id, i) => {
+      const raw = opts.glb.includes(id) ? await loadGLB(`/models/${id}.glb`) : buildModel(id);
+      if (i === guidedIndex) {
+        guidedRaw = raw;
+        marks.forEach((g) => raw.add(g));
+      }
+      return normalise(raw);
+    }),
   );
+
+  // HTML labels over the canvas, one per part, shown with their group.
+  const labelLayer = el.querySelector<HTMLElement>('[data-hall-labels]');
+  const labels = PARTS.map((p) => {
+    const span = document.createElement('span');
+    span.className = `hall__label hall__label--${p.la}`;
+    span.textContent = p.label;
+    span.hidden = true;
+    labelLayer?.append(span);
+    return { part: p, span, at: new Vector3(p.lx / 1000, MARK_Y, p.ly / 1000) };
+  });
   const holders = objects.map((obj) => {
     const h = new Group();
     h.rotation.x = -TILT;
@@ -120,6 +200,14 @@ export async function createStage(
   let dragging = false;
   let lastX = 0;
   let rotated = new Set<number>();
+  // View state: current values ease toward the active pose.
+  let view: ViewId = 'overview';
+  let tilt = -TILT;
+  let dist = 9;
+  let easingAngle = false;
+  const camTarget = new Vector3();
+  const goal = new Vector3();
+  const scratch = new Vector3();
 
   holders[current].visible = true;
 
@@ -140,8 +228,19 @@ export async function createStage(
       angle += velocity * dt;
       velocity *= Math.exp(-dt * 3);
       idle += dt;
-      if (idle > IDLE_AFTER && !opts.reduce) angle += IDLE_SPEED * dt;
+      if (view === 'overview' && idle > IDLE_AFTER && !opts.reduce) angle += IDLE_SPEED * dt;
     }
+
+    // Ease toward the active view's pose (instant under reduced motion).
+    const pose = POSES[view];
+    const k = opts.reduce ? 1 : 1 - Math.exp(-dt / EASE_T);
+    if (easingAngle) {
+      angle += (0 - angle) * k;
+      if (Math.abs(angle) < 0.001) easingAngle = false;
+    }
+    tilt += (pose.tilt - tilt) * k;
+    dist += (pose.dist - dist) * k;
+    holders[current].rotation.x = tilt;
 
     if (switching) {
       switching.t += dt / SWITCH;
@@ -162,8 +261,37 @@ export async function createStage(
     }
     holders[current].rotation.y = switching ? holders[current].rotation.y : angle;
 
+    // Centre the camera on the view's focus point, wherever the rotation has carried it.
+    scene.updateMatrixWorld();
+    goal.set(0, 0, 0);
+    if (pose.focus && guidedRaw) {
+      goal.set(pose.focus[0] / 1000, MARK_Y, pose.focus[1] / 1000);
+      goal.applyMatrix4((guidedRaw as Object3D).matrixWorld);
+    }
+    camTarget.lerp(goal, k);
+    camera.position.set(camTarget.x, camTarget.y, camTarget.z + dist);
+    camera.lookAt(camTarget);
+    camera.updateMatrixWorld();
+
     renderer.render(scene, camera);
+    placeLabels();
     raf = requestAnimationFrame(frame);
+  }
+
+  // Project each visible label's anchor onto the canvas.
+  function placeLabels() {
+    if (!guidedRaw || !labelLayer) return;
+    const { width, height } = el.getBoundingClientRect();
+    for (const l of labels) {
+      if (l.span.hidden) continue;
+      scratch
+        .copy(l.at)
+        .applyMatrix4((guidedRaw as Object3D).matrixWorld)
+        .project(camera);
+      const x = ((scratch.x + 1) / 2) * width;
+      const y = ((1 - scratch.y) / 2) * height;
+      l.span.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    }
   }
 
   const wake = () => {
@@ -182,6 +310,7 @@ export async function createStage(
 
   const onDown = (e: PointerEvent) => {
     dragging = true;
+    easingAngle = false;
     lastX = e.clientX;
     velocity = 0;
     canvas.setPointerCapture(e.pointerId);
@@ -204,6 +333,7 @@ export async function createStage(
   const onKey = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
+    easingAngle = false;
     const step = (e.key === 'ArrowLeft' ? -1 : 1) * (Math.PI / 12);
     if (opts.reduce) angle += step;
     else velocity += step * 3;
@@ -232,6 +362,19 @@ export async function createStage(
   wake();
 
   return {
+    focus(next: string) {
+      if (!guidedRaw || current !== guidedIndex || !(next in POSES)) return false;
+      view = next as ViewId;
+      // Turn the board square to the viewer by the shortest way round, then hold it there.
+      angle = Math.atan2(Math.sin(angle), Math.cos(angle));
+      easingAngle = view !== 'overview';
+      velocity = 0;
+      idle = 0;
+      marks.forEach((g, group) => (g.visible = group === view));
+      labels.forEach((l) => (l.span.hidden = l.part.group !== view));
+      wake();
+      return true;
+    },
     show(i: number) {
       if (i === current) return;
       const from = current;
@@ -261,6 +404,7 @@ export async function createStage(
       renderer.dispose();
       renderer.forceContextLoss();
       canvas.remove();
+      labels.forEach((l) => l.span.remove());
       rotated = new Set();
     },
   };

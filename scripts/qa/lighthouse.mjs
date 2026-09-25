@@ -7,6 +7,7 @@ import { BASE, ROUTES } from './routes.mjs';
 
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const routes = process.argv.slice(2).length ? process.argv.slice(2) : ROUTES;
+const RUNS = Number(process.env.RUNS ?? 3);
 const chrome = await chromeLauncher.launch({
   chromePath: process.env.CHROME_PATH ?? EDGE,
   chromeFlags: ['--headless=new', '--no-first-run'],
@@ -15,15 +16,28 @@ const chrome = await chromeLauncher.launch({
 const rows = [];
 let ok = true;
 for (const route of routes) {
-  const { lhr } = await lighthouse(BASE + route, {
-    port: chrome.port,
-    output: 'json',
-    logLevel: 'error',
-    onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-  });
-  const s = (k) => Math.round(lhr.categories[k].score * 100);
-  const lcp = lhr.audits['largest-contentful-paint'].numericValue / 1000;
-  const cls = lhr.audits['cumulative-layout-shift'].numericValue;
+  // Median of RUNS (by LCP) — single runs on one machine vary by ±0.3 s LCP, which
+  // is the whole margin of a 2.0 s budget. Lighthouse's own variability guidance recommends this.
+  const runs = [];
+  for (let i = 0; i < RUNS; i++) {
+    const { lhr: one } = await lighthouse(BASE + route, {
+      port: chrome.port,
+      output: 'json',
+      logLevel: 'error',
+      onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
+    });
+    runs.push(one);
+  }
+  runs.sort(
+    (a, b) =>
+      a.audits['largest-contentful-paint'].numericValue -
+      b.audits['largest-contentful-paint'].numericValue,
+  );
+  const lhr = runs[Math.floor(runs.length / 2)];
+  if (lhr.runtimeError) console.error(`${route}: Lighthouse runtime error: ${lhr.runtimeError.code} ${lhr.runtimeError.message}`);
+  const s = (k) => Math.round((lhr.categories[k].score ?? 0) * 100);
+  const lcp = (lhr.audits['largest-contentful-paint'].numericValue ?? NaN) / 1000;
+  const cls = lhr.audits['cumulative-layout-shift'].numericValue ?? NaN;
   const row = {
     route,
     perf: s('performance'),

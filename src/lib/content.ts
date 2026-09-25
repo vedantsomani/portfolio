@@ -33,3 +33,21 @@ export const statusLabel = (s?: string) => (s ? STATUS[s] : undefined);
 
 export const formatDate = (d?: Date) =>
   d?.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+
+// Anchor id for a case-study section: shared by CaseSection and the "On this page" navigator.
+export const sectionId = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+// The sections a case study's MDX actually renders, in order. A self-closing <CaseSection todo=…/>
+// has no content, so it only renders (as a TODO) in dev.
+export function renderedSections(body: string | undefined, showTodos: boolean): string[] {
+  const out: string[] = [];
+  for (const m of (body ?? '').matchAll(/<CaseSection\s+title="([^"]+)"([^>]*?)(\/?)>/g)) {
+    if (m[3] === '/' && !showTodos) continue;
+    out.push(m[1]);
+  }
+  return out;
+}
