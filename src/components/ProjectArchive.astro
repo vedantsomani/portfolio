@@ -1,0 +1,75 @@
+---
+// More projects, below the case studies: a readable list, not cards. Year and evidence are data
+// (mono); the stack is plain text, not tags. Each entry links only where a link was checked to load.
+import Todo from './Todo.astro';
+import Figure from './Figure.astro';
+import { archive, experiments } from '../data/archive';
+---
+
+<section class="section grid archive" aria-labelledby="archive-title" data-trace-stop>
+  <div class="archive__head">
+    <h2 id="archive-title">More projects</h2>
+    <p class="archive__lede">
+      Work without a full case study yet. Each entry says where its claim comes from: a live site, a
+      public repository, photos, LinkedIn, or my résumé.
+    </p>
+  </div>
+
+  <ol class="archive__list" role="list">
+    {archive.map((e) => (
+      <li class="archive__item">
+        <p class="archive__year t-data">{e.year}</p>
+        <div class="archive__body">
+          <h3 class="archive__title">{e.title}</h3>
+          <p class="archive__line">{e.line}</p>
+          <p class="archive__meta t-small">
+            {e.stack}
+            <span class="archive__evidence t-data">{e.evidence}</span>
+          </p>
+          {e.photos && (
+            <div class="archive__photos">
+              {e.photos.map((ph) => (
+                <Figure
+                  src={ph.src}
+                  alt={ph.alt}
+                  sizes="(min-width: 48rem) 20rem, 45vw"
+                  widths={[480, 800]}
+                />
+              ))}
+            </div>
+          )}
+          {e.todo && <Todo what={e.todo} />}
+        </div>
+        {e.links.length > 0 && (
+          <ul class="archive__links" role="list">
+            {e.links.map((l) => (
+              <li>
+                <a href={l.href} aria-label={`${e.title}: ${l.label}`}>
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </li>
+    ))}
+  </ol>
+
+  <h3 class="archive__sub">Smaller experiments</h3>
+  <ul class="archive__small" role="list">
+    {experiments.map((e) => (
+      <li>
+        <span class="archive__small-title">{e.title}</span>
+        <span class="archive__small-line">
+          {e.line} <span class="t-data">{e.year}</span>
+        </span>
+        {e.links.map((l) => (
+          <a href={l.href} aria-label={`${e.title}: ${l.label}`}>
+            {l.label}
+          </a>
+        ))}
+        {e.todo && <Todo what={e.todo} />}
+      </li>
+    ))}
+  </ul>
+</section>

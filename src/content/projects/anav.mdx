@@ -1,0 +1,95 @@
+---
+title: ANAV
+slug: anav
+summary: An autonomous UAV for a Martian-surface landing scenario that maps hazards from its camera and IMU and picks the safest place to land.
+kind: engineering
+status: built
+restricted: false
+year: '2024–25'
+stack: [MAVLink, QGroundControl, onboard camera, IMU]
+cover: ../../assets/work/anav-cover.jpg
+coverAlt: Vedant kneeling on the concrete floor of a large tent hall, working on the ANAV quadcopter before a test session.
+order: 2.5
+repoUrl: https://github.com/vedantsomani/Frontend-for-anav
+glance:
+  problem: 'Land autonomously on unknown, hazardous ground, as on a Martian surface, with no human input.'
+  exists: 'A built quadcopter with an onboard companion computer, tested in a tent hall and outdoors, and a browser ground dashboard. The mission behaviour below is as described in the project write-up; flight logs are not published here yet.'
+---
+
+import Figure from '../../components/Figure.astro';
+import front from '../../assets/work/anav-front.jpg';
+import stack from '../../assets/work/anav-stack.jpg';
+import field from '../../assets/work/anav-field.jpg';
+import night from '../../assets/work/anav-night.jpg';
+
+<CaseSection title="Objective">
+  An autonomous UAV for a Martian-surface landing scenario, built for an ISRO competition. It takes
+  off on its own, scans the terrain, and searches for a safe landing zone, then approaches and
+  touches down with no human input.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="ANAV mission pipeline"
+    columns={[
+      { title: 'Sensing', nodes: ['Onboard camera', 'IMU'] },
+      { title: 'Hazard map', nodes: ['Rocks', 'Craters', 'Steep slopes'] },
+      { title: 'Site scoring', nodes: ['Flatness', 'Clearance', 'Approach margin'] },
+      {
+        title: 'Landing',
+        nodes: ['Automated approach and touchdown', 'Telemetry and decision logs'],
+      },
+    ]}
+  />
+  <p>
+    The vehicle builds a hazard map from the camera and IMU, scores candidate sites for flatness,
+    clearance, and approach margin, and selects the safest. It records telemetry and its decisions
+    throughout the mission. The public repository is the browser ground dashboard: live telemetry
+    over WebSocket beside the camera stream.
+  </p>
+</CaseSection>
+
+<CaseSection title="Hardware and firmware">
+  <div class="figure-pair">
+    <Figure
+      src={front}
+      alt="The ANAV quadcopter on a desk, front view: printed white and black arms, a stacked companion computer on top, an FS-iA6B receiver, and an orange LiPo pack underneath."
+      sizes="(min-width: 64rem) 30vw, 100vw"
+      widths={[480, 800, 1200]}
+      caption="The airframe: printed arms, companion computer stacked on the flight controller."
+    />
+    <Figure
+      src={stack}
+      alt="Close-up of the ANAV electronics stack on a lab desk, with USB and power leads taped in place."
+      sizes="(min-width: 64rem) 30vw, 100vw"
+      widths={[480, 800, 1200]}
+      caption="The electronics stack during integration."
+    />
+  </div>
+  <Todo
+    what="flight controller and companion computer part numbers, and your part in the build"
+    block
+  />
+</CaseSection>
+
+<CaseSection title="Bench setup">
+  <Figure
+    src={field}
+    alt="The ANAV quadcopter on grass outdoors, with a teammate's hands adjusting the wiring."
+    sizes="(min-width: 64rem) 60vw, 100vw"
+    widths={[480, 800, 1200]}
+    caption="Outdoor session: checks before a test."
+  />
+  <Figure
+    src={night}
+    alt="The ANAV quadcopter on a grass field at night, with a pilot holding a transmitter in the background."
+    sizes="(min-width: 64rem) 60vw, 100vw"
+    widths={[480, 800, 1200, 1600]}
+    caption="On the field at night, with the pilot on the transmitter."
+  />
+</CaseSection>
+
+<CaseSection
+  title="Measurements"
+  todo="flight logs or a video of the autonomous landing, and any landing-accuracy numbers"
+/>

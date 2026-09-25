@@ -33,12 +33,32 @@ export const reasons = [
 ] as const;
 
 export const about = {
+  // Roles with what each one involved, from cv (4) p1 (May 2026) and cv-2 p1 (Aug 2026).
   roles: [
-    { title: 'Head of Research', org: 'Technotix BU, since Feb 2026' },
-    { title: 'Head of Research', org: 'BC3' },
-    { title: 'Member', org: 'BURS, 2024–25' },
+    {
+      title: 'Head of Research',
+      org: 'Technotix BU, the IoT & Robotics Club at Bennett University',
+      when: 'since Feb 2026',
+      detail:
+        'Coordinated drone, ESP32, and sensor-integration work in a five-member robotics subgroup; ran two workshops on UAV basics and ESP32 sensor interfacing for 250+ attendees; mentored 50+ juniors on hardware debugging and embedded protocols.',
+    },
+    {
+      title: 'Head of Research',
+      org: 'BC3, the Bennett Cloud Computing Club',
+      when: 'since Oct 2025',
+      detail: 'Organised workshops on edge computing and deployment pipelines for club members.',
+    },
+    {
+      title: 'Member',
+      org: 'BURS, the Bennett Undergraduate Research Society',
+      when: '2024–25',
+      detail: 'First-year member of the undergraduate research community.',
+    },
   ],
+  // cv-2 p2.
+  awards: ['Altium Global Scholarship Program 2026: selected.'],
   education: 'B.Tech CSE, Bennett University, 2024–28',
-  // TODO(vedant): portrait or workspace photo alt text once the photo exists
-  photoAlt: 'Placeholder for a photo of Vedant at the bench',
+  // Vedant's photo (sent 2026-09-26), re-encoded without metadata.
+  photoAlt:
+    "Vedant's desk at night: two laptops, one showing a CAD model, a 3D printer, printed wing panels, and a drone frame at the edge.",
 } as const;

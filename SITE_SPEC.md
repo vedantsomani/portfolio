@@ -106,7 +106,25 @@ Every fact below is traced to a file in `ASSET_INVENTORY.md` (path and line). **
 
 **Not on the site**: Krishi Darpan (left off), the graphene slide (not Vedant's), club photos (none confirmed as Vedant's builds), and any claim about the `AWS` repo (unconfirmed).
 
-**About**: B.Tech CSE, Bennett University (2024–28). Head of Research, Technotix BU (since Feb 2026) and BC3. Member, BURS (2024–25). Needs: a portrait or workspace photo, a clean résumé PDF, and confirmation of the three paragraphs.
+**About**: B.Tech CSE, Bennett University (2024–28).
+- Head of Research, Technotix BU, the IoT & Robotics Club (since Feb 2026). Coordinated drone, ESP32, and sensor-integration work in a five-member subgroup; two workshops (UAV basics, ESP32 sensor interfacing) for 250+ attendees; mentored 50+ juniors.
+- Head of Research, BC3, the Bennett Cloud Computing Club (since Oct 2025). Organised edge-computing and deployment-pipeline workshops.
+- Member, BURS, the Bennett Undergraduate Research Society (2024–25).
+- Altium Global Scholarship Program 2026: selected.
+- Sources: cv (4) p1 (May 2026); cv-2 p1–2 (Aug 2026).
+- Needs: a portrait or workspace photo, a clean résumé PDF, and confirmation of the three paragraphs.
+
+**More projects** (the list on /projects; the data and per-entry sources are in `src/data/archive.ts`). Sources: the old portfolio's project list (`Downloads/cv/content.py`), résumés cv (4) and cv-2, LinkedIn project entries (screenshots, 2026-09-25), repo READMEs, and the live sites. Each entry shows its evidence type (live site, public repo, LinkedIn, résumé, local only), so a résumé or LinkedIn claim never reads as a verified measurement.
+- CodeSaaS (2026): seven-agent code generator on LangGraph, AWS Bedrock, E2B, Next.js. Live at aws-six-omega.vercel.app; repo `AWS`.
+- IRoC-U 2026 indoor quadrotor (Jan–Apr 2026): GPS-denied, PX4 + Jetson Nano + stereo depth + optical flow; flight tests in a 5 m × 5 m arena, with teammates. Repo `irocu-2026` not linked until its README is replaced.
+- Krishi Darpan (Oct 2025–): team; Earth Engine advisory, XGBoost crop ranking (15+ crops, 78% on field data), quantized MobileNet under 6 MB (80% on an open benchmark), multilingual; Project Showcase 2.0.
+- ANAV (Aug 2024–Apr 2025), now a full case study (`/projects/anav`): Martian-surface landing scenario, ISRO competition; hazard map from camera + IMU, landing-site scoring (flatness, clearance, approach margin), automated approach and touchdown, per LinkedIn. Status "Built": Vedant's photos show the vehicle, tent-hall and outdoor sessions (sent 2026-09-26; crops keep other people's faces out). Repo `Frontend-for-anav` is its ground dashboard. Needs: part numbers, his part, flight logs or video.
+- Club drone builds (dates unknown): Vedant's own S550 hexacopter and F450, both Pixhawk + GPS, in Mission Planner (his photos). Needs: dates, whether they flew.
+- SKYNET glider: Vedant's wing-printing photo is pending a JPG re-send (the story file did not decode).
+- SmartCan (2025): Raspberry Pi waste classification with lid control, per LinkedIn. Repo `Smart-bin` (web app; confirm).
+- Cymbot (2024): team mental-health chatbot with assessment quizzes, per LinkedIn.
+- Also: GTR 2026 event site (live), line-following robot (Apr–Jun 2023), network analyzer, EduCon, FocusFlow (concept), Campusgram; small experiments Agri, Disaster-One, YouTube ad blocker, Autotyper.
+- Not on the site yet (need details or a decision): SKYNET ground robot (restricted), Raven UGV-UAV, CSI WiFi sensing, "lunar ice".
 
 Restricted projects (PRAHARI, VAJRA, SKYNET): architecture and results only. No control laws, protocol internals, key handling, or repo links.
 

@@ -16,6 +16,7 @@ export const ROUTES = [
   '/projects',
   '/projects/saarthi',
   '/projects/tessera',
+  '/projects/anav',
   '/projects/vajra',
   '/projects/smriti',
   '/projects/dhwani-kavach',

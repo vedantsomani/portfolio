@@ -4,7 +4,7 @@ import Figure from '../components/Figure.astro';
 import Todo from '../components/Todo.astro';
 import FinalCta from '../components/FinalCta.astro';
 import { about, site } from '../data/site';
-import portrait from '../assets/placeholders/about-portrait.jpg';
+import portrait from '../assets/work/workspace.jpg';
 
 // Person JSON-LD: only what the page shows.
 const jsonLd = {
@@ -31,13 +31,7 @@ const jsonLd = {
 
   <section class="section grid about" aria-label="About Vedant">
     <div class="about__photo">
-      <Figure
-        src={portrait}
-        alt={about.photoAlt}
-        todo="portrait or workspace photo"
-        priority
-        sizes="(min-width: 64rem) 33vw, 100vw"
-      />
+      <Figure src={portrait} alt={about.photoAlt} priority sizes="(min-width: 64rem) 33vw, 100vw" />
     </div>
     <div class="about__text prose">
       <p>
@@ -59,11 +53,25 @@ const jsonLd = {
       <h2 class="about__heading">Roles</h2>
       <ul class="about__roles" role="list">
         {about.roles.map((r) => (
-          <li>
-            {r.title}, {r.org}
+          <li class="about__role">
+            <p class="about__role-title">
+              {r.title}, {r.org} <span class="t-data">{r.when}</span>
+            </p>
+            <p class="about__role-detail">{r.detail}</p>
           </li>
         ))}
-        <li>{about.education}</li>
+        <li class="about__role">
+          <p class="about__role-title">{about.education}</p>
+        </li>
+      </ul>
+
+      <h2 class="about__heading">Programmes</h2>
+      <ul class="about__roles" role="list">
+        {about.awards.map((a) => (
+          <li class="about__role">
+            <p class="about__role-title">{a}</p>
+          </li>
+        ))}
       </ul>
 
       {/* No résumé link until Vedant supplies a clean PDF (the found ones expose a phone number or

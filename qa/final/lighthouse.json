@@ -1,12 +1,12 @@
 [
   {
-    "route": "/projects/saarthi",
+    "route": "/projects/anav",
     "perf": 100,
     "a11y": 100,
     "bp": 100,
     "seo": 100,
-    "lcp": "1.71",
-    "cls": "0.001",
+    "lcp": "1.72",
+    "cls": "0.000",
     "pass": true
   }
 ]
