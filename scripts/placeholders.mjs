@@ -1,8 +1,7 @@
 // Placeholder art: a generated PCB layout (IC footprints, 45° routed traces, drilled pads) in
 // --rule on --surface, rasterised to JPG so it runs through the same AVIF/JPG pipeline as the
 // real photos. Seeded per slot, so every placeholder is distinct and stable between runs.
-// hero-xray reuses the hero-photo seed in --oxblood-hi on --bg: the same layout, pixel-aligned,
-// which is what the real KiCad plot will be relative to the real photo.
+// The hero, the Saarthi cover and the hall poster are real KiCad renders now (src/assets/work/).
 // Every file here is TODO(vedant): replace with the real photo/render.
 // Run: node scripts/placeholders.mjs
 import sharp from 'sharp';
@@ -15,16 +14,14 @@ const out = 'src/assets/placeholders';
 
 // [file, width, height, seed?, palette?]
 const slots = [
-  ['hero-photo', 2400, 1600],
-  ['hero-xray', 2400, 1600, 'hero-photo', 'xray'],
-  ['saarthi-cover', 1600, 1200],
   ['prahari-cover', 1600, 1200],
   ['vajra-cover', 1600, 1200],
+  ['dhwani-cover', 1600, 1200],
+  ['pitsense-cover', 1600, 1200],
+  ['iot-cover', 1600, 1200],
   ['skynet-cover', 1200, 1600],
   ['fusion-artifact', 1600, 1000],
   ['about-portrait', 1200, 1500],
-  ['hall-saarthi', 1200, 1200],
-  ['hall-setu', 1200, 1200],
 ];
 
 function rng(seedText) {

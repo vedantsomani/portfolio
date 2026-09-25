@@ -35,3 +35,6 @@ qa/*
 .dev.vars*
 !.dev.vars.example
 .wrangler/
+
+# Local-only: inventory of this laptop (private paths, restricted-project notes). Never publish.
+ASSET_INVENTORY.md

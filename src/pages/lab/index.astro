@@ -8,7 +8,14 @@ import { formatDate, getLabEntries, statusLabel, type LabEntry } from '../../lib
 
 // Entries grouped by status, in the spec's order. Entries without a status only appear in dev.
 const entries = await getLabEntries();
-const ORDER = ['concept', 'prototype', 'validated', 'archived', undefined] as const;
+const ORDER = [
+  'simulation-tested',
+  'concept',
+  'prototype',
+  'validated',
+  'archived',
+  undefined,
+] as const;
 const groups = ORDER.map((status) => ({
   status,
   entries: entries.filter((e) => e.data.status === status),
@@ -19,7 +26,7 @@ const line = (e: LabEntry) => e.data.result ?? e.data.hypothesis;
 <BaseLayout
   title="Lab"
   og="lab"
-  description="The hardware hall and build log: Vedant Somani's flight-controller board, the SETU airframe, and experiments, each with a status."
+  description="The hardware hall and build log: Vedant Somani's flight-controller board and experiments, each with a status that matches its evidence."
 >
   <header class="page-head grid">
     <h1 class="page-head__title">Lab</h1>

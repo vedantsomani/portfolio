@@ -40,6 +40,8 @@ const facts = [
   { label: 'Status', value: status, todo: 'status' },
   { label: 'Year', value: d.year, todo: 'year' },
   { label: 'Role', value: d.role.join(', ') || undefined, todo: 'role' },
+  // Credit, never a TODO: only projects built on someone else's work carry it.
+  ...(d.builtOn ? [{ label: 'Built on', value: d.builtOn, todo: '' }] : []),
 ].filter((f) => f.value || SHOW_TODOS);
 const links = d.restricted
   ? []
@@ -95,7 +97,7 @@ const links = d.restricted
 
   <div class="case-body trace-scope grid" data-trace>
     <div class="case-body__inner">
-      <Content components={{ CaseSection, ArchDiagram, Todo }} />
+      <Content components={{ CaseSection, ArchDiagram, Todo, Figure }} />
 
       {status ? (
         <CaseSection title="Status">

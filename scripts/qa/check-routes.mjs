@@ -17,5 +17,6 @@ const probe = async (path, expect, location) => {
 for (const r of ROUTES) await probe(r, 200);
 await probe(NOT_FOUND, 404);
 await probe('/services', 301, '/');
+await probe('/projects/prahari', 301, '/lab/prahari');
 console.log(rows.join('\n'));
 if (!ok) process.exit(1);

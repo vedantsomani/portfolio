@@ -1,6 +1,10 @@
 import { getImage } from 'astro:assets';
-import heroPhoto from '../assets/placeholders/hero-photo.jpg';
-import heroXray from '../assets/placeholders/hero-xray.jpg';
+// Both come from one KiCad board file, pixel-aligned via the mounting holes (scripts/kicad-hero.mjs).
+import heroPhoto from '../assets/work/saarthi-hero.jpg';
+import heroXray from '../assets/work/saarthi-xray.jpg';
+// Mobile: a 4:3 cut around the board, taken at identical coordinates from both layers.
+import heroPhotoMobile from '../assets/work/saarthi-hero-mobile.jpg';
+import heroXrayMobile from '../assets/work/saarthi-xray-mobile.jpg';
 
 // Hero art direction. Mobile: 4:3 crop, ≤ 60 KB, normal priority, so the headline is the intended
 // LCP element. Desktop (≥ 1024px): full frame ≤ 150 KB, preloaded with fetchpriority="high"
@@ -33,10 +37,10 @@ export async function getHeroImages() {
   const [deskAvif, deskJpg, mobAvif, mobJpg, xDesk, xMob] = await Promise.all([
     variants(heroPhoto, desk, 'avif', false, 60),
     variants(heroPhoto, desk, 'jpg', false, 70),
-    variants(heroPhoto, mob, 'avif', true, 50),
-    variants(heroPhoto, mob, 'jpg', true, 60),
+    variants(heroPhotoMobile, mob, 'avif', true, 50),
+    variants(heroPhotoMobile, mob, 'jpg', true, 60),
     variants(heroXray, desk, 'avif', false, 60),
-    variants(heroXray, mob, 'avif', true, 55),
+    variants(heroXrayMobile, mob, 'avif', true, 55),
   ]);
   const fallback = mobJpg[mobJpg.length - 1];
   return {

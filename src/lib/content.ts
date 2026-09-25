@@ -16,11 +16,16 @@ export async function getLabEntries(): Promise<LabEntry[]> {
   return all.sort((a, b) => a.data.order - b.data.order);
 }
 
+// Exact wording per SITE_SPEC §6. A label may never claim more than the files show.
 const STATUS: Record<string, string> = {
-  shipped: 'Shipped',
-  prototype: 'Prototype',
+  'in-layout': 'In layout — schematic complete, routing in progress',
+  frozen: 'v1.0 (frozen)',
+  'bench-tested': 'Bench-tested',
   research: 'Research',
+  prototype: 'Prototype',
+  built: 'Built',
   concept: 'Concept',
+  'simulation-tested': 'Simulation-tested',
   validated: 'Validated',
   archived: 'Archived',
 };

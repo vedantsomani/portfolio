@@ -19,11 +19,12 @@ Scope: a portfolio for recruiters, research labs, collaborators, and future co-f
 ## Hard rules
 1. **Never invent content.** No fake clients, testimonials, metrics, logos, ratings, or project details. Use `TODO(vedant): ...` and list every TODO you add at the end of each response.
 2. Project facts come only from `SITE_SPEC.md §6`.
-3. Defense-adjacent projects (PRAHARI, VAJRA, SKYNET/SETU): architecture and results level only. No control laws, protocol internals, key-handling code, or repo links unless the spec marks them public.
+3. Defense-adjacent projects (PRAHARI, VAJRA, SKYNET): architecture and results level only. No control laws, protocol internals, key-handling code, or repo links unless the spec marks them public.
 4. Every piece of motion must explain the system, prove capability, or strengthen hierarchy. Otherwise cut it.
 5. `prefers-reduced-motion: reduce` → every animation resolves to its final state instantly.
 6. The site must be fully usable with JS disabled. No content or navigation lives only inside a canvas.
 7. Performance budgets are merge blockers.
+8. **Status labels must match evidence.** A label names the strongest thing the project's own files show (e.g. "In layout", "Simulation-tested", "Bench-tested"), never a stage not yet reached ("Prototype", "flight-tested", "validated", "live"). Simulation results say "simulation"; synthetic data says "synthetic"; renders say "render"; unmeasured numbers say "not yet measured". Borrowed work is credited ("Built on …"). A link ships only if it currently works.
 
 ## Performance budgets (p75, mid-range Android, 4G throttle)
 - LCP ≤ 2.0 s · INP ≤ 200 ms · CLS ≤ 0.05

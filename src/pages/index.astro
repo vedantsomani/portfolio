@@ -1,5 +1,4 @@
 ---
-import { getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
@@ -13,12 +12,12 @@ import { formatDate, getLabEntries, getProjects, statusLabel } from '../lib/cont
 import { DESKTOP, DESK_SIZES, getHeroImages } from '../lib/hero-images';
 
 const images = await getHeroImages();
-const saarthi = (await getProjects()).find((p) => p.id === 'saarthi');
-const setu = await getEntry('lab', 'skynet-setu');
-if (!saarthi || !setu)
-  throw new Error('Home needs the saarthi project and the skynet-setu lab entry.');
+// Selected work: the two flagships (SITE_SPEC §5), Saarthi large and TESSERA small.
+const projects = await getProjects();
+const saarthi = projects.find((p) => p.id === 'saarthi');
+const tessera = projects.find((p) => p.id === 'tessera');
+if (!saarthi || !tessera) throw new Error('Home needs the saarthi and tessera projects.');
 const lab = await getLabEntries();
-const setuPublished = lab.some((e) => e.id === 'skynet-setu');
 
 // The lab preview ships once at least one entry has a status and a result.
 const preview = lab.filter((e) => SHOW_TODOS || (e.data.status && e.data.result)).slice(0, 3);
@@ -27,7 +26,7 @@ const preview = lab.filter((e) => SHOW_TODOS || (e.data.status && e.data.result)
 <BaseLayout
   title="Vedant Somani"
   fontPreload={false}
-  description="Vedant Somani builds flight controllers, autonomy, and secure comms from the silicon up: embedded systems, drones, and the software around them."
+  description="Vedant Somani builds flight hardware, secure comms, and space-data pipelines from the silicon up: embedded systems, drones, and the software around them."
 >
   <link
     slot="head"
@@ -59,12 +58,14 @@ const preview = lab.filter((e) => SHOW_TODOS || (e.data.status && e.data.result)
           sizes="(min-width: 64rem) 55vw, 100vw"
         />
         <WorkCard
-          href={setuPublished ? `/lab/${setu.id}` : '/lab'}
-          title={setu.data.title}
-          summary="A heterogeneous autonomous swarm on a dual-brain pattern: a real-time flight controller plus a Linux SBC."
-          status={statusLabel(setu.data.status)}
-          cover={setu.data.artifact}
-          coverTodo={setu.data.artifactTodo}
+          href={`/projects/${tessera.id}`}
+          title={tessera.data.title}
+          summary={tessera.data.summary}
+          status={statusLabel(tessera.data.status)}
+          role={tessera.data.role}
+          cover={tessera.data.cover}
+          coverTodo={tessera.data.coverTodo}
+          morph={`cover-${tessera.id}`}
           size="small"
           sizes="(min-width: 64rem) 22vw, 60vw"
         />

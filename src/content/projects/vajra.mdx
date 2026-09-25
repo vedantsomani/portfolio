@@ -1,13 +1,14 @@
 ---
 title: VAJRA
 slug: vajra
-summary: A post-quantum mesh protocol with a hybrid key exchange, modelled in ProVerif and implemented in Rust.
+summary: A point-to-point post-quantum secure link between a controller and a node, frozen at v1.0 in Rust.
 kind: engineering
-status: prototype
+status: frozen
 restricted: true
+year: '2026'
 cover: ../../assets/placeholders/vajra-cover.jpg
 coverAlt: Placeholder for a VAJRA cover image
-coverTodo: VAJRA cover image
+coverTodo: VAJRA cover image (diagram or bench, no protocol internals)
 order: 3
 specs:
   - { label: KEM, value: ML-KEM-768 + X25519 }
@@ -16,7 +17,8 @@ specs:
 ---
 
 <CaseSection title="Objective">
-  A mesh protocol whose key exchange stays secure against a future quantum adversary.
+  A controller-to-node link whose key exchange is designed to stay secure against a future quantum
+  adversary, by combining a post-quantum and a classical key exchange.
 </CaseSection>
 
 <CaseSection title="Architecture">
@@ -25,20 +27,26 @@ specs:
     columns={[
       { title: 'Key exchange', nodes: ['Hybrid KEM: ML-KEM-768 + X25519'] },
       { title: 'Authentication', nodes: ['ML-DSA-65 signatures'] },
-      { title: 'Transport', nodes: ['ChaCha20-Poly1305'] },
+      { title: 'Transport', nodes: ['ChaCha20-Poly1305 over UDP'] },
     ]}
   />
+  <p>One controller, one node, one link: point-to-point. There is no multi-hop routing.</p>
 </CaseSection>
 
-<CaseSection title="Constraints" todo="constraints, at architecture level only" />
+<CaseSection title="Constraints">
+  The parameter sets are NIST Category 3, not CNSA 2.0. Peer identities are pinned in configuration;
+  there is no certificate authority or revocation.
+</CaseSection>
 
 <CaseSection title="Hardware and firmware">
-  The protocol is modelled in ProVerif and implemented in Rust. This project is restricted: this
-  page covers architecture and results only.
+  The frozen core is written in Rust, with a Python reference implementation. The handshake and
+  record layer are also modelled in ProVerif; those models are not yet machine-checked. This project
+  is restricted: this page covers architecture and results only.
 </CaseSection>
 
-<CaseSection title="Bench setup" todo="test setup that can be published" />
-
-<CaseSection title="Measurements" todo="results that can be published" />
-
-<CaseSection title="Failures and iterations" todo="iterations that can be published" />
+<CaseSection title="Measurements">
+  <ul>
+    <li>Rust test suite: 16 tests pass at v1.0.</li>
+    <li>Python reference: 53 of 53 tests pass.</li>
+  </ul>
+</CaseSection>

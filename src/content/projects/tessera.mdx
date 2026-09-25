@@ -1,0 +1,108 @@
+---
+title: TESSERA
+slug: tessera
+summary: Thermal-infrared to colour for Landsat imagery, for ISRO's Bharatiya Antariksh Hackathon 2026, with a map of where the model is guessing.
+kind: engineering
+status: research
+restricted: false
+year: '2026'
+role: [Team leader, team of 4]
+stack: [PyTorch, Python, Landsat 8/9]
+cover: ../../assets/work/tessera-cover.jpg
+coverAlt: TESSERA results on two of five held-out Landsat test scenes (forest and agriculture). Each row shows the thermal input, the baseline colourisation, TESSERA's colourisation, the true colour image and the hallucination-risk map. All five scenes are in the Measurements section.
+featured: true
+order: 2
+specs:
+  - { label: Input, value: Landsat ST_B10 (thermal) }
+  - { label: PSNR, value: '24.835786' }
+  - { label: Hallucination proxy, value: '0.023902' }
+  - { label: Time per tile, value: 226.78 ms }
+---
+
+import Figure from '../../components/Figure.astro';
+import grid from '../../assets/work/tessera-grid.jpg';
+
+<CaseSection title="Objective">
+  Bharatiya Antariksh Hackathon 2026, Problem Statement 10: colourise and enhance infrared satellite
+  imagery so objects are easier to interpret. A single-band thermal tile goes in; a sharpened
+  infrared image, a colour interpretation, and a per-pixel risk map come out. The risk map marks
+  where the colour is not supported by the input.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="TESSERA pipeline"
+    columns={[
+      { title: 'Input', nodes: ['Landsat ST_B10 thermal tile'] },
+      { title: 'Stage 1', nodes: ['Infrared enhancement (ResUNet / EDSR-style)'] },
+      {
+        title: 'Stage 2',
+        nodes: ['ResUNet colouriser', 'Semantic and uncertainty heads'],
+      },
+      { title: 'Output', nodes: ['Colour image', 'Hallucination-risk map'] },
+    ]}
+  />
+  <p>
+    A teacher that also sees spectral indices (NDVI, NDWI, MNDWI, NDBI) was trained as an upper
+    bound. It is not deployable: the deployed model sees only the thermal band.
+  </p>
+</CaseSection>
+
+<CaseSection title="Constraints">
+  The challenge allows only the thermal band at inference, so anything else can guide training but
+  never ship. Patches are split by scene and date, so no scene appears in both training and test.
+</CaseSection>
+
+<CaseSection title="Measurements">
+  <Figure
+    src={grid}
+    alt="Results grid for five Landsat test scenes: thermal input, baseline colourisation, TESSERA colourisation, true colour, absolute error, and hallucination-risk map."
+    sizes="(min-width: 64rem) 60vw, 100vw"
+    widths={[480, 800, 1200, 1600]}
+    caption="Held-out test scenes. Columns: thermal input, baseline, TESSERA, ground truth, absolute error, risk."
+  />
+  <table>
+    <caption class="visually-hidden">TESSERA pipeline results on the teacher-student split</caption>
+    <thead>
+      <tr>
+        <th scope="col">Pipeline</th>
+        <th scope="col">PSNR</th>
+        <th scope="col">Hallucination proxy</th>
+        <th scope="col">Time per tile</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>TESSERA, deployed</td>
+        <td class="t-data">24.835786</td>
+        <td class="t-data">0.023902</td>
+        <td class="t-data">226.78 ms</td>
+      </tr>
+      <tr>
+        <td>With infrared enhancement stage</td>
+        <td class="t-data">24.840277</td>
+        <td class="t-data">0.023861</td>
+        <td class="t-data">299.82 ms</td>
+      </tr>
+      <tr>
+        <td>Distilled student (rejected)</td>
+        <td class="t-data">26.228975</td>
+        <td class="t-data">0.121392</td>
+        <td class="t-data">249.57 ms</td>
+      </tr>
+    </tbody>
+  </table>
+</CaseSection>
+
+<CaseSection title="Failures and iterations">
+  <p>
+    The baseline, trained on pixel loss alone, painted every land cover the same brown. Temperature
+    does not determine colour, so the loss rewarded the average. That failure motivated the separate
+    enhancement stage, the semantic head, and the risk map.
+  </p>
+  <p>
+    Distilling the teacher into a thermal-only student raised PSNR, but its hallucination proxy was
+    0.121392 against 0.023902, so it was rejected. On the pilot split, the largest model tried
+    (8,748,239 parameters) was worse than the baseline on PSNR and much slower.
+  </p>
+</CaseSection>

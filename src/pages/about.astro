@@ -46,9 +46,9 @@ const jsonLd = {
       </p>
       <p>
         My projects cross the line between hardware and software on purpose. Saarthi is a
-        flight-controller board and its firmware; PRAHARI targets that board with verified, shielded
-        navigation; VAJRA is a post-quantum mesh protocol. Each one only works if the layers under
-        it are understood.
+        flight-controller board and its firmware; TESSERA turns thermal satellite imagery into
+        colour for ISRO's hackathon; VAJRA is a point-to-point post-quantum link. Each one only
+        works if the layers under it are understood.
       </p>
       <p>
         I'm building toward defence technology: autonomous systems that can be trusted because their
@@ -66,6 +66,8 @@ const jsonLd = {
         <li>{about.education}</li>
       </ul>
 
+      {/* No résumé link until Vedant supplies a clean PDF (the found ones expose a phone number or
+          placeholders). The link appears once public/resume.pdf exists. */}
       {__HAS_RESUME__ ? (
         <p class="about__resume">
           <a href="/resume.pdf" data-track="resume_download">
@@ -73,7 +75,10 @@ const jsonLd = {
           </a>
         </p>
       ) : (
-        <Todo what="résumé PDF at public/resume.pdf (the link appears once it exists)" block />
+        <Todo
+          what="clean résumé PDF at public/resume.pdf (the link stays hidden until then)"
+          block
+        />
       )}
     </div>
   </section>

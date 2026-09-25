@@ -1,0 +1,38 @@
+---
+title: SKYNET
+slug: skynet
+status: simulation-tested
+date: 2026-07-14
+discipline: Autonomy
+artifact: ../../assets/placeholders/skynet-cover.jpg
+artifactAlt: Placeholder for a SKYNET image
+artifactTodo: SKYNET image (SETU photo if item 5 is confirmed)
+result: A Raspberry Pi companion flew a 2 m takeoff, hover, and landing mission in ArduPilot simulation, and the autopilot landed on its own when the companion was killed.
+order: 1
+---
+
+<CaseSection title="What it is">
+  A dual-brain aircraft stack: a Pixhawk flight controller handles real-time control, and a
+  Raspberry Pi companion runs the mission, the safety gates, and a live telemetry dashboard. The
+  aircraft carries GPS, optical flow, and a barometer. This project is restricted: this page covers
+  architecture and results only.
+</CaseSection>
+
+<CaseSection title="Result">
+  <ul>
+    <li>
+      Nominal 2 m mission in ArduPilot SITL: climbed to 2.07 m, held about 1.96–2.00 m, landed and
+      disarmed.
+    </li>
+    <li>
+      Companion killed mid-hover: the autopilot switched to LAND after 4.2 s and disarmed on the
+      ground at 15.6 s.
+    </li>
+  </ul>
+  <p>
+    Both are simulation results. The code is deployed to the Raspberry Pi but has not yet been run
+    against the real Pixhawk or airframe.
+  </p>
+</CaseSection>
+
+<Todo what="SETU: confirm the airframe (inventory item 5) before it appears here" block />

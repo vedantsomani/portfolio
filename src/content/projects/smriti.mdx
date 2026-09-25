@@ -1,0 +1,68 @@
+---
+title: SMRITI
+slug: smriti
+summary: A local-first household system for an older adult and their family. It runs on the home Wi‑Fi, and nothing goes to the cloud.
+kind: engineering
+status: prototype
+restricted: false
+year: '2026'
+stack: [Expo, React Native, Express, SQLite, Socket.IO]
+cover: ../../assets/work/smriti-cover.jpg
+coverAlt: Three SMRITI Family Care screens with demo data. The overview shows today's reminder reported done; a report view lets a relative record what they saw; a review view flags that two reports disagree.
+order: 4
+repoUrl: https://github.com/vedantsomani/Smriti
+---
+
+import Figure from '../../components/Figure.astro';
+import confusion from '../../assets/work/smriti-confusion.png';
+import training from '../../assets/work/smriti-training.png';
+
+<CaseSection title="Objective">
+  Continuity at home for an older adult, without handing their life to a vendor cloud. SMRITI is not
+  a medical device: it does not diagnose anything, medicine taps are self-reported only, and the
+  older adult never sees a score.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="SMRITI architecture"
+    columns={[
+      { title: 'Companion app', nodes: ['Large type, voice-friendly', 'Used by the older adult'] },
+      { title: 'Home server', nodes: ['Runs on a laptop', 'Express, SQLite, Socket.IO'] },
+      { title: 'Family Care app', nodes: ['Pairing, reminders, memories', 'Used by the family'] },
+    ]}
+  />
+  <p>
+    Both phones talk to the laptop over the home Wi‑Fi. Pairing uses a short code or a QR code, so
+    the older adult never needs an email address.
+  </p>
+</CaseSection>
+
+<CaseSection title="Constraints">
+  Every record says who reported it and when. When two reports disagree (for example, a relative saw
+  the tablets still in the box but the companion phone logged them as taken), the app flags it for
+  review instead of choosing one.
+</CaseSection>
+
+<CaseSection title="Measurements">
+  <p>
+    After a play session, an optional local model suggests a gentler or fuller game pace. It came
+    out of a Smart India Hackathon 2026 problem on cognitive gaming and memory support for older
+    adults with dementia in India's North Eastern Region. It was trained and tested on synthetic
+    play events only: a research prototype, not a diagnosis.
+  </p>
+  <Figure
+    src={training}
+    alt="LSTM training curves from the SMRITI play-pace model, trained on synthetic play events."
+    sizes="(min-width: 64rem) 60vw, 100vw"
+    widths={[480, 800, 1200, 1600]}
+    caption="Training curves, synthetic data."
+  />
+  <Figure
+    src={confusion}
+    alt="Confusion matrix of the SMRITI play-pace model on its synthetic test split, across three non-clinical concern levels."
+    sizes="(min-width: 64rem) 40vw, 100vw"
+    widths={[480]}
+    caption="Test-split confusion matrix, synthetic data. Categories are non-clinical."
+  />
+</CaseSection>

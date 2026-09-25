@@ -1,0 +1,29 @@
+---
+title: PRAHARI
+slug: prahari
+status: concept
+discipline: Autonomy
+artifact: ../../assets/placeholders/prahari-cover.jpg
+artifactAlt: Placeholder for a PRAHARI image
+artifactTodo: PRAHARI simulation still (no restricted internals)
+hypothesis: A learned navigation policy for GPS-denied flight that can only act inside limits verified in advance.
+order: 2
+---
+
+<CaseSection title="What it is">
+  A design for formally verified, automaton-shielded reinforcement-learning navigation without GPS.
+  It is at the design stage, with no public artifacts yet. This project is restricted: this page
+  covers architecture only.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="PRAHARI architecture"
+    columns={[
+      { title: 'Sensing', nodes: ['PMW3901 optical flow', 'VL53L0X rangefinder'] },
+      { title: 'Policy', nodes: ['PPO / SAC over a belief state', 'Trained in Isaac Lab'] },
+      { title: 'Shield', nodes: ['LTL → Büchi shield synthesis', 'Mealy mission controller'] },
+      { title: 'Vehicle', nodes: ['Saarthi flight controller'] },
+    ]}
+  />
+</CaseSection>

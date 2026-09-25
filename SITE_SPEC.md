@@ -5,7 +5,7 @@ Source of truth for content, design, and motion. Updated to `FINAL_GOAL.md` (por
 ## 1. Positioning
 A personal engineering portfolio. No freelance offer, pricing, or process.
 
-- Headline: "Flight controllers, autonomy, and secure comms — built from the silicon up."
+- Headline: "Flight hardware, secure comms, and space data — built from the silicon up."
 - Supporting: "I'm Vedant Somani, a CSE student at Bennett University building embedded systems, drones, and the software around them."
 - CTAs: "See the work" → `/projects` (primary) · "Get in touch" → `/contact` (secondary). The nav button is "Get in touch".
 - Final CTA field: "Working on something hard?" + "Get in touch".
@@ -17,14 +17,17 @@ Test for every page: understandable in 10 s, credible in 30 s, contactable in 60
 ```
 /                    Home: hero (X-ray lens) → selected work → hardware hall → lab preview → final CTA
 /projects            Engineering projects (no filter: one kind in production)
-/projects/[slug]     Engineering case study
+/projects/[slug]     Engineering case study: saarthi, tessera, vajra, smriti, dhwani-kavach,
+                     pitsense, iot-club-website
 /lab                 Hardware hall + telemetry + build log (entries grouped by status)
-/lab/[slug]          Lab entry (only entries with a status are built in production)
-/about               Photo, three paragraphs, roles, résumé link
+/lab/[slug]          Lab entry (only entries with a status are built in production): skynet, prahari
+/about               Photo, three paragraphs, roles, résumé link (hidden)
 /contact             Form + email
-/resume.pdf          TODO(vedant): the link appears once public/resume.pdf exists
+/resume.pdf          Hidden: no link until Vedant supplies a clean PDF (the found ones expose a
+                     phone number or template placeholders)
 404                  Custom, with links to Projects, Contact, Home
 /services            301 → / (retired)
+/projects/prahari    301 → /lab/prahari (PRAHARI is a concept, not a project)
 ```
 Home's lab preview stays hidden until at least one lab entry has a status and a result.
 
@@ -54,7 +57,7 @@ Home's lab preview stays hidden until at least one lab entry has a status and a 
 ## 4. Motion system (full spec: `03_PHASE3_MOTION.md` §1–§6, all implemented)
 1. **Hero X-ray lens**: OGL shader (velocity-reactive radius up to 1.6×, decaying trail, simplex-noise edge, `--oxblood-hi` rim), CSS mask fallback (no WebGL, ≤ 4 cores, or saveData), one scripted Lissajous pass on touch, "Show circuit layout" toggle under reduced motion.
 2. **Hero type**: one SplitText line-masked reveal, once per session, ≤ 1.3 s.
-3. **Hardware hall**: Three.js (lazy), drag to rotate with inertia, 6°/s idle turn, carousel, AVIF-sprite fallback, procedural placeholder meshes until GLBs exist.
+3. **Hardware hall**: Three.js (lazy), drag to rotate with inertia, 6°/s idle turn, carousel, AVIF-sprite fallback. Saarthi loads `public/models/saarthi.glb`, exported from the same board file as the hero. SETU is out until confirmed, so the hall has one object and hides its carousel controls. Procedural meshes remain for any object without a GLB.
 4. **Page transitions**: `--oxblood` panel wipe between routes; shared-element morph from project card to case study.
 5. **Scroll moments (exactly three)**: case-cover clip wipe (CSS `view()` timeline), left-gutter signal trace (DrawSVG + ScrollTrigger, desktop, `--rule-strong` per the red rule), Lab telemetry line (draws once; real CSV only, so hidden in production until it exists).
 6. **Micro**: button clip-wipe fill + 0.98 press; drawn link underline. Nothing else hovers.
@@ -62,7 +65,7 @@ Home's lab preview stays hidden until at least one lab entry has a status and a 
 Rules: kill and re-init on `astro:before-swap` / `astro:page-load`; `prefers-reduced-motion` resolves everything to its final state; no content lives only inside a canvas. Easing `--ease-out: cubic-bezier(.16,1,.3,1)`, `--ease-in: cubic-bezier(.7,0,.84,0)`.
 
 ## 5. Page blueprints
-**Home**: nav (wordmark; Projects, Lab, About; "Get in touch"), hero (copy left, lens right; lens full-bleed under the headline on mobile), selected work (Saarthi large, SETU small), hardware hall (full-bleed oxblood field), lab preview (gated, see §2), final CTA field.
+**Home**: nav (wordmark; Projects, Lab, About; "Get in touch"), hero (copy left, lens right; lens full-bleed under the headline on mobile), selected work (Saarthi large, TESSERA small), hardware hall (full-bleed oxblood field), lab preview (gated, see §2), final CTA field.
 
 **Engineering case study**: oxblood header (title, summary, status, year, role, specs in mono) → cover → Objective → Architecture (inline diagram, HTML labels) → Constraints → Hardware/firmware → Bench setup → Measurements → Failures & iterations → Status → Links (public only) → prev/next → final CTA. Empty sections are TODO blocks in dev and absent in production.
 
@@ -77,17 +80,33 @@ Rules: kill and re-init on `astro:before-swap` / `astro:page-load`; `prefers-red
 - Success: "Sent. I'll reply by email."
 
 ## 6. Content (verified facts only)
-**Saarthi (H7-Pro)**: engineering, flagship. Flight-controller firmware on STM32H753. Sensors: dual ICM-42688-P IMUs, DPS310 + BMP390 barometers, MS4525DO airspeed. Mahony filter, fusion benchmark lab, frozen HAL/math contracts. Status: Prototype. Needs: role, year, benchmark CSV, top-down board photo, KiCad plots, GLB model, repo visibility decision.
+Every fact below is traced to a file in `ASSET_INVENTORY.md` (path and line). **Status labels must match the evidence**: a label names the strongest thing the project's own files show, never a stage it has not reached. The allowed labels and their exact wording live in `src/lib/content.ts`.
 
-**PRAHARI**: engineering, restricted. Formally verified, automaton-shielded RL navigation for GPS-denied flight: PPO/SAC over belief state (Isaac Lab), LTL→Büchi shield synthesis, Mealy mission controller. Targets Saarthi on F450; PMW3901 optical flow, VL53L0X rangefinder. Status: TODO(vedant).
+**Hero imagery**: the hero "photo" is a KiCad render and the X-ray is the KiCad copper plot. Both come from the Saarthi board file `Saarthi-H7-Pro-v1.kicad_pcb` (SHA-256 `7030b493…4a820b08`, 2026-09-24), aligned through the mounting holes by `scripts/kicad-hero.mjs`. The caption says "KiCad render". Replace it with a real top-down photo once the board is fabricated.
 
-**VAJRA**: engineering, restricted. Post-quantum mesh protocol: ML-KEM-768 + X25519 hybrid KEM, ML-DSA-65, ChaCha20-Poly1305. ProVerif models; Rust implementation. Status: Prototype.
+**Saarthi (H7-Pro)**: engineering, flagship. A dual-MCU flight controller for fixed-wing and glider airframes: an STM32H753ZIT6 flight computer, plus an STM32G431CBU6 safety/output MCU that alone drives the 12 servo outputs. Sensors on the current board: BMI088 + 2× ICM-42688-P IMUs, MS5611 + DPS310 barometers. There is no BMP390, and the MS4525DO airspeed sensor is an off-board module, not on the board. Board: 90 × 90 mm chamfered, 4 layers, 80 × 80 mm M3 + 30.5 mm stack pattern; regulated 5 V from a separate 3S/4S PDB. Status: **"In layout — schematic complete, routing in progress"**. Never "Prototype" or "flight-tested". Year 2026. Role: hardware architecture, KiCad schematic and layout, FlightCore software. FlightCore is a portable C11 core, tested on a host PC only: 72/72 host tests; a 100,000-seed stress campaign on a host model; IMU-only drift about 1.0 m in 10 s at 0.02 m/s² bias. Board checks 2026-09-24: 0 ERC errors; 4 DRC errors (USB-C hole clearance); 386 unrouted. Still needed: a photo of the fabricated board, a real fusion-benchmark CSV, and a repo visibility decision.
 
-**SKYNET / SETU**: lab entry. Heterogeneous autonomous swarm; dual-brain pattern (real-time FC + Linux SBC); SETU airframe (F450-class). Needs: status, third spec, GLB of the frame, photos.
+**TESSERA**: engineering, flagship. ISRO Bharatiya Antariksh Hackathon 2026, Problem Statement 10 (infrared colourisation and enhancement). Vedant was team leader (team of 4). Landsat ST_B10 thermal in; enhanced IR, colour and a hallucination-risk map out. Inference uses the thermal band only. Deployed model: PSNR 24.835786, hallucination proxy 0.023902, 226.78 ms/tile. Status: Research. Visuals: the held-out results grid.
 
-**Saarthi fusion benchmark**: lab entry. Needs: status, date, one-line result, CSV.
+**VAJRA**: engineering, restricted. "Point-to-point post-quantum secure link, v1.0 (frozen)". ML-KEM-768 + X25519 hybrid KEM, ML-DSA-65, ChaCha20-Poly1305 over UDP. Rust core plus a Python reference; ProVerif models (not yet machine-checked). NIST Category 3, not CNSA 2.0. Rust tests: 16 pass; Python: 53/53. Never "mesh".
 
-**About**: B.Tech CSE, Bennett University (2024–28). Head of Research, Technotix BU and BC3. Core member, BURS. Needs: portrait/workspace photo, résumé PDF, confirmation of the three paragraphs.
+**SMRITI**: engineering. A local-first household system (laptop home server, companion app, family-care app) with no cloud. Must carry: "not a medical device". The optional play-pace model came from an SIH 2026 problem and was trained on synthetic play events only. Status: Prototype. Visuals: app screenshots (demo personas only) and the model's plots, labelled synthetic. Repo public.
+
+**Dhwani-Kavach**: engineering, small entry. Smart India Hackathon 2026, SIH26052 (DRDO). Live dual-mic speech enhancement, built on FastEnhancer (ICASSP 2026), credited on the page. ΔPESQ 0.0363 vs offline (target < 0.05, pass); demo PESQ 1.088 → 1.602 on one synthetic sample; latency "not yet measured". Status: Bench-tested. Audio: none until a before/after pair with only Vedant's voice exists (max 2 short clips).
+
+**PitSense**: engineering, small entry. An F1 strategy workbench built on the open-source F1 Race Strategy Engine; its defaults are illustrative. Status: Prototype. Repo public.
+
+**IoT & Robotics Club website**: engineering, small entry. Vedant wrote 40 of 40 commits. Next.js, React Three Fiber, Supabase, GSAP. Status: Built. The Vercel URL returned 404 on 2026-09-25, so there is no live link until a working one exists.
+
+**SKYNET**: lab entry, restricted. A dual-brain aircraft stack: Pixhawk FC + Raspberry Pi companion, with GPS, optical flow and a barometer. Status: **"Simulation-tested"** (ArduPilot SITL, 2026-07-14: a 2 m mission; LAND on companion loss). Not yet run on the real Pixhawk or airframe. **SETU** stays off the site until Vedant confirms the airframe and supplies its photo.
+
+**PRAHARI**: lab entry, restricted, status **Concept**. Design stage, no public artifacts. Formally verified, automaton-shielded RL navigation for GPS-denied flight: PPO/SAC over a belief state in Isaac Lab, an LTL→Büchi shield, and a Mealy mission controller; PMW3901 and VL53L0X sensors; targets Saarthi.
+
+**Saarthi fusion benchmark**: lab entry, hidden until a real IMU CSV exists. The flightcore CSVs are host simulation and do not qualify.
+
+**Not on the site**: Krishi Darpan (left off), the graphene slide (not Vedant's), club photos (none confirmed as Vedant's builds), and any claim about the `AWS` repo (unconfirmed).
+
+**About**: B.Tech CSE, Bennett University (2024–28). Head of Research, Technotix BU (since Feb 2026) and BC3. Member, BURS (2024–25). Needs: a portrait or workspace photo, a clean résumé PDF, and confirmation of the three paragraphs.
 
 Restricted projects (PRAHARI, VAJRA, SKYNET): architecture and results only. No control laws, protocol internals, key handling, or repo links.
 
@@ -95,7 +114,7 @@ Restricted projects (PRAHARI, VAJRA, SKYNET): architecture and results only. No 
 - Per-page title (≤ 60 chars), description (≤ 155), canonical on `https://vedantsomani.tech` (no `.html`, no trailing slash). OG images generated at build with Satori (`scripts/og.mjs`): tokens + wordmark.
 - `sitemap-index.xml`, `robots.txt`. JSON-LD: `Person` on /about, `CreativeWork` on project pages. No `Service`, `Offer`, reviews, or ratings.
 - **Pre-launch**: `PRE_LAUNCH = true` in `src/worker.ts`, so production sends `X-Robots-Tag: noindex, nofollow`. Local audits override it with `npm run preview:audit` (`wrangler dev --var PRE_LAUNCH:false`).
-- Security headers in `public/_headers` and on every Worker response; CSP allows `static.cloudflareinsights.com` (script) and `cloudflareinsights.com` (reports).
+- Security headers in `public/_headers` and on every Worker response; CSP allows `static.cloudflareinsights.com` (script), `cloudflareinsights.com` (reports), `'wasm-unsafe-eval'` (the hall's Meshopt decoder) and `blob:` in connect-src (textures embedded in the GLB).
 - Analytics: Cloudflare Web Analytics beacon, gated on `PUBLIC_CF_BEACON_TOKEN`. Custom events through `track()` (a no-op until a backend is chosen): `hero_see_work`, `hero_get_in_touch`, `hero_lens_used`, `project_open`, `hall_object_rotate`, `contact_open`, `form_start`, `lead_submit`, `email_click`, `resume_download`, `github_out`.
 
 ## 8. Phases

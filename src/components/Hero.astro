@@ -25,7 +25,7 @@ const { images: im } = Astro.props;
     <figure class="figure lens" data-lens>
       {SHOW_TODOS && (
         <div class="figure__todo">
-          <Todo what="hero photo + KiCad x-ray plot + alt text" />
+          <Todo what="real top-down board photo once fabricated (render until then)" />
         </div>
       )}
       <div class="lens__stage" data-lens-stage>
@@ -74,7 +74,7 @@ const { images: im } = Astro.props;
         <span class="lens__ring" aria-hidden="true" data-lens-ring></span>
       </div>
       <figcaption class="figure__caption t-small">
-        <span>Saarthi H7-Pro flight controller</span>
+        <span>Saarthi H7-Pro flight controller, KiCad render</span>
         <span class="t-data">STM32H753</span>
         {/* Reduced motion: no lens, a plain toggle instead. Shown by the script. */}
         <button type="button" class="lens__toggle" aria-pressed="false" data-lens-toggle hidden>

@@ -16,14 +16,16 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 // CSP: self, plus the Cloudflare Web Analytics beacon (script) and its reporting endpoint.
 // 'unsafe-inline' covers Astro's inline hydration/transition scripts and the head motion flag.
+// 'wasm-unsafe-eval' lets the hall's Meshopt decoder compile WebAssembly (not JS eval), and blob:
+// in connect-src lets GLTFLoader read the textures embedded in saarthi.glb.
 const SECURITY_HEADERS: Record<string, string> = {
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "connect-src 'self' https://cloudflareinsights.com",
+    "connect-src 'self' blob: https://cloudflareinsights.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -38,13 +40,18 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 // Mirrors public/_redirects. With run_worker_first the adapter's asset fallback follows a
 // _redirects 301 itself and serves the target as a 200, so retired paths are answered here.
-const RETIRED = /^\/services(\/.*)?$/;
+// PRAHARI moved from Projects to the Lab (design stage, no public artifacts).
+const RETIRED: [RegExp, string][] = [
+  [/^\/services(\/.*)?$/, '/'],
+  [/^\/projects\/prahari$/, '/lab/prahari'],
+];
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    let response = RETIRED.test(url.pathname)
-      ? new Response(null, { status: 301, headers: { Location: '/' } })
+    const retired = RETIRED.find(([re]) => re.test(url.pathname));
+    let response = retired
+      ? new Response(null, { status: 301, headers: { Location: retired[1] } })
       : await handle(request, env, ctx);
 
     // With run_worker_first, `astro dev` routes public/ files here and the adapter 404s them.

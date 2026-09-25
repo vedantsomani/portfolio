@@ -1,20 +1,20 @@
-// Every route the acceptance checks cover (FINAL_GOAL §2). /lab/[slug] pages exist only for lab
-// entries with a status; none has one yet, so the list below is read from the build.
+// Every route the acceptance checks cover (FINAL_GOAL §2). Project and lab pages are read from the
+// build, so new entries are covered without editing this list (lab pages exist only with a status).
 import { readdirSync, existsSync } from 'node:fs';
 
-const labDir = 'dist/client/lab';
-const labEntries = existsSync(labDir)
-  ? readdirSync(labDir)
-      .filter((f) => f.endsWith('.html'))
-      .map((f) => `/lab/${f.replace(/\.html$/, '')}`)
-  : [];
+const built = (dir, prefix) =>
+  existsSync(dir)
+    ? readdirSync(dir)
+        .filter((f) => f.endsWith('.html'))
+        .map((f) => `${prefix}/${f.replace(/\.html$/, '')}`)
+    : [];
+const projectPages = built('dist/client/projects', '/projects');
+const labEntries = built('dist/client/lab', '/lab');
 
 export const ROUTES = [
   '/',
   '/projects',
-  '/projects/saarthi',
-  '/projects/prahari',
-  '/projects/vajra',
+  ...projectPages,
   '/lab',
   ...labEntries,
   '/about',

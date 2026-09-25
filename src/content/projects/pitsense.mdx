@@ -1,0 +1,34 @@
+---
+title: PitSense
+slug: pitsense
+summary: A Formula 1 strategy workbench with historical stint data, a race-time optimiser under explicit assumptions, and a Streamlit dashboard.
+kind: engineering
+status: prototype
+restricted: false
+year: '2026'
+stack: [Python, XGBoost, Streamlit, FastF1]
+builtOn: F1 Race Strategy Engine
+cover: ../../assets/placeholders/pitsense-cover.jpg
+coverAlt: Placeholder for a PitSense image
+coverTodo: PitSense dashboard screenshot
+order: 6
+repoUrl: https://github.com/vedantsomani/PitSense
+---
+
+<CaseSection title="Objective">
+  Explore tyre strategies, and search pit laps and compound sequences by total simulated race time.
+  Every assumption (pace, degradation, tyre life, warm-up, fuel, pit loss) can be edited. The
+  defaults are illustrative, not calibrated race predictions.
+</CaseSection>
+
+<CaseSection title="Architecture">
+  <ArchDiagram
+    label="PitSense pipeline"
+    columns={[
+      { title: 'Data', nodes: ['2023 and 2024 seasons', 'Weather'] },
+      { title: 'Models', nodes: ['Stint model', 'Race-time optimiser'] },
+      { title: 'Interface', nodes: ['Streamlit dashboard', 'Command line'] },
+    ]}
+  />
+  <p>PitSense is built on the open-source F1 Race Strategy Engine.</p>
+</CaseSection>

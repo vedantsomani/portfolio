@@ -1,14 +1,16 @@
 // Hardware hall fallback: a 24-frame turntable per object, as one horizontal AVIF sprite
 // (public/hall/<id>-sprite.avif), scrubbed by drag when WebGL is unavailable.
-// It bundles src/scripts/hall/models.ts with Three.js, renders each frame in Edge (Playwright), and
-// stitches the frames with sharp. Re-run after the real GLBs replace the placeholder meshes.
+// It renders public/models/<id>.glb when it exists (else the procedural mesh from
+// src/scripts/hall/models.ts) with Three.js in Edge (Playwright), and stitches the frames with sharp.
+// Re-run whenever a GLB changes.
 // Run: node scripts/hall-sprites.mjs
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 import sharp from 'sharp';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 
-const IDS = ['saarthi', 'setu'];
+// Must match the ids in src/data/hall.ts (SETU is out until confirmed).
+const IDS = ['saarthi'];
 const FRAMES = 24;
 const SIZE = 480;
 const OUT = 'public/hall';
@@ -17,9 +19,11 @@ const harness = `
 import { Box3, DirectionalLight, Group, PerspectiveCamera, PMREMGenerator, Scene,
   SRGBColorSpace, Vector3, WebGLRenderer } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { buildModel } from './src/scripts/hall/models.ts';
 
-window.renderTurntable = (id, frames, size) => {
+window.renderTurntable = async (id, frames, size, glbBase64) => {
   const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(size, size * 0.75, false);
   renderer.outputColorSpace = SRGBColorSpace;
@@ -30,7 +34,12 @@ window.renderTurntable = (id, frames, size) => {
   const key = new DirectionalLight(0xffffff, 2.4);
   key.position.set(3, 6, 4);
   scene.add(key);
-  const obj = buildModel(id);
+  let obj = buildModel(id);
+  if (glbBase64) {
+    const bytes = Uint8Array.from(atob(glbBase64), (c) => c.charCodeAt(0));
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    obj = (await loader.parseAsync(bytes.buffer, '')).scene;
+  }
   const box = new Box3().setFromObject(obj);
   obj.position.sub(box.getCenter(new Vector3()));
   const pivot = new Group();
@@ -68,10 +77,15 @@ const page = await browser.newPage();
 await page.setContent('<!doctype html><body></body>');
 await page.addScriptTag({ content: bundle.outputFiles[0].text });
 
+const glbFor = (id) => {
+  const path = `public/models/${id}.glb`;
+  return existsSync(path) ? readFileSync(path).toString('base64') : null;
+};
+
 for (const id of IDS) {
   const urls = await page.evaluate(
-    ([i, f, s]) => window.renderTurntable(i, f, s),
-    [id, FRAMES, SIZE],
+    ([i, f, s, g]) => window.renderTurntable(i, f, s, g),
+    [id, FRAMES, SIZE, glbFor(id)],
   );
   const h = Math.round(SIZE * 0.75);
   const frames = urls.map((u, i) => ({

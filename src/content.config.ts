@@ -4,6 +4,8 @@ import { z } from 'astro/zod';
 
 // Every fact in these collections comes from SITE_SPEC §6. Unknown values stay optional and
 // render as dev-only TODO markers; production drops them rather than guessing.
+// Status labels must match the evidence (AGENTS.md hard rule 8): each value below names the
+// strongest thing the project's own files show, never a stage it has not reached.
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/projects' }),
@@ -15,7 +17,9 @@ const projects = defineCollection({
         // Problem- or result-first, one line.
         summary: z.string().max(140),
         kind: z.enum(['client', 'engineering']),
-        status: z.enum(['shipped', 'prototype', 'research']).optional(),
+        status: z
+          .enum(['in-layout', 'frozen', 'bench-tested', 'research', 'prototype', 'built'])
+          .optional(),
         // true → no repo link, no internals (AGENTS.md hard rule 3).
         restricted: z.boolean().default(false),
         year: z.string().optional(),
@@ -32,6 +36,8 @@ const projects = defineCollection({
         repoUrl: z.url().optional(),
         // Rendered in Plex Mono: part numbers and measurements only.
         specs: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+        /** Credit for work this project builds on (shown in the case header). */
+        builtOn: z.string().optional(),
       })
       .refine((p) => !(p.restricted && p.repoUrl), {
         message: 'Restricted projects cannot have a repoUrl (AGENTS.md hard rule 3).',
@@ -46,7 +52,9 @@ const lab = defineCollection({
       title: z.string(),
       slug: z.string(),
       // No status → the entry is hidden in production.
-      status: z.enum(['concept', 'prototype', 'validated', 'archived']).optional(),
+      status: z
+        .enum(['concept', 'simulation-tested', 'prototype', 'validated', 'archived'])
+        .optional(),
       date: z.coerce.date().optional(),
       discipline: z.string(),
       artifact: image(),

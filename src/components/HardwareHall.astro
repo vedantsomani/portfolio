@@ -61,7 +61,8 @@ const items = hall.map((item) => ({
     ))}
   </ol>
 
-  <div class="hall__controls" data-hall-controls>
+  {/* One object (SETU is out until confirmed): nothing to step through, so no controls. */}
+  <div class="hall__controls" data-hall-controls hidden={items.length < 2}>
     <button type="button" class="hall__btn" data-hall-prev>
       Previous object
     </button>

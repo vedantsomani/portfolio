@@ -1,55 +1,109 @@
 ---
 title: Saarthi (H7-Pro)
 slug: saarthi
-summary: Flight-controller firmware on an STM32H753, fusing two IMUs, two barometers, and an airspeed sensor.
+summary: A dual-MCU flight controller on a 90 mm board, with the servo outputs driven only by a separate safety microcontroller.
 kind: engineering
-status: prototype
+status: in-layout
 restricted: false
-cover: ../../assets/placeholders/saarthi-cover.jpg
-coverAlt: Placeholder for a top-down photo of the Saarthi H7-Pro board
-coverTodo: Saarthi top-down board photo
+year: '2026'
+role: [Hardware architecture, KiCad schematic and layout, FlightCore software]
+stack: [KiCad, STM32H753, STM32G431, C11, CMake]
+cover: ../../assets/work/saarthi-cover.jpg
+coverAlt: KiCad 3D render of the Saarthi H7-Pro board at an angle, with the STM32H753 at the centre-left, JST-GH connectors along the top edge and twelve servo headers along the bottom.
 featured: true
 order: 1
 specs:
-  - { label: MCU, value: STM32H753 }
-  - { label: IMU, value: 2× ICM-42688-P }
-  - { label: Barometer, value: DPS310 + BMP390 }
-  - { label: Airspeed, value: MS4525DO }
+  - { label: Flight MCU, value: STM32H753ZIT6 }
+  - { label: Safety MCU, value: STM32G431CBU6 }
+  - { label: IMU, value: BMI088 + 2× ICM-42688-P }
+  - { label: Barometer, value: MS5611 + DPS310 }
+  - { label: Board, value: 90 × 90 mm, 4 layers }
 ---
 
+import Figure from '../../components/Figure.astro';
+import top from '../../assets/work/saarthi-top.jpg';
+
 <CaseSection title="Objective">
-  Flight-controller firmware for the H7-Pro board, built on an STM32H753 microcontroller.
+  A flight controller for fixed-wing and glider airframes that keeps actuator authority away from
+  the flight computer. The STM32H753 runs the flight stack; a separate STM32G431 owns RC input, the
+  safety switch, and every PWM output, so the flight computer never drives a servo pin directly.
 </CaseSection>
 
 <CaseSection title="Architecture">
   <ArchDiagram
-    label="Saarthi firmware architecture"
+    label="Saarthi H7-Pro architecture"
     columns={[
       {
         title: 'Sensors',
-        nodes: ['2× ICM-42688-P IMU', 'DPS310 barometer', 'BMP390 barometer', 'MS4525DO airspeed'],
+        nodes: ['BMI088 IMU (primary)', '2× ICM-42688-P IMU', 'MS5611 + DPS310 barometers'],
       },
       {
-        title: 'Firmware on STM32H753',
+        title: 'Flight computer: STM32H753',
         nodes: [
-          'Drivers over a frozen HAL contract',
-          'Mahony attitude filter',
-          'Math library over a frozen contract',
+          'Flash, FRAM, microSD logging',
+          'INA228 power monitor',
+          'CAN FD, USB-C, GNSS and telemetry ports',
         ],
+      },
+      {
+        title: 'Safety MCU: STM32G431',
+        nodes: ['RC input and safety switch', 'Rail monitoring', '12 servo outputs'],
       },
     ]}
   />
 </CaseSection>
 
-<CaseSection title="Constraints" todo="constraints (timing, power, board size)" />
-
-<CaseSection title="Hardware and firmware">
-  Two ICM-42688-P IMUs, a DPS310 and a BMP390 barometer, and an MS4525DO airspeed sensor feed a
-  Mahony filter. The hardware abstraction layer and the math library sit behind frozen contracts.
+<CaseSection title="Constraints">
+  The board is a chamfered 90 × 90 mm square with an 80 × 80 mm M3 pattern and a 30.5 × 30.5 mm
+  stack pattern. It is a flight controller, not a power board: battery, motor, and servo current
+  stay on a separate 3S/4S power distribution board, which feeds the controller regulated 5 V. Each
+  IMU sits on its own SPI bus.
 </CaseSection>
 
-<CaseSection title="Bench setup" todo="bench photo and a description of the test rig" />
+<CaseSection title="Hardware and firmware">
+  <Figure
+    src={top}
+    alt="Top-down KiCad render of the Saarthi H7-Pro board, showing all eight mounting holes, the STM32H753, the IMU island in the centre and the servo headers along the bottom edge."
+    sizes="(min-width: 64rem) 50vw, 100vw"
+    widths={[480, 800, 1200, 1600]}
+    caption="KiCad render of the current board file. Not a photograph: the board has not been fabricated."
+  />
+  <p>
+    Three IMUs on separate SPI buses and two barometers from different vendors give the firmware
+    independent sources to cross-check. The firmware side is Saarthi FlightCore: a portable C11 core
+    built and tested on a host PC, with Mahony, Madgwick-style, complementary, and reduced-MEKF
+    attitude estimators behind one interface. It has no STM32 backend yet.
+  </p>
+</CaseSection>
 
-<CaseSection title="Measurements" todo="fusion benchmark CSV and the plots it produces" />
+<CaseSection title="Bench setup" todo="bench photo and test rig, once the board is fabricated" />
 
-<CaseSection title="Failures and iterations" todo="what broke and what changed between revisions" />
+<CaseSection title="Measurements">
+  <p>Board checks on the current file (KiCad 10, 24 September 2026):</p>
+  <ul>
+    <li>ERC: 0 errors.</li>
+    <li>DRC: 4 errors, all USB-C hole clearance; 386 connections still unrouted.</li>
+  </ul>
+  <p>FlightCore, on a host simulation model only (no hardware, no flight):</p>
+  <ul>
+    <li>72 of 72 host tests pass.</li>
+    <li>A 100,000-seed stress campaign completed with 0 failed seeds.</li>
+    <li>
+      An uncorrected 0.02 m/s² accelerometer bias drifts about 1.0 m in 10 s, which is why IMU-only
+      position hold is rejected.
+    </li>
+  </ul>
+</CaseSection>
+
+<CaseSection title="Failures and iterations">
+  <p>
+    Two drafts came first: a 50 × 50 mm glider controller (40 mm failed DRC) and an STM32F745 board
+    at 80 × 60 mm. The H7-Pro grew to 90 mm to carry its connectors. Its first ERC run reported 126
+    errors; annotation brought that to 20, and later passes to 0.
+  </p>
+  <p>
+    A September 2026 audit found BMI088 ground pins tied to the sensor supply, and the 3.3 V sensor
+    regulator fed from 3.3 V, leaving it no headroom. Both are fixed in the current file (the
+    regulator now takes 5 V). A two-board, six-layer revision is planned but not started.
+  </p>
+</CaseSection>

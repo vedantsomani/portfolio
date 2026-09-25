@@ -16,12 +16,12 @@ export const nav = [
 ] as const;
 
 export const hero = {
-  title: 'Flight controllers, autonomy, and secure comms — built from the silicon up.',
+  title: 'Flight hardware, secure comms, and space data — built from the silicon up.',
   supporting:
     "I'm Vedant Somani, a CSE student at Bennett University building embedded systems, drones, and the software around them.",
-  // TODO(vedant): hero photo alt text, describing the real Saarthi photo once it exists
-  photoAlt: 'Placeholder for a top-down photo of the Saarthi H7-Pro flight controller',
-  xrayAlt: 'Placeholder for the Saarthi copper layout, aligned to the photo',
+  photoAlt:
+    'Top-down KiCad render of the Saarthi H7-Pro flight controller board: the STM32H753, three IMUs in the centre, connectors along the edges, and four corner mounting holes.',
+  xrayAlt: 'The same board as a copper plot from KiCad: front copper, back copper, and silkscreen.',
 } as const;
 
 // Contact form reasons. The label is what the email subject and the <select> show.
@@ -34,9 +34,9 @@ export const reasons = [
 
 export const about = {
   roles: [
-    { title: 'Head of Research', org: 'Technotix BU' },
+    { title: 'Head of Research', org: 'Technotix BU, since Feb 2026' },
     { title: 'Head of Research', org: 'BC3' },
-    { title: 'Core member', org: 'BURS' },
+    { title: 'Member', org: 'BURS, 2024–25' },
   ],
   education: 'B.Tech CSE, Bennett University, 2024–28',
   // TODO(vedant): portrait or workspace photo alt text once the photo exists
