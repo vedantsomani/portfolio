@@ -8,8 +8,26 @@ restricted: false
 year: '2026'
 role: [Hardware architecture, KiCad schematic and layout, FlightCore software]
 stack: [KiCad, STM32H753, STM32G431, C11, CMake]
+disciplines: [hardware]
+results:
+  - { label: ERC, value: 0 errors }
+  - { label: FlightCore host tests, value: 72/72 pass (simulation) }
+architecture:
+  label: Saarthi H7-Pro architecture
+  columns:
+    - title: Sensors
+      nodes: [BMI088 IMU (primary), 2× ICM-42688-P IMU, MS5611 + DPS310 barometers]
+    - title: 'Flight computer: STM32H753'
+      nodes:
+        - Flash, FRAM, microSD logging
+        - INA228 power monitor
+        - CAN FD, USB-C, GNSS and telemetry ports
+    - title: 'Safety MCU: STM32G431'
+      nodes: [RC input and safety switch, Rail monitoring, 12 servo outputs]
+  links: ['IMUs: one SPI bus each', null]
 cover: ../../assets/work/saarthi-cover.jpg
 coverAlt: KiCad 3D render of the Saarthi H7-Pro board at an angle, with the STM32H753 at the centre-left, JST-GH connectors along the top edge and twelve servo headers along the bottom.
+coverKind: KiCad render, not a photograph
 featured: true
 order: 1
 glance:
@@ -26,7 +44,6 @@ specs:
 ---
 
 import Figure from '../../components/Figure.astro';
-import BoardMap from '../../components/BoardMap.astro';
 import top from '../../assets/work/saarthi-top.jpg';
 
 <CaseSection title="Objective">
@@ -36,38 +53,9 @@ import top from '../../assets/work/saarthi-top.jpg';
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="Saarthi H7-Pro architecture"
-    columns={[
-      {
-        title: 'Sensors',
-        nodes: ['BMI088 IMU (primary)', '2× ICM-42688-P IMU', 'MS5611 + DPS310 barometers'],
-      },
-      {
-        title: 'Flight computer: STM32H753',
-        nodes: [
-          'Flash, FRAM, microSD logging',
-          'INA228 power monitor',
-          'CAN FD, USB-C, GNSS and telemetry ports',
-        ],
-      },
-      {
-        title: 'Safety MCU: STM32G431',
-        nodes: ['RC input and safety switch', 'Rail monitoring', '12 servo outputs'],
-      },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
 
-  <figure class="figure board-figure">
-    <BoardMap
-      view="all"
-      label="Top-down map of the Saarthi board: the STM32H753 flight MCU at the left, the STM32G431 safety MCU below it, the twelve servo outputs along the bottom edge with the RC input and safety switch on the right edge, and the IMUs and barometers in the centre."
-    />
-    <figcaption class="figure__caption t-small">
-      Where the parts sit. Drawn from the KiCad board file of 24 September 2026; a diagram, not a
-      photograph: the board has not been fabricated.
-    </figcaption>
-  </figure>
+  <BoardStory />
 </CaseSection>
 
 <CaseSection title="Constraints">
@@ -83,6 +71,7 @@ import top from '../../assets/work/saarthi-top.jpg';
     alt="Top-down KiCad render of the Saarthi H7-Pro board, showing all eight mounting holes, the STM32H753, the IMU island in the centre and the servo headers along the bottom edge."
     sizes="(min-width: 64rem) 50vw, 100vw"
     widths={[480, 800, 1200, 1600]}
+    kind="KiCad render"
     caption="KiCad render of the current board file. Not a photograph: the board has not been fabricated."
   />
   <p>
@@ -96,20 +85,31 @@ import top from '../../assets/work/saarthi-top.jpg';
 <CaseSection title="Bench setup" todo="bench photo and test rig, once the board is fabricated" />
 
 <CaseSection title="Measurements">
-  <p>Board checks on the current file (KiCad 10, 24 September 2026):</p>
-  <ul>
-    <li>ERC: 0 errors.</li>
-    <li>DRC: 4 errors, all USB-C hole clearance; 386 connections still unrouted.</li>
-  </ul>
-  <p>FlightCore, on a host simulation model only (no hardware, no flight):</p>
-  <ul>
-    <li>72 of 72 host tests pass.</li>
-    <li>A 100,000-seed stress campaign completed with 0 failed seeds.</li>
-    <li>
-      An uncorrected 0.02 m/s² accelerometer bias drifts about 1.0 m in 10 s, which is why IMU-only
-      position hold is rejected.
-    </li>
-  </ul>
+  <Readout
+    title="Board checks on the current file (KiCad 10, 24 September 2026)."
+    readings={[
+      { value: '0', label: 'ERC errors.', kind: 'file' },
+      { value: '4', label: 'DRC errors, all USB-C hole clearance.', kind: 'file' },
+      { value: '386', label: 'Connections still unrouted.', kind: 'file' },
+    ]}
+  />
+  <Readout
+    title="FlightCore, on a host simulation model only (no hardware, no flight)."
+    readings={[
+      { value: '72/72', label: 'Host tests pass.', kind: 'host-sim' },
+      {
+        value: '0',
+        label: 'Failed seeds in a 100,000-seed stress campaign.',
+        kind: 'host-sim',
+      },
+      {
+        value: '≈ 1.0 m',
+        label:
+          'Drift in 10 s from an uncorrected 0.02 m/s² accelerometer bias, which is why IMU-only position hold is rejected.',
+        kind: 'host-sim',
+      },
+    ]}
+  />
 </CaseSection>
 
 <CaseSection title="Failures and iterations">

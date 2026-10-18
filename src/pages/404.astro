@@ -1,20 +1,27 @@
 ---
+// Not found, as the archive says it (SITE_SPEC §5): there is no record at the address that was
+// asked for. The address itself is read from the browser (it is the one live fact on this page);
+// without JS the line simply says "this address".
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Wordmark from '../components/Wordmark.astro';
+import ChapterHead from '../components/ChapterHead.astro';
 ---
 
-<BaseLayout title="Page not found" description="This page does not exist." noindex>
-  <section class="not-found grid" aria-labelledby="nf-title">
-    <Wordmark size="large" class="not-found__mark" />
-    <div class="not-found__title display-fit">
-      <h1 id="nf-title" class="t-display">
-        Nothing at this address.
-      </h1>
-    </div>
-    <p class="not-found__lede">The page may have moved, or the link has a typo.</p>
+<BaseLayout title="Page not found" description="This page does not exist." noindex underNav>
+  <ChapterHead
+    id="nf-title"
+    title="No record at this address."
+    kicker="Signal lost"
+    lede="The page may have moved, or the link has a typo."
+  >
+    <p class="not-found__path t-data">
+      Requested: <span data-nf-path>this address</span>
+    </p>
     <ul class="not-found__links" role="list">
       <li>
-        <a href="/projects">Projects</a>
+        <a href="/#lab">The lab</a>
+      </li>
+      <li>
+        <a href="/briefing">Recruiter briefing</a>
       </li>
       <li>
         <a href="/contact">Contact</a>
@@ -23,5 +30,25 @@ import Wordmark from '../components/Wordmark.astro';
         <a href="/">Home</a>
       </li>
     </ul>
-  </section>
+  </ChapterHead>
 </BaseLayout>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+
+  onPage(() => {
+    const el = document.querySelector<HTMLElement>('[data-nf-path]');
+    if (el) el.textContent = location.pathname;
+  });
+</script>
+
+<style>
+  .not-found__path {
+    margin: 0 0 var(--space-3);
+    color: var(--ink-2);
+  }
+
+  .not-found__path span {
+    color: var(--oxblood-hi);
+  }
+</style>

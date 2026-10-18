@@ -7,9 +7,18 @@ status: prototype
 restricted: false
 year: '2026'
 stack: [Expo, React Native, Express, SQLite, Socket.IO]
+disciplines: [software, ai]
+architecture:
+  label: SMRITI architecture
+  columns:
+    - { title: Companion app, nodes: ['Large type, voice-friendly', Used by the older adult] }
+    - { title: Home server, nodes: [Runs on a laptop, 'Express, SQLite, Socket.IO'] }
+    - { title: Family Care app, nodes: ['Pairing, reminders, memories', Used by the family] }
+  links: [Home Wi‑Fi, Home Wi‑Fi]
 cover: ../../assets/work/smriti-cover.jpg
 coverAlt: Three SMRITI Family Care screens with demo data. The overview shows today's reminder reported done; a report view lets a relative record what they saw; a review view flags that two reports disagree.
-order: 4
+coverKind: App screenshots, demo personas only
+order: 6
 repoUrl: https://github.com/vedantsomani/Smriti
 glance:
   problem: 'Continuity at home for an older adult, without handing their life to a vendor cloud.'
@@ -27,14 +36,7 @@ import training from '../../assets/work/smriti-training.png';
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="SMRITI architecture"
-    columns={[
-      { title: 'Companion app', nodes: ['Large type, voice-friendly', 'Used by the older adult'] },
-      { title: 'Home server', nodes: ['Runs on a laptop', 'Express, SQLite, Socket.IO'] },
-      { title: 'Family Care app', nodes: ['Pairing, reminders, memories', 'Used by the family'] },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>
     Both phones talk to the laptop over the home Wi‑Fi. Pairing uses a short code or a QR code, so
     the older adult never needs an email address.
@@ -59,6 +61,7 @@ import training from '../../assets/work/smriti-training.png';
     alt="LSTM training curves from the SMRITI play-pace model, trained on synthetic play events."
     sizes="(min-width: 64rem) 60vw, 100vw"
     widths={[480, 800, 1200, 1600]}
+    kind="Plot, synthetic data"
     caption="Training curves, synthetic data."
   />
   <Figure
@@ -66,6 +69,7 @@ import training from '../../assets/work/smriti-training.png';
     alt="Confusion matrix of the SMRITI play-pace model on its synthetic test split, across three non-clinical concern levels."
     sizes="(min-width: 64rem) 40vw, 100vw"
     widths={[480]}
+    kind="Plot, synthetic data"
     caption="Test-split confusion matrix, synthetic data. Categories are non-clinical."
   />
 </CaseSection>

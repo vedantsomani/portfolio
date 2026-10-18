@@ -6,6 +6,8 @@ import { SHOW_TODOS } from '../lib/todo';
 
 // AVIF with a JPG fallback, intrinsic width/height always set, lazy unless `priority` or `eager`.
 // `eager`: above the fold but not the page's hero, so loaded at once without fetchpriority.
+// `kind`: the evidence class (photograph, render, plot, screenshot…). Inside a record every figure
+// is a numbered exhibit labelled with it (src/styles/archive/record.css); elsewhere the label hides.
 interface Props {
   src: ImageMetadata;
   alt: string;
@@ -16,6 +18,8 @@ interface Props {
   caption?: string;
   /** Placeholder slot: shows a dev-only TODO badge on the image. */
   todo?: string;
+  /** Evidence class, shown on the exhibit label inside a record. */
+  kind?: string;
   class?: string;
 }
 const {
@@ -27,12 +31,17 @@ const {
   eager = false,
   caption,
   todo,
+  kind,
   class: className,
 } = Astro.props;
 const usable = widths.filter((w) => w <= src.width);
 ---
 
 <figure class:list={['figure', className]}>
+  <p class="figure__exhibit">
+    <span class="figure__no"></span>
+    {kind && <span class="figure__kind">{kind}</span>}
+  </p>
   {todo && SHOW_TODOS && (
     <div class="figure__todo">
       <Todo what={todo} />

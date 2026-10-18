@@ -1,27 +1,31 @@
 ---
-import Wordmark from './Wordmark.astro';
+// The footer: one quiet band. The places, the direct lines, and what made the site, said plainly.
 import Todo from './Todo.astro';
-import { nav, site } from '../data/site';
+import { archive, site } from '../data/site';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
   <div class="footer__inner wrap">
-    <a href="/" class="footer__home" aria-label="Vedant Somani">
-      <Wordmark size="footer" />
-    </a>
+    <p class="footer__name">
+      <a href="/" class="footer__home">
+        {site.name}
+      </a>
+      <span class="footer__archive t-data">{archive.title}</span>
+    </p>
 
     <nav id="footer-nav" class="footer__nav" aria-label="Footer">
       <ul role="list">
         <li>
-          <a href="/">Home</a>
+          <a href="/">The lab</a>
         </li>
-        {nav.map((item) => (
-          <li>
-            <a href={item.href}>{item.label}</a>
-          </li>
-        ))}
+        <li>
+          <a href="/#files">Files</a>
+        </li>
+        <li>
+          <a href="/briefing">Briefing</a>
+        </li>
         <li>
           <a href="/contact">Contact</a>
         </li>
@@ -50,8 +54,14 @@ const year = new Date().getFullYear();
       <li>{site.linkedin ? <a href={site.linkedin}>LinkedIn</a> : <Todo what="LinkedIn URL" />}</li>
     </ul>
 
+    <p class="footer__credits t-small">
+      Sets and films rendered in Blender. Earth: NASA Blue Marble. Plants, props and surfaces: Poly
+      Haven (CC0). Portrait: background and lighting AI-edited, the face is the original. Board art
+      from the Saarthi KiCad file. Archivo and IBM Plex Mono.
+    </p>
     <p class="footer__legal t-small">
-      © {year} {site.name}, {site.location}
+      © {year}
+      {site.name}, {site.location}
     </p>
   </div>
 </footer>

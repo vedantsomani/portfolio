@@ -11,14 +11,13 @@ const built = (dir, prefix) =>
 const projectPages = built('dist/client/projects', '/projects');
 const labEntries = built('dist/client/lab', '/lab');
 
-export const ROUTES = [
-  '/',
-  '/projects',
-  ...projectPages,
-  '/lab',
-  ...labEntries,
-  '/about',
-  '/contact',
+// Three places (the archive, the briefing, contact) and every record, which opens as a file over the
+// lab. /about, /projects and /lab redirect into the home page (src/worker.ts): see REDIRECTS.
+export const ROUTES = ['/', ...projectPages, ...labEntries, '/briefing', '/contact'];
+export const REDIRECTS = [
+  ['/about', '/#transmission'],
+  ['/projects', '/#lab'],
+  ['/lab', '/#lab'],
 ];
 export const NOT_FOUND = '/this-page-does-not-exist';
 export const BASE = process.env.BASE ?? 'http://127.0.0.1:8787';

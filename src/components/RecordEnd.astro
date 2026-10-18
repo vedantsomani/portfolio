@@ -1,0 +1,120 @@
+---
+// The end of a record (SITE_SPEC §5): the status as it stands, stamped; for a restricted record,
+// what stays sealed (named, never faked); the public links; then "End of record" and the next
+// record waiting in the machine's grade, so the archive reads on like a film. A quiet line keeps
+// the channel open; the full-field call to action belongs to the home page.
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import Todo from './Todo.astro';
+import { site } from '../data/site';
+
+interface Neighbour {
+  href: string;
+  recordId: string;
+  title: string;
+  cover?: ImageMetadata;
+}
+interface Props {
+  recordId: string;
+  status?: string;
+  /** Restricted records: what is not published, in plain words. */
+  withheld?: string;
+  links?: { href: string; label: string; track?: string }[];
+  /** Shown in dev when a public record has no links yet. */
+  linksTodo?: string;
+  next?: Neighbour;
+  prev?: Neighbour;
+  shelf: { href: string; label: string };
+}
+const { recordId, status, withheld, links = [], linksTodo, next, prev, shelf } = Astro.props;
+---
+
+<section class="rend wrap" aria-label={`End of record ${recordId}`}>
+  <div class="rend__grid">
+    <div id="status" class="rend__block rend__status">
+      <h2 class="rend__label">Status</h2>
+      {status ? <p class="rend__stamp">{status}</p> : <Todo what="status" />}
+    </div>
+
+    {withheld ? (
+      <div id="links" class="rend__block rend__sealed">
+        <h2 class="rend__label">Sealed</h2>
+        <p class="rend__sealed-line">
+          <span class="rend__seal" aria-hidden="true" />
+          Not published here: {withheld}.
+        </p>
+        <p class="rend__note t-small">
+          The record covers architecture and results only. There is no public repository.
+        </p>
+      </div>
+    ) : links.length > 0 ? (
+      <div id="links" class="rend__block">
+        <h2 class="rend__label">Links</h2>
+        <ul class="rend__links" role="list">
+          {links.map((l) => (
+            <li>
+              <a href={l.href} data-track={l.track}>
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : (
+      linksTodo && (
+        <div id="links" class="rend__block">
+          <Todo what={linksTodo} block />
+        </div>
+      )
+    )}
+  </div>
+
+  <p class="rend__end">
+    <span>End of record</span>
+    <span class="t-data">{recordId}</span>
+  </p>
+
+  {next && (
+    <a class="rend__next" href={next.href} data-track="project_open">
+      {next.cover && (
+        <span class="rend__next-img" aria-hidden="true">
+          <Picture
+            src={next.cover}
+            alt=""
+            formats={['avif']}
+            fallbackFormat="jpg"
+            widths={[480, 800, 1200, 1600].filter((w) => w <= (next.cover?.width ?? 0))}
+            sizes="(min-width: 64rem) 80rem, 100vw"
+            quality={45}
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+      )}
+      <span class="rend__next-text">
+        <span class="rend__next-kicker t-data">Next record {next.recordId}</span>
+        <span class="rend__next-title">{next.title}</span>
+      </span>
+    </a>
+  )}
+
+  <nav class="rend__more" aria-label="More records">
+    {prev && (
+      <a href={prev.href}>
+        Previous: {prev.title} <span class="t-data">{prev.recordId}</span>
+      </a>
+    )}
+    <a href={shelf.href}>{shelf.label}</a>
+  </nav>
+
+  <p class="rend__channel">
+    Questions about this record?{' '}
+    {site.email && (
+      <a href={`mailto:${site.email}`} data-track="email_click">
+        {site.email}
+      </a>
+    )}
+    {site.email && ' or '}
+    <a href="/contact">open a channel</a>.
+  </p>
+</section>

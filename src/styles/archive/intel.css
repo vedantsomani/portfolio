@@ -1,0 +1,363 @@
+/* The briefing's opening (BriefingIntel.astro): a satellite feed under a thin instrument frame,
+   mono readouts, a red lock on the target, project images pinned with hairlines. Over everything
+   but the page's identity card, which is lifted above it to make its entrance. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  html.intel-on {
+    overflow: hidden;
+  }
+
+  /* The card rides above the feed, unseen until its entrance (scripts/intel.ts). */
+  html.intel-on .idcard {
+    position: relative;
+    z-index: 61;
+    opacity: 0;
+  }
+
+  html.intel-on .idcard,
+  html.intel-done .idcard,
+  html.intel-on .idcard__photo::after,
+  html.intel-done .idcard__photo::after {
+    animation: none;
+  }
+
+  .intel {
+    --hud: rgb(236 233 225 / 0.72);
+    --hud-dim: rgb(236 233 225 / 0.4);
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: hidden;
+    background: #000;
+    color: var(--hud);
+    font-family: var(--font-mono);
+  }
+
+  .intel[hidden] {
+    display: none;
+  }
+
+  /* The feed: every level centred on the target, scaled by the script. */
+  .intel__map {
+    position: absolute;
+    inset: 0;
+    filter: saturate(0.72) contrast(1.08) brightness(0.92);
+  }
+
+  .intel__level {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100vw, 100vh);
+    height: max(100vw, 100vh);
+    max-width: none;
+    object-fit: cover;
+    translate: -50% -50%;
+    transform-origin: 50% 50%;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .intel__level[data-intel-level='0'] {
+    opacity: 1;
+  }
+
+  /* A cold grade, a vignette, and faint scan lines: a feed, not a photograph. */
+  .intel__grade {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 0.7) 100%),
+      linear-gradient(rgb(20 60 70 / 0.18), rgb(20 60 70 / 0.18));
+    pointer-events: none;
+  }
+
+  .intel__grid {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgb(236 233 225 / 0.06) 1px, transparent 1px) 50% 50% / 8vmin 8vmin,
+      linear-gradient(to bottom, rgb(236 233 225 / 0.06) 1px, transparent 1px) 50% 50% / 8vmin 8vmin;
+    pointer-events: none;
+  }
+
+  /* The instrument frame: four corners. */
+  .intel__frame span {
+    position: absolute;
+    width: 2rem;
+    height: 2rem;
+    border: 0 solid var(--hud);
+  }
+
+  .intel__frame span:nth-child(1) {
+    top: 4vmin;
+    left: 4vmin;
+    border-width: 1.5px 0 0 1.5px;
+  }
+
+  .intel__frame span:nth-child(2) {
+    top: 4vmin;
+    right: 4vmin;
+    border-width: 1.5px 1.5px 0 0;
+  }
+
+  .intel__frame span:nth-child(3) {
+    bottom: 4vmin;
+    left: 4vmin;
+    border-width: 0 0 1.5px 1.5px;
+  }
+
+  .intel__frame span:nth-child(4) {
+    right: 4vmin;
+    bottom: 4vmin;
+    border-width: 0 1.5px 1.5px 0;
+  }
+
+  .intel__cross {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    translate: -50% -50%;
+    background:
+      linear-gradient(var(--hud-dim), var(--hud-dim)) center / 1px 100% no-repeat,
+      linear-gradient(var(--hud-dim), var(--hud-dim)) center / 100% 1px no-repeat;
+    mask: radial-gradient(circle, transparent 0.45rem, #000 0.5rem);
+  }
+
+  /* The lock: red brackets round the campus, its name under them. */
+  .intel__lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 11vmin;
+    height: 11vmin;
+    translate: -50% -50%;
+    opacity: 0;
+  }
+
+  .intel__lock span {
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    border: 0 solid var(--oxblood-hi);
+  }
+
+  .intel__lock span:nth-child(1) {
+    top: 0;
+    left: 0;
+    border-width: 2px 0 0 2px;
+  }
+
+  .intel__lock span:nth-child(2) {
+    top: 0;
+    right: 0;
+    border-width: 2px 2px 0 0;
+  }
+
+  .intel__lock span:nth-child(3) {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 2px 2px;
+  }
+
+  .intel__lock span:nth-child(4) {
+    right: 0;
+    bottom: 0;
+    border-width: 0 2px 2px 0;
+  }
+
+  .intel__lock-label {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    left: 50%;
+    margin: 0;
+    color: var(--oxblood-hi);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    translate: -50% 0;
+    text-shadow: 0 0 0.6em rgb(0 0 0 / 0.9);
+  }
+
+  .intel__title {
+    position: absolute;
+    top: calc(4vmin + 2.6rem);
+    left: calc(4vmin + 0.4rem);
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .intel__title span:first-child {
+    color: var(--oxblood-hi);
+    font-size: 0.6875rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .intel__title span:last-child {
+    min-height: 1.2em;
+    color: #f2efe8;
+    font-family: var(--font-sans);
+    font-size: clamp(1.25rem, 0.9rem + 1.6vw, 2.25rem);
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .intel__readout {
+    position: absolute;
+    bottom: calc(4vmin + 2.4rem);
+    left: calc(4vmin + 0.4rem);
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .intel__readout div {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .intel__readout dt {
+    width: 2.5rem;
+    color: var(--hud-dim);
+  }
+
+  .intel__readout dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .intel__source dd {
+    color: var(--hud-dim);
+    letter-spacing: 0.08em;
+    text-transform: none;
+  }
+
+  .intel__lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .intel__lines line {
+    stroke: var(--hud);
+    stroke-width: 1;
+  }
+
+  /* Pinned intel: the projects' own images, on the side of the frame away from the card. */
+  .intel__pins {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .intel__pin {
+    position: absolute;
+    width: clamp(9rem, 14vw, 14rem);
+    opacity: 0;
+  }
+
+  .intel__pin:nth-child(1) {
+    top: 16%;
+    right: 9%;
+  }
+
+  .intel__pin:nth-child(2) {
+    top: 44%;
+    right: 4%;
+  }
+
+  .intel__pin:nth-child(3) {
+    bottom: 12%;
+    right: 14%;
+  }
+
+  .intel__pin img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border: 1px solid var(--hud-dim);
+    filter: saturate(0.8) contrast(1.05);
+  }
+
+  .intel__pin p {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0.45rem 0 0;
+    color: #f2efe8;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 0 0 0.6em rgb(0 0 0 / 0.9);
+  }
+
+  .intel__rec {
+    color: var(--oxblood-hi);
+  }
+
+  .intel__kind {
+    color: var(--hud-dim);
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+
+  .intel__skip {
+    position: absolute;
+    top: calc(4vmin + 0.4rem);
+    right: calc(4vmin + 0.4rem);
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 1px solid rgb(236 233 225 / 0.35);
+    background: rgb(0 0 0 / 0.35);
+    color: #f2efe8;
+    font: inherit;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .intel__skip:hover {
+    border-color: #f2efe8;
+  }
+
+  /* Phones: two pins, low in the frame, under the card. */
+  @media (max-width: 40rem) {
+    .intel__pin {
+      width: 40vw;
+    }
+
+    .intel__pin:nth-child(1) {
+      top: auto;
+      right: auto;
+      bottom: 9%;
+      left: 6vw;
+    }
+
+    .intel__pin:nth-child(2) {
+      top: auto;
+      right: 6vw;
+      bottom: 9%;
+    }
+
+    .intel__pin:nth-child(3),
+    .intel__readout {
+      display: none;
+    }
+  }
+}

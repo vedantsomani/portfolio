@@ -1,126 +1,38 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.astro';
-import Section from '../components/Section.astro';
-import WorkCard from '../components/WorkCard.astro';
-import HardwareHall from '../components/HardwareHall.astro';
-import FinalCta from '../components/FinalCta.astro';
-import SignalTrace from '../components/SignalTrace.astro';
-import Todo from '../components/Todo.astro';
-import { SHOW_TODOS } from '../lib/todo';
-import { formatDate, getLabEntries, getProjects, statusLabel } from '../lib/content';
-import { DESKTOP, DESK_SIZES, getHeroImages } from '../lib/hero-images';
+import IntroCredits from '../components/IntroCredits.astro';
+import LabRoom from '../components/LabRoom.astro';
+import Film from '../components/Film.astro';
+import Files from '../components/Files.astro';
+import Transmission from '../components/Transmission.astro';
+import { getLabSet } from '../lib/lab-set';
 
-const images = await getHeroImages();
-// Selected work: the two flagships (SITE_SPEC §5), Saarthi large and TESSERA small.
-const projects = await getProjects();
-const saarthi = projects.find((p) => p.id === 'saarthi');
-const tessera = projects.find((p) => p.id === 'tessera');
-if (!saarthi || !tessera) throw new Error('Home needs the saarthi and tessera projects.');
-const lab = await getLabEntries();
-
-// The lab preview ships once at least one entry has a status and a result.
-const preview = lab.filter((e) => SHOW_TODOS || (e.data.status && e.data.result)).slice(0, 3);
+// The archive: the cold open, then the film (a crew comes home to a dark planet, lands in a street
+// the machines took, and walks into the lab the signal comes from), which ends in the lab: the
+// page's interface. Every record is on a shelf; the files and the transmission open over the room.
+// The recruiter briefing and contact are the only other pages; each record opens as its own file.
+const lab = await getLabSet();
+const film = Object.keys(import.meta.glob('../data/film.json', { eager: true })).length > 0;
 ---
 
 <BaseLayout
   title="Vedant Somani"
   fontPreload={false}
+  underNav
+  experience
   description="Vedant Somani builds flight hardware, secure comms, and space-data pipelines from the silicon up: embedded systems, drones, and the software around them."
 >
-  <link
-    slot="head"
-    rel="preload"
-    as="image"
-    type="image/avif"
-    imagesrcset={images.deskAvif}
-    imagesizes={DESK_SIZES}
-    media={DESKTOP}
-    fetchpriority="high"
-  />
-  <Hero images={images} />
-
-  <div class="trace-scope" data-trace>
-    <Section id="work" title="Selected work">
-      <a slot="aside" href="/projects">
-        All projects
-      </a>
-      <div class="work-pair">
-        <WorkCard
-          href={`/projects/${saarthi.id}`}
-          title={saarthi.data.title}
-          summary={saarthi.data.summary}
-          status={statusLabel(saarthi.data.status)}
-          role={saarthi.data.role}
-          cover={saarthi.data.cover}
-          coverTodo={saarthi.data.coverTodo}
-          morph={`cover-${saarthi.id}`}
-          sizes="(min-width: 64rem) 55vw, 100vw"
-        />
-        <WorkCard
-          href={`/projects/${tessera.id}`}
-          title={tessera.data.title}
-          summary={tessera.data.summary}
-          status={statusLabel(tessera.data.status)}
-          role={tessera.data.role}
-          cover={tessera.data.cover}
-          coverTodo={tessera.data.coverTodo}
-          morph={`cover-${tessera.id}`}
-          size="small"
-          sizes="(min-width: 64rem) 22vw, 60vw"
-        />
-      </div>
-    </Section>
-
-    <Section
-      id="hall"
-      title="Hardware hall"
-      statement
-      class="field-oxblood on-oxblood section--field"
-    >
-      <a slot="aside" href="/lab">
-        Visit the lab
-      </a>
-      <HardwareHall />
-    </Section>
-
-    {preview.length > 0 && (
-      <Section id="lab" title="From the lab">
-        <a slot="aside" href="/lab">
-          The full lab
-        </a>
-        <table class="log">
-          <caption class="visually-hidden">Recent lab entries</caption>
-          <thead>
-            <tr>
-              <th scope="col">Status</th>
-              <th scope="col">Date</th>
-              <th scope="col">Discipline</th>
-              <th scope="col">Entry</th>
-            </tr>
-          </thead>
-          <tbody>
-            {preview.map((entry) => (
-              <tr>
-                <td class="t-data">{statusLabel(entry.data.status) ?? <Todo what="status" />}</td>
-                <td class="t-data">{formatDate(entry.data.date) ?? <Todo what="date" />}</td>
-                <td>{entry.data.discipline}</td>
-                <td>
-                  <a class="log__title" href={`/lab/${entry.id}`}>
-                    {entry.data.title}
-                  </a>
-                  <span class="log__line">
-                    {entry.data.result ?? <Todo what="one-line result" />}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
-    )}
-
-    <FinalCta />
-  </div>
-  <SignalTrace />
+  <IntroCredits />
+  {lab && <LabRoom data={lab} film={film} />}
+  <Film />
+  <Files />
+  <Transmission />
+  <div class="panel-scrim" data-panel-scrim hidden></div>
 </BaseLayout>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initPanels } from '../scripts/panels';
+
+  onPage(initPanels);
+</script>

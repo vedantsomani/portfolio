@@ -1,0 +1,7 @@
+{
+  "note": "Written by scripts/set-images.mjs.",
+  "hologram": {
+    "video": true,
+    "poster": true
+  }
+}

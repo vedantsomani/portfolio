@@ -1,0 +1,149 @@
+---
+import '../styles/archive/intel.css';
+// The briefing's opening, cut like a mission briefing: a satellite feed falls from the whole Earth
+// to Bennett University, Greater Noida, a lock closes on the campus, the page's own identity card
+// slides in as the dossier, three of the projects are pinned to the map as intel, and everything
+// but the card clears, so the briefing starts with the card already in its place. Live animation
+// (scripts/intel.ts), not a film: the type stays sharp and the card is the real one.
+// The imagery is real (scripts/intel-maps.py: NASA's Blue Marble, and Sentinel-2 cloudless when it
+// has been fetched); the overlay says where it came from. Once per session, JS on, motion allowed;
+// Skip and Escape go straight to the page.
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { getEntry } from 'astro:content';
+import { recordIds } from '../lib/content';
+import { site } from '../data/site';
+
+interface Levels {
+  target: [number, number];
+  levels: { level: number; km: number; source?: string }[];
+}
+const meta = Object.values(
+  import.meta.glob<Levels>('../data/intel-levels.json', { eager: true, import: 'default' }),
+)[0];
+const pics = import.meta.glob<{ default: ImageMetadata }>('../assets/intel/level*.jpg', {
+  eager: true,
+});
+const levels = (meta?.levels ?? [])
+  .map((l) => ({ ...l, src: pics[`../assets/intel/level${l.level}.jpg`]?.default }))
+  .filter((l) => l.src);
+const ids = await recordIds();
+const entries = await Promise.all(
+  ['saarthi', 'tessera', 'anav'].map((id) => getEntry('projects', id)),
+);
+const pins = entries.flatMap((p) =>
+  p?.data.cover
+    ? [
+        {
+          record: ids.get(`projects/${p.id}`) ?? '',
+          title: p.data.title,
+          kind: p.data.coverKind,
+          cover: p.data.cover,
+        },
+      ]
+    : [],
+);
+const [lat, lon] = meta?.target ?? [28.4507, 77.582];
+const sources = [...new Set(levels.map((l) => l.source ?? 'NASA Blue Marble'))];
+---
+
+{levels.length > 0 && (
+  <div class="intel" data-handoff data-intel data-km={levels.map((l) => l.km).join(',')} hidden>
+    {/* Before first paint: only on the first visit of a session, with motion allowed. */}
+    <script is:inline>
+      (function () {
+        const el = document.currentScript && document.currentScript.parentElement;
+        try {
+          if (
+            el &&
+            !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+            sessionStorage.getItem('archive:handoff') !== '1'
+          ) {
+            el.hidden = false;
+            document.documentElement.classList.add('intel-on');
+          }
+        } catch {
+          /* storage blocked: no briefing film, the page is simply there */
+        }
+      })();
+    </script>
+    <div class="intel__map" aria-hidden="true" data-intel-map>
+      {levels.map((l, i) => (
+        <Image
+          class="intel__level"
+          src={l.src}
+          alt=""
+          widths={[1280, 2048]}
+          sizes="max(100vw, 100vh)"
+          quality={78}
+          loading="eager"
+          decoding="async"
+          data-intel-level={i}
+        />
+      ))}
+    </div>
+    <div class="intel__grade" aria-hidden="true"></div>
+    <div class="intel__grid" aria-hidden="true"></div>
+    <div class="intel__frame" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="intel__cross" aria-hidden="true"></div>
+    <div class="intel__lock" aria-hidden="true" data-intel-lock>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <p class="intel__lock-label">Bennett University · Greater Noida</p>
+    </div>
+    <p class="intel__title" aria-hidden="true" data-intel-title>
+      <span>Recruiter briefing</span>
+      <span data-intel-type>{site.name}</span>
+    </p>
+    <dl class="intel__readout" aria-hidden="true">
+      <div>
+        <dt>Lat</dt>
+        <dd>{lat.toFixed(4)}° N</dd>
+      </div>
+      <div>
+        <dt>Lon</dt>
+        <dd>{lon.toFixed(4)}° E</dd>
+      </div>
+      <div>
+        <dt>Alt</dt>
+        <dd data-intel-alt>—</dd>
+      </div>
+      <div class="intel__source">
+        <dt>Feed</dt>
+        <dd>{sources.join(' · ')}</dd>
+      </div>
+    </dl>
+    <svg class="intel__lines" aria-hidden="true" data-intel-lines></svg>
+    <ol class="intel__pins" role="list" aria-hidden="true">
+      {pins.map((p, i) => (
+        <li class="intel__pin" data-intel-pin={i}>
+          <Image src={p.cover} alt="" widths={[320, 560]} sizes="14rem" quality={65} />
+          <p>
+            <span class="intel__rec">{p.record}</span> {p.title}
+            {p.kind && <span class="intel__kind">{p.kind}</span>}
+          </p>
+        </li>
+      ))}
+    </ol>
+    <button type="button" class="intel__skip" data-handoff-skip>
+      Skip <span aria-hidden="true">→</span>
+    </button>
+  </div>
+)}
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initIntel } from '../scripts/intel';
+
+  onPage(() => {
+    const el = document.querySelector<HTMLElement>('[data-intel]');
+    return el ? initIntel(el) : undefined;
+  });
+</script>

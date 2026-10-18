@@ -36,10 +36,12 @@ const pages = [
     title: 'Flight hardware, secure comms, and space data.',
     kicker: 'Built from the silicon up',
   },
-  { key: 'projects', title: 'Projects', kicker: 'Saarthi, TESSERA, VAJRA and more' },
-  { key: 'lab', title: 'Lab', kicker: 'Hardware hall and build log' },
-  { key: 'about', title: 'About', kicker: 'CSE, Bennett University' },
   { key: 'contact', title: 'Get in touch', kicker: 'Internships, research, hardware' },
+  {
+    key: 'briefing',
+    title: 'Vedant Somani',
+    kicker: 'Recruiter briefing: CSE, Bennett University',
+  },
   ...collection('src/content/projects').map((p) => ({
     key: `project-${p.slug}`,
     title: p.title,

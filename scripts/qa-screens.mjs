@@ -13,7 +13,6 @@ const base = process.argv[2] ?? 'http://localhost:4321';
 const out = process.argv[3] ?? 'qa';
 export const ROUTES = [
   '/',
-  '/projects',
   '/projects/saarthi',
   '/projects/tessera',
   '/projects/anav',
@@ -22,10 +21,9 @@ export const ROUTES = [
   '/projects/dhwani-kavach',
   '/projects/pitsense',
   '/projects/iot-club-website',
-  '/lab',
   '/lab/skynet',
   '/lab/prahari',
-  '/about',
+  '/briefing',
   '/contact',
   '/this-page-does-not-exist',
 ];
@@ -37,6 +35,14 @@ const report = {};
 
 for (const width of widths) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
+  // Page captures skip the cold open (it has its own walkthrough: scripts/qa/film.mjs).
+  await context.addInitScript(() => {
+    try {
+      sessionStorage.setItem('intro-seen', '1');
+    } catch {
+      /* storage blocked: the gate shows, as it would for a visitor */
+    }
+  });
   const page = await context.newPage();
   for (const route of routes()) {
     await page.goto(base + route, { waitUntil: 'networkidle' });
@@ -53,7 +59,20 @@ for (const width of widths) {
         '.cover-wipe { animation: none !important; } .nav { position: absolute !important; }',
     });
     const name = route === '/' ? 'home' : route.slice(1).replace(/\W+/g, '-');
-    await page.screenshot({ path: `${out}/${name}-${width}.png`, fullPage: true });
+    // Chromium cannot capture more than 16,384 px in one image (it wraps to the top): taller
+    // pages are saved in parts (name-width.png, name-width-2.png, ...).
+    const tall = await page.evaluate(() => document.documentElement.scrollHeight);
+    const PART = 12000;
+    for (let i = 0; i * PART < tall; i++) {
+      await page.screenshot({
+        path: `${out}/${name}-${width}${i ? `-${i + 1}` : ''}.png`,
+        fullPage: true,
+        ...(tall > 16000 && {
+          clip: { x: 0, y: i * PART, width, height: Math.min(PART, tall - i * PART) },
+        }),
+      });
+      if (tall <= 16000) break;
+    }
     report[`${name}@${width}`] = await page.evaluate(() => ({
       overflowX: document.documentElement.scrollWidth > window.innerWidth,
       h1: document.querySelector('h1')?.textContent?.trim().slice(0, 60),

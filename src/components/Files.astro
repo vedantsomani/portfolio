@@ -1,0 +1,83 @@
+---
+import '../styles/archive/panels.css';
+// The files: every record in the archive, as a list, over the lab (a panel, opened from the dock,
+// the nav, or /#files). The case files and the lab records open their own pages; the smaller work
+// links straight to where it lives. Without JS this is a section below the lab.
+import { getLabEntries, getProjects, recordIds, statusLabel } from '../lib/content';
+import { archive, experiments } from '../data/archive';
+
+const [projects, lab, ids] = await Promise.all([getProjects(), getLabEntries(), recordIds()]);
+const records = [
+  ...projects.map((p) => ({
+    href: `/projects/${p.id}`,
+    id: ids.get(`projects/${p.id}`) ?? 'R-00',
+    title: p.data.title,
+    line: p.data.summary,
+    status: statusLabel(p.data.status),
+    year: p.data.year,
+    restricted: p.data.restricted,
+  })),
+  ...lab.map((e) => ({
+    href: `/lab/${e.id}`,
+    id: ids.get(`lab/${e.id}`) ?? 'L-00',
+    title: e.data.title,
+    line: e.data.result ?? e.data.hypothesis ?? '',
+    status: statusLabel(e.data.status),
+    year: e.data.date ? String(e.data.date.getFullYear()) : undefined,
+    restricted: Boolean(e.data.restricted),
+  })),
+].sort((a, b) => (a.id[0] === b.id[0] ? a.id.localeCompare(b.id) : a.id[0] === 'R' ? -1 : 1));
+const other = [...archive, ...experiments];
+---
+
+<section id="files" class="panel" aria-labelledby="files-title" data-panel="files">
+  <div class="panel__bar">
+    <p class="panel__kicker t-data">Every record in the archive</p>
+    <button type="button" class="panel__close" data-panel-close hidden>
+      Close <span aria-hidden="true">×</span>
+    </button>
+  </div>
+  <h2 id="files-title" class="panel__title" tabindex="-1">
+    Files
+  </h2>
+
+  <ol class="files" role="list">
+    {records.map((r) => (
+      <li class:list={['files__row', { 'files__row--sealed': r.restricted }]}>
+        <a class="files__link" href={r.href}>
+          <span class="files__id t-data">{r.id}</span>
+          <span class="files__body">
+            <span class="files__title">{r.title}</span>
+            {r.line && <span class="files__line">{r.line}</span>}
+          </span>
+          <span class="files__meta t-data">
+            {r.status}
+            {r.year && <span>{r.year}</span>}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+
+  <h3 class="panel__sub">Other work</h3>
+  <ul class="files files--other" role="list">
+    {other.map((e) => (
+      <li id={e.id} class="files__row">
+        <div class="files__plain">
+          <span class="files__id t-data">{e.year}</span>
+          <span class="files__body">
+            <span class="files__title">{e.title}</span>
+            <span class="files__line">{e.line}</span>
+          </span>
+          <span class="files__meta">
+            {e.links.map((l) => (
+              <a href={l.href} aria-label={`${e.title}: ${l.label}`}>
+                {l.label}
+              </a>
+            ))}
+          </span>
+        </div>
+      </li>
+    ))}
+  </ul>
+</section>

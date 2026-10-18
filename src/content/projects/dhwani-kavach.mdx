@@ -8,8 +8,18 @@ restricted: false
 year: '2026'
 stack: [Python, ONNX Runtime, NLMS, WASAPI]
 builtOn: FastEnhancer (ICASSP 2026)
-cover: ../../assets/placeholders/dhwani-cover.jpg
-coverAlt: Placeholder for a Dhwani-Kavach image
+disciplines: [ai]
+results:
+  - { label: ΔPESQ vs offline, value: 0.0363 (target < 0.05) }
+  - { label: Latency, value: not yet measured }
+architecture:
+  label: Dhwani-Kavach signal chain
+  columns:
+    - { title: Input, nodes: [Primary microphone, Reference microphone] }
+    - { title: Conditioning, nodes: [48 kHz → 16 kHz, High-pass and notch filters] }
+    - { title: Cancellation, nodes: [NLMS on the reference, FastEnhancer (ONNX)] }
+    - { title: Output, nodes: ['Suppression floor, AGC, limiter'] }
+  links: [48 kHz, 16 kHz, null]
 coverTodo: Dhwani-Kavach image (signal-chain plot or bench photo)
 order: 5
 repoUrl: https://github.com/vedantsomani/DHWANI-KAVACH
@@ -28,15 +38,7 @@ glance:
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="Dhwani-Kavach signal chain"
-    columns={[
-      { title: 'Input', nodes: ['Primary microphone', 'Reference microphone'] },
-      { title: 'Conditioning', nodes: ['48 kHz → 16 kHz', 'High-pass and notch filters'] },
-      { title: 'Cancellation', nodes: ['NLMS on the reference', 'FastEnhancer (ONNX)'] },
-      { title: 'Output', nodes: ['Suppression floor, AGC, limiter'] },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>
     The neural stage is FastEnhancer, a published streaming speech-enhancement model. My work is the
     live chain around it, the operator panel, and the acceptance tests.
@@ -44,9 +46,20 @@ glance:
 </CaseSection>
 
 <CaseSection title="Measurements">
-  <ul>
-    <li>Real-time path within 0.05 PESQ of offline: pass, ΔPESQ 0.0363.</li>
-    <li>Demo, one synthetic sample: PESQ 1.088 noisy, 1.602 enhanced.</li>
-    <li>End-to-end loopback latency: not yet measured.</li>
-  </ul>
+  <Readout
+    title="Acceptance tests and the demo."
+    readings={[
+      {
+        value: 'ΔPESQ 0.0363',
+        label: 'Real-time path within 0.05 PESQ of offline: pass.',
+        kind: 'acceptance',
+      },
+      {
+        value: '1.088 → 1.602',
+        label: 'PESQ, noisy to enhanced, on one synthetic demo sample.',
+        kind: 'synthetic',
+      },
+      { value: '—', label: 'End-to-end loopback latency.', kind: 'pending' },
+    ]}
+  />
 </CaseSection>

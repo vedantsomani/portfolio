@@ -1,0 +1,226 @@
+/* The film (Film.astro): full screen over the lab, letterboxed by a soft shade top and bottom,
+   the radio subtitled low and centred like a film's (who is speaking in small capitals over the
+   line), the signal's fix in the corner over the orbit, a thin red playhead along the bottom edge,
+   Skip at the bottom right. It ends on the title over black and fades into the lab. Imported by
+   the component. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  html.film-on {
+    overflow: hidden;
+  }
+
+  .film-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: #000;
+    opacity: 1;
+    transition: opacity 1.1s ease;
+  }
+
+  .film-stage[hidden] {
+    display: none;
+  }
+
+  .film-stage--out {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .film-stage__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Two players take turns, one shot each; the cut between them is instant. */
+    visibility: hidden;
+  }
+
+  .film-stage__video.is-live {
+    visibility: visible;
+  }
+
+  /* Portrait screens: the whole frame, letterboxed, like a film on a phone. */
+  @media (max-aspect-ratio: 4/5) {
+    .film-stage__video {
+      object-fit: contain;
+    }
+  }
+
+  .film-stage__shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 16%),
+      linear-gradient(to top, rgb(0 0 0 / 0.7), transparent 30%);
+  }
+
+  .film-stage__sub {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(4.5rem, 12vh, 8rem);
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    width: min(100% - 2 * var(--margin), 46rem);
+    margin: 0;
+    translate: -50% 0;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .film-stage__sub.is-on {
+    opacity: 1;
+  }
+
+  .film-stage__who {
+    color: rgb(236 233 225 / 0.62);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    text-shadow: 0 0 1em rgb(0 0 0 / 0.8);
+  }
+
+  /* The fix on the signal, over the orbit only: small, in the corner, like an instrument's. */
+  .film-stage__signal {
+    position: absolute;
+    top: clamp(1rem, 4vh, 2rem);
+    left: var(--margin);
+    margin: 0;
+    color: var(--oxblood-hi);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+
+  .film-stage__signal.is-on {
+    opacity: 0.85;
+  }
+
+  /* The title card: the picture goes to black, the name holds, then the lab. */
+  .film-stage__card {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 0.9rem;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease 0.5s;
+  }
+
+  .film-stage__card p {
+    margin: 0;
+  }
+
+  .film-stage__name {
+    color: #f2efe8;
+    font-size: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    font-weight: 300;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    /* The tracking would push it off centre. */
+    margin-right: -0.42em;
+  }
+
+  .film-stage__by {
+    color: rgb(236 233 225 / 0.6);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .film-stage--card .film-stage__video {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .film-stage--card .film-stage__card {
+    opacity: 1;
+  }
+
+  .film-stage__line {
+    color: #f2efe8;
+    font-size: clamp(1.125rem, 0.95rem + 0.8vw, 1.625rem);
+    font-weight: 400;
+    line-height: 1.35;
+    text-shadow:
+      0 0 0.25em rgb(0 0 0 / 0.9),
+      0 0 1.2em rgb(0 0 0 / 0.6);
+    text-wrap: balance;
+  }
+
+  .film-stage__ui {
+    position: absolute;
+    inset: auto var(--margin) var(--space-3) var(--margin);
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .film-stage__credit {
+    max-width: 52ch;
+    margin: 0;
+    color: rgb(236 233 225 / 0.55);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .film-stage__btn {
+    flex: none;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 1px solid rgb(236 233 225 / 0.35);
+    background: rgb(0 0 0 / 0.35);
+    color: #f2efe8;
+    font: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+  }
+
+  .film-stage__btn:hover {
+    border-color: #f2efe8;
+  }
+
+  .film-stage__progress {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .film-stage__progress span {
+    display: block;
+    height: 100%;
+    background: var(--oxblood-hi);
+    box-shadow: var(--glow);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  @media (max-width: 40rem) {
+    .film-stage__credit {
+      display: none;
+    }
+
+    .film-stage__ui {
+      justify-content: end;
+    }
+  }
+}

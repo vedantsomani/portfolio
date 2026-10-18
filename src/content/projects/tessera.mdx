@@ -8,8 +8,20 @@ restricted: false
 year: '2026'
 role: [Team leader, team of 4]
 stack: [PyTorch, Python, Landsat 8/9]
+disciplines: [ai]
+results:
+  - { label: PSNR, value: 24.84 dB }
+  - { label: Hallucination proxy, value: 0.024 (lower is better) }
+architecture:
+  label: TESSERA pipeline
+  columns:
+    - { title: Input, nodes: [Landsat ST_B10 thermal tile] }
+    - { title: Stage 1, nodes: [Infrared enhancement (ResUNet / EDSR-style)] }
+    - { title: Stage 2, nodes: [ResUNet colouriser, Semantic and uncertainty heads] }
+    - { title: Output, nodes: [Colour image, Hallucination-risk map] }
 cover: ../../assets/work/tessera-laptop.jpg
 coverAlt: 'The TESSERA project open in VS Code, showing per-channel output-versus-target histograms from the test set. The models form narrow spikes where the target is spread out: the plot title calls it colour collapsing to a flat tone.'
+coverKind: Photograph of the test-set histograms on screen
 featured: true
 order: 2
 glance:
@@ -34,18 +46,7 @@ import grid from '../../assets/work/tessera-grid.jpg';
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="TESSERA pipeline"
-    columns={[
-      { title: 'Input', nodes: ['Landsat ST_B10 thermal tile'] },
-      { title: 'Stage 1', nodes: ['Infrared enhancement (ResUNet / EDSR-style)'] },
-      {
-        title: 'Stage 2',
-        nodes: ['ResUNet colouriser', 'Semantic and uncertainty heads'],
-      },
-      { title: 'Output', nodes: ['Colour image', 'Hallucination-risk map'] },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>
     A teacher that also sees spectral indices (NDVI, NDWI, MNDWI, NDBI) was trained as an upper
     bound. It is not deployable: the deployed model sees only the thermal band.
@@ -58,11 +59,13 @@ import grid from '../../assets/work/tessera-grid.jpg';
 </CaseSection>
 
 <CaseSection title="Measurements">
+  <TesseraScenes group="scene-record" />
   <Figure
     src={grid}
     alt="Results grid for five Landsat test scenes: thermal input, baseline colourisation, TESSERA colourisation, true colour, absolute error, and hallucination-risk map."
     sizes="(min-width: 64rem) 60vw, 100vw"
     widths={[480, 800, 1200, 1600]}
+    kind="Model output, held-out test set"
     caption="Held-out test scenes. Columns: thermal input, baseline, TESSERA, ground truth, absolute error, risk."
   />
   <p>

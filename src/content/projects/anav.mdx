@@ -7,9 +7,18 @@ status: built
 restricted: false
 year: '2024–25'
 stack: [MAVLink, QGroundControl, onboard camera, IMU]
+disciplines: [autonomy, hardware]
+architecture:
+  label: ANAV mission pipeline
+  columns:
+    - { title: Sensing, nodes: [Onboard camera, IMU] }
+    - { title: Hazard map, nodes: [Rocks, Craters, Steep slopes] }
+    - { title: Site scoring, nodes: [Flatness, Clearance, Approach margin] }
+    - { title: Landing, nodes: [Automated approach and touchdown, Telemetry and decision logs] }
 cover: ../../assets/work/anav-cover.jpg
 coverAlt: Vedant kneeling on the concrete floor of a large tent hall, working on the ANAV quadcopter before a test session.
-order: 2.5
+coverKind: Photograph
+order: 4
 repoUrl: https://github.com/vedantsomani/Frontend-for-anav
 glance:
   problem: 'Land autonomously on unknown, hazardous ground, as on a Martian surface, with no human input.'
@@ -29,18 +38,7 @@ import night from '../../assets/work/anav-night.jpg';
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="ANAV mission pipeline"
-    columns={[
-      { title: 'Sensing', nodes: ['Onboard camera', 'IMU'] },
-      { title: 'Hazard map', nodes: ['Rocks', 'Craters', 'Steep slopes'] },
-      { title: 'Site scoring', nodes: ['Flatness', 'Clearance', 'Approach margin'] },
-      {
-        title: 'Landing',
-        nodes: ['Automated approach and touchdown', 'Telemetry and decision logs'],
-      },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>
     The vehicle builds a hazard map from the camera and IMU, scores candidate sites for flatness,
     clearance, and approach margin, and selects the safest. It records telemetry and its decisions
@@ -54,15 +52,17 @@ import night from '../../assets/work/anav-night.jpg';
     <Figure
       src={front}
       alt="The ANAV quadcopter on a desk, front view: printed white and black arms, a stacked companion computer on top, an FS-iA6B receiver, and an orange LiPo pack underneath."
-      sizes="(min-width: 64rem) 30vw, 100vw"
+      sizes="(min-width: 64rem) 30vw, 50vw"
       widths={[480, 800, 1200]}
+      kind="Photograph"
       caption="The airframe: printed arms, companion computer stacked on the flight controller."
     />
     <Figure
       src={stack}
       alt="Close-up of the ANAV electronics stack on a lab desk, with USB and power leads taped in place."
-      sizes="(min-width: 64rem) 30vw, 100vw"
+      sizes="(min-width: 64rem) 30vw, 50vw"
       widths={[480, 800, 1200]}
+      kind="Photograph"
       caption="The electronics stack during integration."
     />
   </div>
@@ -78,6 +78,7 @@ import night from '../../assets/work/anav-night.jpg';
     alt="The ANAV quadcopter on grass outdoors, with a teammate's hands adjusting the wiring."
     sizes="(min-width: 64rem) 60vw, 100vw"
     widths={[480, 800, 1200]}
+    kind="Photograph"
     caption="Outdoor session: checks before a test."
   />
   <Figure
@@ -85,6 +86,7 @@ import night from '../../assets/work/anav-night.jpg';
     alt="The ANAV quadcopter on a grass field at night, with a pilot holding a transmitter in the background."
     sizes="(min-width: 64rem) 60vw, 100vw"
     widths={[480, 800, 1200, 1600]}
+    kind="Photograph"
     caption="On the field at night, with the pilot on the transmitter."
   />
 </CaseSection>

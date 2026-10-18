@@ -1,0 +1,62 @@
+---
+import '../styles/archive/intro.css';
+// Cold open (SITE_SPEC §4.0): a title gate, then the opening credits. Home only, first visit of a
+// session, motion allowed, JS on. BaseLayout's head script sets <html data-intro="pending"> before
+// first paint; without that attribute this whole block is display: none, so JS-off and reduced
+// motion never see it. If src/scripts/intro.ts never takes over, a CSS failsafe removes it after 4 s.
+import { archive, credits, site } from '../data/site';
+---
+
+<div class="intro" data-intro-root role="dialog" aria-modal="true" aria-label="Opening credits">
+  <canvas class="intro__veins" data-intro-veins aria-hidden="true"></canvas>
+  <canvas class="intro__traces" data-intro-traces aria-hidden="true"></canvas>
+
+  <div class="intro__gate" data-intro-gate>
+    <p class="intro__presenter">{site.name}</p>
+    <p class="intro__name">{archive.title}</p>
+    <p class="intro__tagline">{archive.tagline}</p>
+    <div class="intro__choices">
+      <button type="button" class="intro__enter" data-intro-enter="sound">
+        Enter with sound
+      </button>
+      <button type="button" class="intro__enter intro__enter--quiet" data-intro-enter="silent">
+        Enter in silence
+      </button>
+    </div>
+    {/* The direct route: no film, straight to the one-page summary. */}
+    <p class="intro__brief">
+      <a href="/briefing">Recruiter briefing</a>
+      <span>One page, no film.</span>
+    </p>
+  </div>
+
+  <div class="intro__cards" aria-live="polite">
+    {credits.map((c) => (
+      <p class="intro__card" data-intro-card>
+        {c.kicker && <span class="intro__kicker">{c.kicker}</span>}
+        <span class="intro__line">{c.line}</span>
+      </p>
+    ))}
+    <p class="intro__card intro__card--title" data-intro-card>
+      <span class="intro__line">{site.name}</span>
+    </p>
+  </div>
+
+  <button type="button" class="intro__skip" data-intro-skip>
+    Skip intro
+  </button>
+  <div class="intro__cut" data-intro-cut aria-hidden="true"></div>
+</div>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+
+  onPage(async () => {
+    if (document.documentElement.dataset.intro !== 'pending') {
+      document.querySelector('[data-intro-root]')?.remove();
+      return;
+    }
+    const { runIntro } = await import('../scripts/intro');
+    return runIntro();
+  });
+</script>

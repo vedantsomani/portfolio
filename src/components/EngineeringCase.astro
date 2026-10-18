@@ -1,17 +1,24 @@
 ---
-// Engineering case study: Objective → Architecture → Constraints → Hardware/firmware → Bench setup →
-// Measurements → Failures & iterations (all from the MDX) → Status → Links (from frontmatter).
-// Restricted projects (AGENTS.md rule 3) never show a repository link; the schema refuses one.
+// A case study as a recovered record (SITE_SPEC §5): retrieval (RecordHead) → briefing → the
+// record's chapters from the MDX, where every figure is a numbered exhibit with its evidence class
+// and measurements read as sourced readouts → the end of the record (RecordEnd): status, sealed or
+// public links, and the next record. Restricted projects (AGENTS.md rule 3) never show a
+// repository link; the schema refuses one.
 import { render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import RecordHead from './RecordHead.astro';
+import RecordEnd from './RecordEnd.astro';
 import Figure from './Figure.astro';
 import CaseSection from './CaseSection.astro';
 import ArchDiagram from './ArchDiagram.astro';
+import Readout from './Readout.astro';
+import BoardStory from './BoardStory.astro';
+import TesseraScenes from './TesseraScenes.astro';
 import Todo from './Todo.astro';
-import FinalCta from './FinalCta.astro';
-import SignalTrace from './SignalTrace.astro';
 import { SHOW_TODOS } from '../lib/todo';
-import { renderedSections, sectionId, statusLabel, type Project } from '../lib/content';
+import { getDossiers } from '../lib/dossiers';
+import { recordIds, renderedSections, sectionId, statusLabel, type Project } from '../lib/content';
+import { closeUp } from '../lib/lab-set';
 
 interface Props {
   project: Project;
@@ -23,6 +30,12 @@ const d = project.data;
 const { Content } = await render(project);
 const status = statusLabel(d.status);
 const url = new URL(`/projects/${project.id}`, Astro.site).href;
+const ids = await recordIds();
+const idOf = (p: Project) => ids.get(`projects/${p.id}`) ?? 'R-00';
+const recordId = idOf(project);
+const withheld = d.restricted
+  ? (await getDossiers()).find((x) => x.id === project.id)?.withheld
+  : undefined;
 
 // Only what the page shows: name, summary, author, status, year.
 const jsonLd = {
@@ -36,13 +49,15 @@ const jsonLd = {
   ...(status && { creativeWorkStatus: status }),
   ...(d.year && { dateCreated: d.year }),
 };
+
 const facts = [
-  { label: 'Status', value: status, todo: 'status' },
   { label: 'Year', value: d.year, todo: 'year' },
   { label: 'Role', value: d.role.join(', ') || undefined, todo: 'role' },
   // Credit, never a TODO: only projects built on someone else's work carry it.
   ...(d.builtOn ? [{ label: 'Built on', value: d.builtOn, todo: '' }] : []),
+  ...(d.specs ?? []).map((sp) => ({ label: sp.label, value: sp.value, mono: true, todo: '' })),
 ].filter((f) => f.value || SHOW_TODOS);
+
 const links = d.restricted
   ? []
   : [
@@ -50,80 +65,91 @@ const links = d.restricted
       d.demoUrl && { href: d.demoUrl, label: 'Live demo', track: undefined },
     ].filter((l): l is { href: string; label: string; track: string | undefined } => Boolean(l));
 
-// Quick scan: problem, your part, what exists today, key result. Only restates the page.
-const glance = d.glance
+// The briefing: problem, your part, what exists today, key result. Only restates the page.
+const briefing = d.glance
   ? [
-      { label: 'Problem', value: d.glance.problem },
-      { label: 'My part', value: d.glance.part },
-      { label: 'What exists today', value: d.glance.exists },
-      { label: 'Key result', value: d.glance.result },
+      { label: 'Problem', value: d.glance.problem, key: 'problem' },
+      { label: 'My part', value: d.glance.part, key: 'part' },
+      { label: 'What exists today', value: d.glance.exists, key: 'exists' },
+      { label: 'Key result', value: d.glance.result, key: 'result' },
     ].filter((g) => g.value || SHOW_TODOS)
   : [];
 
-// "On this page": the sections that actually render, plus Status and Links. Long pages only.
+// The record's index: the chapters that actually render, then the end of the record.
+const hasLinksBlock = Boolean(d.restricted || links.length || SHOW_TODOS);
 const sections = [
   ...renderedSections(project.body, SHOW_TODOS),
-  ...(status || SHOW_TODOS ? ['Status'] : []),
-  ...(d.restricted || links.length || SHOW_TODOS ? ['Links'] : []),
+  'Status',
+  ...(hasLinksBlock ? [d.restricted ? 'Sealed' : 'Links'] : []),
 ];
-const showNav = sections.length >= 4;
+const anchor = (title: string) =>
+  title === 'Status'
+    ? 'status'
+    : title === 'Sealed' || title === 'Links'
+      ? 'links'
+      : sectionId(title);
+const showIndex = sections.length >= 4;
+const neighbour = (p: Project) => ({
+  href: `/projects/${p.id}`,
+  recordId: idOf(p),
+  title: p.data.title,
+  cover: p.data.cover,
+});
 ---
 
 <BaseLayout title={d.title} og={`project-${project.id}`} description={d.summary} underNav>
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)}></script>
-  <header class="case-head field-oxblood on-oxblood grid">
-    <p class="case-head__back t-small">
-      <a href="/projects">All projects</a>
-    </p>
-    <div class="case-head__title display-fit">
-      <h1 class="t-display">{d.title}</h1>
+  <RecordHead
+    recordId={recordId}
+    shelf={{ href: '/#lab', label: 'The lab' }}
+    set={closeUp(project.id)}
+    title={d.title}
+    summary={d.summary}
+    status={status}
+    facts={facts}
+    restricted={d.restricted}
+    cover={
+      d.cover
+        ? {
+            src: d.cover,
+            alt: d.coverAlt ?? '',
+            kind: d.coverKind,
+            transitionName: `cover-${project.id}`,
+          }
+        : undefined
+    }
+  />
+  {SHOW_TODOS && !d.cover && d.coverTodo && (
+    <div class="wrap">
+      <Todo what={d.coverTodo} block />
     </div>
-    <p class="case-head__summary">{d.summary}</p>
-    {facts.length > 0 && (
-      <dl class="case-head__facts">
-        {facts.map((f) => (
-          <div>
-            <dt class="t-small">{f.label}</dt>
-            <dd>{f.value ?? <Todo what={f.todo} />}</dd>
-          </div>
-        ))}
-      </dl>
-    )}
-    {d.specs && (
-      <dl class="case-head__specs">
-        {d.specs.map((s) => (
-          <div>
-            <dt class="t-small">{s.label}</dt>
-            <dd class="t-data">{s.value}</dd>
-          </div>
-        ))}
-      </dl>
-    )}
-  </header>
+  )}
 
-  <div class="case-cover grid">
-    <div class="case-cover__media" transition:name={`cover-${project.id}`}>
-      <Figure
-        src={d.cover}
-        alt={d.coverAlt}
-        todo={d.coverTodo}
-        priority
-        sizes="(min-width: 80rem) 1280px, 100vw"
-      />
-    </div>
-  </div>
-
-  <div class="case-body trace-scope grid" data-trace>
-    <div class="case-body__inner">
-      {glance.length > 0 && (
-        <section class="glance" aria-labelledby="glance-title">
-          <h2 id="glance-title" class="glance__title t-h3">
-            At a glance
+  <div class:list={['record-body', { 'record-body--single': !showIndex }]}>
+    {showIndex && (
+      <nav class="record-index" aria-label="This record" data-spy>
+        <p class="record-index__title">
+          <span class="t-data">{recordId}</span> Index
+        </p>
+        <ol class="record-index__list" role="list">
+          {sections.map((title) => (
+            <li>
+              <a href={`#${anchor(title)}`}>{title}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )}
+    <div class="record-main">
+      {briefing.length > 0 && (
+        <section class="briefing" aria-labelledby="briefing-title">
+          <h2 id="briefing-title" class="briefing__title">
+            Briefing
           </h2>
-          <dl class="glance__list">
-            {glance.map((g) => (
-              <div class="glance__row">
-                <dt class="t-small">{g.label}</dt>
+          <dl class="briefing__grid">
+            {briefing.map((g) => (
+              <div class:list={['briefing__cell', `briefing__cell--${g.key}`]}>
+                <dt>{g.label}</dt>
                 <dd>{g.value ?? <Todo what={g.label.toLowerCase()} />}</dd>
               </div>
             ))}
@@ -131,67 +157,30 @@ const showNav = sections.length >= 4;
         </section>
       )}
 
-      {showNav && (
-        <nav class="on-page" aria-label="On this page">
-          <p class="on-page__title t-small">On this page</p>
-          <ul class="on-page__list" role="list">
-            {sections.map((title) => (
-              <li>
-                <a href={`#${sectionId(title)}`}>{title}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
-
-      <Content components={{ CaseSection, ArchDiagram, Todo, Figure }} />
-
-      {status ? (
-        <CaseSection title="Status">
-          <p>{status}.</p>
-        </CaseSection>
-      ) : (
-        <CaseSection title="Status" todo="status" />
-      )}
-
-      {d.restricted ? (
-        <CaseSection title="Links">
-          <p>
-            Restricted project: no public repository, and no implementation details beyond
-            architecture and results.
-          </p>
-        </CaseSection>
-      ) : links.length ? (
-        <CaseSection title="Links">
-          <ul class="case-links" role="list">
-            {links.map((l) => (
-              <li>
-                <a href={l.href} data-track={l.track}>
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </CaseSection>
-      ) : (
-        <CaseSection title="Links" todo="repository visibility decision; public links" />
-      )}
+      <Content
+        components={{ CaseSection, ArchDiagram, Todo, Figure, Readout, BoardStory, TesseraScenes }}
+      />
     </div>
   </div>
 
-  <nav class="case-nav grid" aria-label="More projects">
-    <ul class="case-nav__list" role="list">
-      <li>
-        <span class="t-small">Previous</span>
-        <a href={`/projects/${prev.id}`}>{prev.data.title}</a>
-      </li>
-      <li>
-        <span class="t-small">Next</span>
-        <a href={`/projects/${next.id}`}>{next.data.title}</a>
-      </li>
-    </ul>
-  </nav>
-
-  <FinalCta />
-  <SignalTrace />
+  <RecordEnd
+    recordId={recordId}
+    status={status}
+    withheld={withheld}
+    links={links}
+    linksTodo={SHOW_TODOS ? 'repository visibility decision; public links' : undefined}
+    next={neighbour(next)}
+    prev={neighbour(prev)}
+    shelf={{ href: '/#lab', label: 'Back to the lab' }}
+  />
 </BaseLayout>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initSpy } from '../scripts/spy';
+
+  onPage(() => {
+    const nav = document.querySelector<HTMLElement>('[data-spy]');
+    return nav ? initSpy(nav) : undefined;
+  });
+</script>

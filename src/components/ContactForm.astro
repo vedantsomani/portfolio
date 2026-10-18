@@ -1,4 +1,5 @@
 ---
+import '../styles/archive/transmit.css';
 import { actions, isInputError } from 'astro:actions';
 import Button from './Button.astro';
 import Todo from './Todo.astro';
@@ -158,6 +159,12 @@ const describedBy = (key: string, hint = false) =>
       <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
     </div>
 
+    {/* Decorative, and labelled as such: it follows typing in this form, nothing else. Shown by JS. */}
+    <div class="transmit" data-transmit hidden>
+      <canvas class="transmit__trace" aria-hidden="true"></canvas>
+      <p class="transmit__note t-small">Decorative trace. It follows your typing, nothing else.</p>
+    </div>
+
     <div class="form__submit">
       <Button type="submit" data-submit>
         Send
@@ -179,6 +186,8 @@ const describedBy = (key: string, hint = false) =>
 <script>
   import { actions, isInputError } from 'astro:actions';
   import { track } from '../lib/track';
+  import { onPage } from '../scripts/lifecycle';
+  import { initTransmit } from '../scripts/transmit';
 
   // Progressive enhancement: submit without leaving the page so typed values survive errors.
   const labels: Record<string, string> = {
@@ -261,7 +270,9 @@ const describedBy = (key: string, hint = false) =>
       clearErrors();
       submit.disabled = true;
       submit.textContent = 'Sending…';
+      form.dataset.sending = '';
       const { data, error } = await actions.contact(new FormData(form));
+      delete form.dataset.sending;
       submit.disabled = false;
       submit.textContent = 'Send';
       if (error) {
@@ -283,4 +294,13 @@ const describedBy = (key: string, hint = false) =>
   }
 
   document.addEventListener('astro:page-load', initContactForm);
+
+  onPage(() => {
+    const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+    const box = document.querySelector<HTMLElement>('[data-transmit]');
+    const canvas = box?.querySelector('canvas');
+    if (!form || !box || !canvas) return;
+    box.hidden = false;
+    return initTransmit(form, canvas);
+  });
 </script>

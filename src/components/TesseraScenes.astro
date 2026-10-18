@@ -1,0 +1,63 @@
+---
+import '../styles/archive/records.css';
+// TESSERA's pipeline on its own held-out results (SITE_SPEC §5): one test scene at a time, left to
+// right: the thermal input, TESSERA's colour output, its risk map, and the true colour for
+// comparison, each cut from the results grid with the grid's own panel headings. The scene picker
+// is a radio group (CSS :has, no script), so it works without JS. As the strip enters, a scan
+// passes along it in pipeline order. Used on the home record and inside the TESSERA record, where
+// it is a numbered exhibit.
+import { Image } from 'astro:assets';
+import { TESSERA_SOURCE, tesseraScenes } from '../data/evidence';
+
+interface Props {
+  /** Radio group name: unique per page. */
+  group: string;
+}
+const { group } = Astro.props;
+---
+
+<div class="compare">
+  <p class="figure__exhibit">
+    <span class="figure__no"></span>
+    <span class="figure__kind">Model output, held-out test scenes</span>
+  </p>
+  <fieldset class="compare__picker">
+    <legend class="compare__legend t-small">Test scene</legend>
+    <div class="compare__options">
+      {tesseraScenes.map((s, i) => (
+        <label class="compare__option">
+          <input type="radio" name={group} value={s.id} checked={i === 0} data-scene-radio={s.id} />
+          <span>{s.label.replace(/ \(test\)$/, '')}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  {tesseraScenes.map((s) => (
+    <figure class="compare__scene" data-scene={s.id}>
+      <ol class="compare__strip" role="list">
+        {s.cells.map((c, i) => (
+          <li class:list={['compare__cell', `compare__cell--${c.id}`]} style={`--i: ${i}`}>
+            <p class="compare__role t-data">{c.role}</p>
+            <div class="compare__img">
+              <Image
+                src={c.src}
+                alt={`${c.panel}, ${s.label}`}
+                widths={[250]}
+                sizes="(min-width: 64rem) 13vw, 45vw"
+                format="avif"
+                quality={70}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <p class="compare__panel t-small">{c.panel}</p>
+          </li>
+        ))}
+      </ol>
+      <figcaption class="compare__caption t-small">
+        <span class="t-data">{s.label}</span> {TESSERA_SOURCE}
+      </figcaption>
+    </figure>
+  ))}
+</div>

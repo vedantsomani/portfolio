@@ -10,6 +10,10 @@ import '../styles/base.css';
 import '../styles/layout.css';
 import '../styles/components.css';
 import '../styles/motion.css';
+import '../styles/film.css';
+import '../styles/archive.css';
+import '../styles/scroll.css';
+import '../styles/theme.css';
 
 interface Props {
   title: string;
@@ -25,6 +29,8 @@ interface Props {
   trackView?: EventName;
   /** Preload the Archivo file (default). See the note in <head>. */
   fontPreload?: boolean;
+  /** The home page: one screen, the lab as the interface; no footer under it (with JS). */
+  experience?: boolean;
 }
 
 const {
@@ -36,6 +42,7 @@ const {
   noindex = false,
   trackView,
   fontPreload = true,
+  experience = false,
 } = Astro.props;
 // Canonical path: absolute on the production domain, no ".html", no "/index", no trailing slash
 // (home is "/"). Noindex pages (404) get no canonical at all.
@@ -63,7 +70,7 @@ const beacon =
     <meta name="description" content={description} />
     {canonicalURL && <link rel="canonical" href={canonicalURL} />}
     {noindex && <meta name="robots" content="noindex" />}
-    <meta name="theme-color" content="#14100E" />
+    <meta name="theme-color" content="#050605" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {/* Preloaded so the swap to Archivo lands before layout settles: the expanded display cut has no
          metric-compatible fallback, so a late swap shifts headings (CLS). Pages whose LCP is an image
@@ -91,16 +98,27 @@ const beacon =
     <meta name="twitter:card" content="summary_large_image" />
     <slot name="head" />
 
-    {/* Before first paint: record the motion preference, and hold the hero headline for its
-         one-per-session reveal. A CSS failsafe (motion.css) shows it if the script never runs. */}
+    {/* Before first paint: record the motion preference, hold the below-the-fold reveals, and hold
+         the hero headline for its one-per-session reveal. CSS failsafes (motion.css) show both if
+         the scripts never run. */}
     <script is:inline>
       (function () {
         function apply() {
           const d = document.documentElement;
           const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
           d.dataset.motion = reduce ? 'reduce' : 'ok';
+          if (!reduce) d.dataset.reveals = 'pending';
           try {
             if (!reduce && !sessionStorage.getItem('hero-revealed')) d.dataset.reveal = 'pending';
+            // Cold open: home, first visit this session, motion allowed (IntroCredits, intro.ts),
+            // and not a link to a place further down it (/#lab, /#transmission).
+            if (
+              !reduce &&
+              location.pathname === '/' &&
+              !location.hash &&
+              !sessionStorage.getItem('intro-seen')
+            )
+              d.dataset.intro = 'pending';
           } catch {
             // Storage blocked: skip the reveal rather than risk hiding the headline.
           }
@@ -112,7 +130,7 @@ const beacon =
     </script>
     <ClientRouter fallback="swap" />
   </head>
-  <body class:list={{ 'under-nav': underNav }} data-track-view={trackView}>
+  <body class:list={{ 'under-nav': underNav, experience }} data-track-view={trackView}>
     <a class="skip-link" href="#main">
       Skip to content
     </a>
@@ -121,6 +139,8 @@ const beacon =
       <slot />
     </main>
     <Footer />
+    {/* Grain and vignette over everything; persisted so the grain never restarts on a cut. */}
+    <div class="film" aria-hidden="true" transition:persist="film"></div>
     {/* Page-transition panel. Persisted so it can cover the old page and uncover the new one. */}
     <div class="wipe" aria-hidden="true" transition:persist="wipe" data-wipe></div>
     {beacon && (
@@ -134,6 +154,9 @@ const beacon =
     <script>
       import { track, type EventName } from '../lib/track';
       import { initTransitions } from '../scripts/transitions';
+      import { onPage } from '../scripts/lifecycle';
+      import { initReveals } from '../scripts/reveal';
+      import { onSoundChange, resumeOnGesture, setSound, soundOn } from '../scripts/sound';
 
       // One delegated listener: any element with data-track="event_name" reports its clicks.
       document.addEventListener('click', (event) => {
@@ -146,6 +169,20 @@ const beacon =
         if (view) track(view as EventName);
       });
       initTransitions();
+      onPage(initReveals);
+
+      // Sound toggle in the nav: shown only with JS, mirrors the stored choice.
+      resumeOnGesture();
+      const syncToggle = (on: boolean) =>
+        document.querySelectorAll<HTMLButtonElement>('[data-sound-toggle]').forEach((b) => {
+          b.hidden = false;
+          b.setAttribute('aria-pressed', String(on));
+        });
+      onSoundChange(syncToggle);
+      document.addEventListener('astro:page-load', () => syncToggle(soundOn()));
+      document.addEventListener('click', (event) => {
+        if ((event.target as Element | null)?.closest('[data-sound-toggle]')) setSound(!soundOn());
+      });
     </script>
   </body>
 </html>

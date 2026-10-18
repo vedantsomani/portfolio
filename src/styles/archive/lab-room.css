@@ -1,0 +1,512 @@
+/* The lab (LabRoom.astro): the home page's interface. The render covers the screen; the frame inside
+   it keeps the render's 16:9 and covers the stage, so every record, positioned in fractions of the
+   render, stays on its object at any viewport. On tall screens the frame keeps the stage's full
+   height and the room pans sideways (a native horizontal scroll). Over it, game-interface chrome:
+   the name top left, the dock bottom left, quiet bracketed labels on the shelves. Imported by the
+   component. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  .lab-room {
+    position: relative;
+    isolation: isolate;
+    background: #000;
+  }
+
+  .lab-room__stage {
+    position: relative;
+    height: max(100svh, 34rem);
+    overflow: clip;
+  }
+
+  .lab-room__pan {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .lab-room__frame {
+    --lx: 50%;
+    --ly: 60%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, max(100svh, 34rem) * 16 / 9);
+    aspect-ratio: 16 / 9;
+    translate: -50% -50%;
+  }
+
+  .lab-room__rest {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .lab-room__rest img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Darkness at the edges, and the pool of light that follows the chosen record. */
+  .lab-room__frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 22%),
+      linear-gradient(to top, rgb(0 0 0 / 0.6), transparent 26%);
+  }
+
+  .lab-room__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at var(--lx) var(--ly),
+      transparent 0 9%,
+      rgb(0 0 0 / 0.5) 34%,
+      rgb(0 0 0 / 0.7)
+    );
+    opacity: 0;
+    transition: opacity 0.45s var(--ease-out);
+  }
+
+  .lab-room--aim .lab-room__frame::after {
+    opacity: 1;
+  }
+
+  /* The hologram's light breathes and stutters over the still. */
+  .lab-room__holo {
+    position: absolute;
+    left: calc(var(--ax) * 100%);
+    top: calc(var(--ay) * 100% - 9%);
+    width: 9%;
+    aspect-ratio: 3 / 4;
+    translate: -50% -50%;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 60%, rgb(110 214 255 / 0.35), transparent 65%);
+    mix-blend-mode: screen;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lab-room__holo {
+      animation: holo-breathe 4.2s steps(1) infinite;
+    }
+  }
+
+  @keyframes holo-breathe {
+    0%,
+    100% {
+      opacity: 0.85;
+    }
+    41% {
+      opacity: 0.35;
+    }
+    43% {
+      opacity: 0.9;
+    }
+    71% {
+      opacity: 0.6;
+    }
+    73% {
+      opacity: 1;
+    }
+  }
+
+  /* The close-up the push-in cuts to, over the whole stage. */
+  .lab-room__close {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---------- The interface over the room ---------- */
+  .lab-room__head {
+    position: absolute;
+    top: calc(var(--nav-h) + var(--space-1));
+    left: var(--margin);
+    z-index: 3;
+    display: grid;
+    gap: 0.5rem;
+    max-width: 28rem;
+    pointer-events: none;
+  }
+
+  .lab-room__head > * {
+    margin: 0;
+  }
+
+  .lab-room__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink-2);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  .lab-room__live {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--oxblood-hi);
+    box-shadow: var(--glow);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lab-room__live {
+      animation: live 1.6s ease-in-out infinite;
+    }
+  }
+
+  @keyframes live {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  .lab-room__title {
+    font-size: clamp(1.9rem, 1.1rem + 2.3vw, 3.4rem);
+    font-stretch: 125%;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+    text-shadow: 0 0 1.5em rgb(0 0 0 / 0.6);
+  }
+
+  .lab-room__title:focus {
+    outline: none;
+  }
+
+  .lab-room__lede {
+    max-width: 34ch;
+    color: rgb(236 233 225 / 0.78);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+
+  /* The dock: the archive's commands, bottom left, like a game's menu. */
+  .lab-room__dock {
+    position: absolute;
+    left: var(--margin);
+    bottom: var(--space-4);
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .lab-room__cmd {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid rgb(236 233 225 / 0.28);
+    background: rgb(0 0 0 / 0.42);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.18em;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition:
+      border-color var(--dur-2) linear,
+      background-color var(--dur-2) linear;
+  }
+
+  .lab-room__cmd .t-data {
+    color: var(--oxblood-hi);
+    letter-spacing: 0.08em;
+  }
+
+  .lab-room__cmd:hover {
+    border-color: var(--ink);
+    background: rgb(0 0 0 / 0.65);
+  }
+
+  .lab-room__cmd[hidden] {
+    display: none;
+  }
+
+  .lab-room__note {
+    position: absolute;
+    right: var(--margin);
+    bottom: var(--space-4);
+    z-index: 3;
+    max-width: 30ch;
+    margin: 0;
+    color: rgb(236 233 225 / 0.55);
+    text-align: end;
+  }
+
+  .lab-room--moving .lab-room__items,
+  .lab-room--moving .lab-room__head,
+  .lab-room--moving .lab-room__dock,
+  .lab-room--moving .lab-room__note {
+    opacity: 0;
+    transition: opacity var(--dur-2) linear;
+  }
+
+  /* ---------- Records in the room ---------- */
+  .lab-room__items {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Each record: positioned on its object's box, the box as its hit area (never smaller than
+     44 px), a bracket mark, and a label beside it. */
+  .lab-item {
+    position: absolute;
+    left: calc(var(--x0) * 100%);
+    top: calc(var(--y0) * 100%);
+    width: calc((var(--x1) - var(--x0)) * 100%);
+    height: calc((var(--y1) - var(--y0)) * 100%);
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  .lab-item__link {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .lab-item__link::before {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    translate: -50% -50%;
+  }
+
+  .lab-item__mark {
+    --c: rgb(236 233 225 / 0.5);
+    --l: 9px;
+    position: absolute;
+    inset: -6px;
+    background:
+      linear-gradient(var(--c), var(--c)) 0 0 / var(--l) 1px,
+      linear-gradient(var(--c), var(--c)) 0 0 / 1px var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) 1px,
+      linear-gradient(var(--c), var(--c)) 100% 0 / 1px var(--l),
+      linear-gradient(var(--c), var(--c)) 0 100% / var(--l) 1px,
+      linear-gradient(var(--c), var(--c)) 0 100% / 1px var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) 1px,
+      linear-gradient(var(--c), var(--c)) 100% 100% / 1px var(--l);
+    background-repeat: no-repeat;
+    transition:
+      inset 0.35s var(--ease-out),
+      filter 0.35s linear;
+  }
+
+  /* Sealed records in the machine's red; the transmission in the hologram's cyan. */
+  .lab-item--sealed .lab-item__mark {
+    --c: rgb(255 46 59 / 0.75);
+  }
+
+  .lab-item--tx .lab-item__mark {
+    --c: rgb(110 214 255 / 0.8);
+  }
+
+  .lab-item__label {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: -6px;
+    display: grid;
+    gap: 0.125rem;
+    width: max-content;
+    max-width: 15rem;
+    padding: 0.3rem 0.55rem 0.35rem;
+    background: rgb(0 0 0 / 0.58);
+    border-inline-start: 1px solid rgb(236 233 225 / 0.4);
+    backdrop-filter: blur(4px);
+    transition:
+      background-color var(--dur-2) linear,
+      opacity var(--dur-2) linear;
+  }
+
+  .lab-item:not(:hover, :focus-within, .is-selected) .lab-item__label {
+    opacity: 0.72;
+  }
+
+  .lab-item:is(:hover, :focus-within, .is-selected) .lab-item__label {
+    background: rgb(0 0 0 / 0.85);
+  }
+
+  .lab-item[data-side='up'] .lab-item__label {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+  }
+
+  .lab-item[data-edge='end'] .lab-item__label {
+    right: -6px;
+    left: auto;
+  }
+
+  .lab-item__id {
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+  }
+
+  .lab-item--sealed .lab-item__id {
+    color: var(--oxblood-hi);
+  }
+
+  .lab-item--tx .lab-item__id {
+    color: #6ed6ff;
+  }
+
+  .lab-item__title {
+    font-size: 0.75rem;
+    font-stretch: 112%;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  /* At rest a record shows its ID and title; the status and the way in appear when it is chosen. */
+  .lab-item__status,
+  .lab-item__open {
+    display: none;
+    color: var(--ink-2);
+    font-size: 0.75rem;
+  }
+
+  .lab-item__open {
+    color: var(--ink);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lab-item__open::after {
+    content: ' →';
+  }
+
+  .lab-item:is(:hover, :focus-within, .is-selected) {
+    z-index: 2;
+  }
+
+  .lab-item:is(:hover, :focus-within, .is-selected) .lab-item__mark {
+    --c: var(--ink);
+    --l: 15px;
+    inset: -10px;
+    filter: drop-shadow(0 0 4px rgb(236 233 225 / 0.5));
+  }
+
+  .lab-item--sealed:is(:hover, :focus-within, .is-selected) .lab-item__mark {
+    --c: var(--oxblood-hi);
+    filter: drop-shadow(0 0 6px rgb(255 46 59 / 0.7));
+  }
+
+  .lab-item--tx:is(:hover, :focus-within, .is-selected) .lab-item__mark {
+    --c: #6ed6ff;
+    filter: drop-shadow(0 0 6px rgb(110 214 255 / 0.7));
+  }
+
+  .lab-item:is(:hover, :focus-within, .is-selected) .lab-item__label {
+    border-color: var(--ink);
+  }
+
+  .lab-item:is(:hover, :focus-within, .is-selected) :is(.lab-item__status, .lab-item__open) {
+    display: block;
+  }
+
+  /* The others step back while one is chosen. */
+  .lab-room__items:has(.lab-item:is(:hover, :focus-within, .is-selected))
+    .lab-item:not(:hover, :focus-within, .is-selected) {
+    opacity: 0.35;
+  }
+
+  .lab-item__link:focus-visible {
+    outline: none;
+  }
+
+  .lab-item__link:focus-visible .lab-item__label {
+    outline: 2px solid var(--oxblood-hi);
+    outline-offset: 2px;
+  }
+
+  .lab-room__swipe {
+    display: none;
+  }
+
+  /* ---------- Tall screens: the room at full height, panning sideways ---------- */
+  @media (max-aspect-ratio: 4/5) {
+    .lab-room__pan {
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .lab-room__pan::-webkit-scrollbar {
+      display: none;
+    }
+
+    .lab-room__pan:focus-visible {
+      outline: 2px solid var(--oxblood-hi);
+      outline-offset: -4px;
+    }
+
+    .lab-room__frame {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: auto;
+      height: 100%;
+      translate: none;
+    }
+
+    .lab-item .lab-item__label {
+      top: calc(100% + 0.5rem);
+      max-width: 11rem;
+    }
+
+    /* On a phone only the chosen record shows its title; the others show their ID. */
+    .lab-item:not(:hover, :focus-within, .is-selected) .lab-item__title {
+      display: none;
+    }
+
+    .lab-room__head {
+      right: var(--margin);
+    }
+
+    .lab-room__dock {
+      right: var(--margin);
+      bottom: var(--space-3);
+    }
+
+    .lab-room__cmd {
+      flex: 1 1 auto;
+      justify-content: center;
+      padding: 0 0.75rem;
+    }
+
+    .lab-room__note {
+      display: none;
+    }
+  }
+}

@@ -3,6 +3,7 @@
 // ease-out). A project card → case study navigation skips the wipe: the cover morphs instead
 // (transition:name). Reduced motion: an instant swap.
 import { reducedMotion } from './lifecycle';
+import { cue } from './sound';
 
 const EASE_IN = 'cubic-bezier(0.7, 0, 0.84, 0)';
 const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -27,6 +28,7 @@ export function initTransitions(): void {
     const load = event.loader;
     event.loader = async () => {
       covering = true;
+      cue('static');
       panel.classList.add('is-active');
       const cover = panel.animate(
         [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],

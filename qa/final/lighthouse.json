@@ -1,11 +1,131 @@
 [
   {
+    "route": "/",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.73",
+    "cls": "0.001",
+    "pass": true
+  },
+  {
     "route": "/projects/anav",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.85",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/dhwani-kavach",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.99",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/iot-club-website",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "2.00",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/pitsense",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.99",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/saarthi",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.85",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/smriti",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.84",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/tessera",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.84",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/projects/vajra",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.99",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/lab/prahari",
     "perf": 100,
     "a11y": 100,
     "bp": 100,
     "seo": 100,
-    "lcp": "1.72",
+    "lcp": "1.70",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/lab/skynet",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.83",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/briefing",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.86",
+    "cls": "0.000",
+    "pass": true
+  },
+  {
+    "route": "/contact",
+    "perf": 99,
+    "a11y": 100,
+    "bp": 100,
+    "seo": 100,
+    "lcp": "1.84",
     "cls": "0.000",
     "pass": true
   }

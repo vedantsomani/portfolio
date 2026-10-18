@@ -31,6 +31,18 @@ const STATUS: Record<string, string> = {
 };
 export const statusLabel = (s?: string) => (s ? STATUS[s] : undefined);
 
+// Record IDs (SITE_SPEC §5): every record in the archive keeps one ID on every page. Case studies
+// are R-01… in their collection order, lab entries L-01…; the home page shows a selection, so its
+// numbers need not run in sequence.
+const pad2 = (n: number) => String(n).padStart(2, '0');
+export async function recordIds(): Promise<Map<string, string>> {
+  const [projects, lab] = await Promise.all([getProjects(), getLabEntries()]);
+  return new Map([
+    ...projects.map((p, i) => [`projects/${p.id}`, `R-${pad2(i + 1)}`] as const),
+    ...lab.map((e, i) => [`lab/${e.id}`, `L-${pad2(i + 1)}`] as const),
+  ]);
+}
+
 export const formatDate = (d?: Date) =>
   d?.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
 

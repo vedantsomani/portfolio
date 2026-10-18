@@ -1,0 +1,159 @@
+/* Contact as a transmission (contact.astro, ContactForm.astro). Imported by the component that uses it, so only those pages carry it. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  /* =========================================================================================
+     Contact: the transmission
+     ========================================================================================= */
+  .contact-head__channel {
+    color: var(--ink);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .contact-head__channel::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-inline-end: 0.625rem;
+    background: var(--ink);
+    vertical-align: 0.05em;
+    animation: channel 2.4s steps(2) infinite;
+  }
+
+  @keyframes channel {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  /* The console: the channel's terms beside the transmission panel. */
+  .console {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: var(--space-4) var(--section);
+  }
+
+  .console__side {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+
+  .console__group {
+    display: grid;
+    gap: 0.5rem;
+    padding-block-start: var(--space-2);
+    border-block-start: 1px solid var(--rule-strong);
+  }
+
+  .console__group > * {
+    margin: 0;
+  }
+
+  .console__label {
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .console__for {
+    display: grid;
+    gap: 0.25rem;
+    font-size: var(--fs-h3);
+    font-stretch: 108%;
+  }
+
+  .console__for li,
+  .console__lines li {
+    max-width: none;
+  }
+
+  .console__lines {
+    display: grid;
+    gap: 0.4rem;
+    font-weight: 550;
+  }
+
+  .console__panel {
+    position: relative;
+    padding: var(--space-4) var(--space-3) var(--space-4);
+    border: 1px solid var(--rule-strong);
+    background: rgb(17 19 17 / 0.55);
+  }
+
+  /* Corner ticks: the panel is an instrument. */
+  .console__panel::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background:
+      linear-gradient(var(--ink), var(--ink)) top left / 14px 1.5px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) top left / 1.5px 14px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) bottom right / 14px 1.5px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) bottom right / 1.5px 14px no-repeat;
+    pointer-events: none;
+  }
+
+  .console__bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem var(--space-3);
+    margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-3)) var(--space-4);
+    padding: 0.6rem var(--space-3);
+    border-block-end: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 64rem) {
+    .console {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: var(--space-6);
+    }
+
+    .console__panel {
+      padding-inline: var(--space-4);
+    }
+
+    .console__bar {
+      margin-inline: calc(-1 * var(--space-4));
+      padding-inline: var(--space-4);
+    }
+  }
+
+  .transmit {
+    display: grid;
+    gap: 0.5rem;
+    margin-block: var(--space-4) var(--space-2);
+  }
+
+  .transmit[hidden] {
+    display: none;
+  }
+
+  .transmit__trace {
+    display: block;
+    width: 100%;
+    height: 4.5rem;
+    border-block: 1px solid var(--rule);
+    background: #070807;
+  }
+
+  .transmit__note {
+    color: var(--ink-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-head__channel::before {
+    animation: none;
+  }
+}

@@ -30,6 +30,16 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       </ul>
     </nav>
 
+    <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="false" hidden>
+      <span class="sound-toggle__bars" aria-hidden="true">
+        <i></i>
+        <i></i>
+        <i></i>
+        <i></i>
+      </span>
+      <span class="sound-toggle__label">Sound</span>
+    </button>
+
     <Button href="/contact" size="small" class="nav__cta">
       Get in touch
     </Button>

@@ -1,0 +1,203 @@
+/* The Archive's look, redrawn as a game's interface: deep black, warm off-white type, hairline
+   rules, letter-spaced capitals for anything that is a control or a label, one signal red for the
+   machine world and a hologram cyan for the human transmission. Loaded last (BaseLayout), so these
+   rules settle the shared pieces: colour tokens, buttons, the nav, the footer. */
+
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer tokens {
+  :root {
+    --bg: #050605;
+    --surface: #0c0e0c;
+    --ink: #ece9e1;
+    --ink-2: #9d9f97;
+    --rule: #1c1f1c;
+    --rule-strong: #4f544e;
+    --holo: #6ed6ff;
+  }
+}
+
+@layer base {
+  ::selection {
+    background: var(--oxblood-hi);
+    color: #050605;
+  }
+}
+
+@layer components {
+  /* ---------- Buttons: hairline frames, spaced capitals ---------- */
+  .btn {
+    min-height: 2.75rem;
+    padding: 0 1.3rem;
+    border: 1px solid rgb(236 233 225 / 0.32);
+    background: rgb(0 0 0 / 0.3);
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-stretch: 100%;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition:
+      border-color var(--dur-2) linear,
+      background-color var(--dur-2) linear,
+      color var(--dur-2) linear;
+  }
+
+  .btn::before {
+    display: none;
+  }
+
+  .btn:hover {
+    border-color: var(--ink);
+    background: rgb(236 233 225 / 0.07);
+    color: var(--ink);
+  }
+
+  .btn--primary,
+  .btn--inverted {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #050605;
+  }
+
+  .btn--primary:hover,
+  .btn--inverted:hover {
+    border-color: var(--oxblood-hi);
+    background: var(--oxblood-hi);
+    color: #050605;
+  }
+
+  .btn--small {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    font-size: 0.75rem;
+  }
+
+  /* ---------- Nav: a HUD strip ---------- */
+  .nav {
+    background: rgb(5 6 5 / 0.92);
+  }
+
+  .nav[data-js]:not([data-scrolled]) {
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent);
+  }
+
+  .nav[data-js][data-scrolled] {
+    background: rgb(5 6 5 / 0.86);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 1px 0 rgb(236 233 225 / 0.06);
+  }
+
+  .nav__primary a,
+  .nav__menu {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .nav__primary ul {
+    gap: var(--space-4);
+  }
+
+  /* Over the film and the panels, the nav steps back. */
+  html.film-on .nav {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---------- Footer: one quiet band ---------- */
+  .footer {
+    padding-block: var(--space-5) var(--space-4);
+    border-top: 1px solid var(--rule);
+    background: #030403;
+  }
+
+  .footer__inner {
+    display: grid;
+    gap: var(--space-3) var(--space-5);
+  }
+
+  .footer__name {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0;
+  }
+
+  .footer__home {
+    color: var(--ink);
+    font-size: 1.125rem;
+    font-stretch: 125%;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .footer__archive {
+    color: var(--ink-2);
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+  }
+
+  .footer__nav ul,
+  .footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .footer__nav a {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .footer__credits,
+  .footer__legal {
+    max-width: 70ch;
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 64rem) {
+    .footer__inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+
+    .footer__nav,
+    .footer__links {
+      justify-self: end;
+    }
+
+    .footer__credits {
+      grid-column: 1;
+    }
+
+    .footer__legal {
+      grid-column: 2;
+      justify-self: end;
+    }
+  }
+
+  /* The home page is one screen with JS: the room and the sheets over it, no footer below. */
+  html[data-panels='on'] body.experience > .footer {
+    display: none;
+  }
+
+  html[data-panels='on'] body.experience {
+    overflow: hidden;
+  }
+
+  /* Display titles: light and wide, the archive's voice. */
+  .rhead__title {
+    font-stretch: 125%;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+  }
+}

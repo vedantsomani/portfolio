@@ -1,7 +1,13 @@
-// Checks 8 and 9.
-//  8. JS disabled: every route renders its main heading, the nav, and its content.
-//  9. prefers-reduced-motion: no running animations on Home or a project page, and the hero shows
-//     the "Show circuit layout" toggle (which works from the keyboard).
+// Checks 8, 9 and 10.
+//  8. JS disabled: every route renders its main heading, the nav, and its content; on the home page
+//     the lab is a still room whose records are all working links, with the files and the
+//     transmission as sections under it.
+//  9. prefers-reduced-motion: no running animations on Home, a project page, or the briefing; the
+//     film does not play by itself; the panels open from the keyboard, Escape closes them and focus
+//     goes back; the briefing film does not play.
+// 10. With motion: a first visit plays the film by itself; Skip ends it into the lab, focus on the
+//     name; a record opens from the room and Back returns to it with focus on that record; the files
+//     panel opens at /#files; the briefing film hands over to the page.
 import { chromium } from 'playwright';
 import { BASE, NOT_FOUND, ROUTES } from './routes.mjs';
 
@@ -47,6 +53,32 @@ console.log('— Check 8: JavaScript disabled —');
       `${route.padEnd(28)} h1 "${r.h1}" · nav ✓ · footer links ${r.footerNav} · ${r.text} chars of content`,
     );
   }
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  const home = await page.evaluate(() => {
+    const shown = (sel) => {
+      const el = document.querySelector(sel);
+      return (
+        !!el &&
+        el.getBoundingClientRect().height > 0 &&
+        getComputedStyle(el).visibility !== 'hidden'
+      );
+    };
+    return {
+      links: [...document.querySelectorAll('[data-lab-link]')].filter((a) => {
+        const r = a.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      }).length,
+      files: document.querySelectorAll('#files a[href^="/projects/"], #files a[href^="/lab/"]')
+        .length,
+      sections: shown('#files') && shown('#transmission'),
+      film: shown('[data-film]'),
+    };
+  });
+  report(home.links >= 9, `/ lab: ${home.links} record links in the still room`);
+  report(
+    home.sections && home.files >= 9 && !home.film,
+    `/ files and transmission are sections under it (${home.files} record links), no film`,
+  );
   await ctx.close();
 }
 
@@ -57,7 +89,7 @@ console.log('\n— Check 9: prefers-reduced-motion: reduce —');
     viewport: { width: 1440, height: 900 },
   });
   const page = await ctx.newPage();
-  for (const route of ['/', '/projects/saarthi']) {
+  for (const route of ['/', '/projects/saarthi', '/briefing']) {
     await page.goto(BASE + route, { waitUntil: 'networkidle' });
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 300) {
@@ -81,34 +113,99 @@ console.log('\n— Check 9: prefers-reduced-motion: reduce —');
     );
   }
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
-  const toggle = page.getByRole('button', { name: 'Show circuit layout' });
-  report(await toggle.isVisible(), 'Home: "Show circuit layout" toggle is visible');
+  await page.waitForTimeout(600);
   report(
-    (await page.locator('.lens__canvas').count()) === 0,
-    'Home: no lens canvas under reduced motion',
+    (await page.locator('[data-film]').count()) === 0 ||
+      (await page.locator('[data-film]').isHidden()),
+    '/: the film does not play by itself',
   );
-  await toggle.focus();
+  const files = page.locator('.lab-room__dock [data-panel-open="files"]');
+  await files.focus();
   await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  const opened = await page.evaluate(() => ({
+    open: document.querySelector('#files')?.classList.contains('is-open'),
+    focus: document.activeElement?.id,
+    modal: document.querySelector('#files')?.getAttribute('aria-modal'),
+  }));
   report(
-    (await toggle.getAttribute('aria-pressed')) === 'true' &&
-      (await page.locator('[data-lens-xray]').isVisible()),
-    'Home: Enter on the toggle cuts to the circuit layout (aria-pressed=true)',
+    opened.open && opened.focus === 'files-title' && opened.modal === 'true',
+    `/: Enter on "Files" opens the panel, focus on its title (${opened.focus})`,
   );
-  await page.keyboard.press('Space');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
   report(
-    (await toggle.getAttribute('aria-pressed')) === 'false' &&
-      !(await page.locator('[data-lens-xray]').isVisible()),
-    'Home: Space cuts back to the photo (aria-pressed=false)',
+    !(await page.evaluate(() => document.querySelector('#files')?.classList.contains('is-open'))) &&
+      (await page.evaluate(() => document.activeElement?.textContent?.includes('Files'))),
+    '/: Escape closes it and focus goes back to "Files"',
   );
-  const title = await page.evaluate(() => {
-    const t = document.querySelector('.hero__title');
-    return { vis: getComputedStyle(t).visibility, split: !!t.querySelector('.hero-line') };
-  });
+  await page.goto(BASE + '/briefing', { waitUntil: 'networkidle' });
   report(
-    title.vis === 'visible' && !title.split,
-    'Home: headline is in its final state (no SplitText masks)',
+    (await page.locator('[data-handoff]').count()) === 0 ||
+      (await page.locator('[data-handoff]').isHidden()),
+    '/briefing: no handoff film under reduced motion',
   );
   await ctx.close();
+}
+
+console.log('\n— Check 10: the film, the lab and the briefing, with motion —');
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx.addInitScript(() => sessionStorage.setItem('intro-seen', '1'));
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  if ((await page.locator('[data-film]').count()) > 0) {
+    await page.waitForFunction(
+      () => {
+        const v = document.querySelector('[data-film-video]');
+        return v && !v.paused && v.currentTime > 0.5;
+      },
+      null,
+      { timeout: 20000 },
+    );
+    report(true, '/: a first visit plays the film by itself');
+    await page.locator('[data-film-skip]').click();
+    await page.waitForTimeout(1500);
+    report(
+      (await page.locator('[data-film]').isHidden()) &&
+        (await page.evaluate(() => document.activeElement?.id)) === 'lab-title',
+      '/: Skip ends it into the lab, focus on the name',
+    );
+  } else report(false, '/: the film is built');
+  await page.locator('[data-lab-item="tessera"] [data-lab-link]').click();
+  await page.waitForURL('**/projects/tessera', { timeout: 10000 });
+  report(true, '/: choosing TESSERA in the room opens its record');
+  await page.goBack();
+  await page.waitForSelector('[data-lab]', { timeout: 10000 });
+  await page.waitForTimeout(900);
+  const focus = await page.evaluate(() =>
+    document.activeElement?.closest('[data-lab-item]')?.getAttribute('data-lab-item'),
+  );
+  report(focus === 'tessera', `Back: focus returns to the record left (${focus})`);
+  await page.goto(BASE + '/#files', { waitUntil: 'load' });
+  await page.waitForTimeout(600);
+  report(
+    await page.evaluate(() => document.querySelector('#files')?.classList.contains('is-open')),
+    '/#files opens the files panel',
+  );
+  await ctx.close();
+
+  const film = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const fp = await film.newPage();
+  await fp.goto(BASE + '/briefing', { waitUntil: 'load' });
+  const shown =
+    (await fp.locator('[data-handoff]').count()) > 0 &&
+    (await fp.locator('[data-handoff]').isVisible());
+  if (shown) {
+    await fp.keyboard.press('Escape');
+    await fp.waitForTimeout(900);
+    report(
+      (await fp.locator('[data-handoff]').isHidden()) &&
+        (await fp.evaluate(() => document.activeElement?.id)) === 'brief-name',
+      '/briefing: Escape hands over from the film to the page, focus on the name',
+    );
+  } else report(false, '/briefing: the handoff film shows on a first visit');
+  await film.close();
 }
 
 await browser.close();

@@ -1,0 +1,44 @@
+/* The Archive (SITE_SPEC §3–4), global part: hero refinements, the hall's field, and the end
+   credits. Page-specific parts live in src/styles/archive/ and are imported by their components,
+   because every page inlines its CSS. */
+
+@layer components {
+  /* =========================================================================================
+     Hero: the human surface
+     ========================================================================================= */
+  .hero__title {
+    text-wrap: balance;
+  }
+
+  .lens__toggle {
+    justify-self: start;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--rule-strong);
+    text-decoration: none;
+    font-size: var(--fs-small);
+  }
+
+  .lens__toggle[aria-pressed='true'] {
+    border-color: var(--oxblood-hi);
+    color: var(--oxblood-hi);
+    text-decoration: none;
+  }
+
+  /* The toggled machine layer sits over the live canvas. */
+  .lens--xray .lens__xray {
+    z-index: 1;
+  }
+
+  .hud > span {
+    letter-spacing: 0.06em;
+  }
+
+  /* =========================================================================================
+     Hardware hall: a darker blood field for the hologram
+     ========================================================================================= */
+  .section--hall {
+    background:
+      radial-gradient(ellipse 70% 60% at 65% 55%, rgb(120 6 12 / 0.35), transparent 70%), #160203;
+  }
+}

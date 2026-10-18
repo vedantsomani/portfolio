@@ -1,11 +1,7 @@
 {
   "home@375": {
     "overflowX": false,
-    "h1": "Flight hardware, secure comms, and space data — built from t"
-  },
-  "projects@375": {
-    "overflowX": false,
-    "h1": "Projects"
+    "h1": "Vedant Somani: The Archive"
   },
   "projects-saarthi@375": {
     "overflowX": false,
@@ -14,6 +10,10 @@
   "projects-tessera@375": {
     "overflowX": false,
     "h1": "TESSERA"
+  },
+  "projects-anav@375": {
+    "overflowX": false,
+    "h1": "ANAV"
   },
   "projects-vajra@375": {
     "overflowX": false,
@@ -35,10 +35,6 @@
     "overflowX": false,
     "h1": "IoT & Robotics Club website"
   },
-  "lab@375": {
-    "overflowX": false,
-    "h1": "Lab"
-  },
   "lab-skynet@375": {
     "overflowX": false,
     "h1": "SKYNET"
@@ -47,25 +43,21 @@
     "overflowX": false,
     "h1": "PRAHARI"
   },
-  "about@375": {
+  "briefing@375": {
     "overflowX": false,
-    "h1": "About"
+    "h1": "Vedant Somani"
   },
   "contact@375": {
     "overflowX": false,
-    "h1": "Get in touch"
+    "h1": "Answer the signal"
   },
   "this-page-does-not-exist@375": {
     "overflowX": false,
-    "h1": "Nothing at this address."
+    "h1": "No record at this address."
   },
   "home@768": {
     "overflowX": false,
-    "h1": "Flight hardware, secure comms, and space data — built from t"
-  },
-  "projects@768": {
-    "overflowX": false,
-    "h1": "Projects"
+    "h1": "Vedant Somani: The Archive"
   },
   "projects-saarthi@768": {
     "overflowX": false,
@@ -74,6 +66,10 @@
   "projects-tessera@768": {
     "overflowX": false,
     "h1": "TESSERA"
+  },
+  "projects-anav@768": {
+    "overflowX": false,
+    "h1": "ANAV"
   },
   "projects-vajra@768": {
     "overflowX": false,
@@ -95,10 +91,6 @@
     "overflowX": false,
     "h1": "IoT & Robotics Club website"
   },
-  "lab@768": {
-    "overflowX": false,
-    "h1": "Lab"
-  },
   "lab-skynet@768": {
     "overflowX": false,
     "h1": "SKYNET"
@@ -107,25 +99,21 @@
     "overflowX": false,
     "h1": "PRAHARI"
   },
-  "about@768": {
+  "briefing@768": {
     "overflowX": false,
-    "h1": "About"
+    "h1": "Vedant Somani"
   },
   "contact@768": {
     "overflowX": false,
-    "h1": "Get in touch"
+    "h1": "Answer the signal"
   },
   "this-page-does-not-exist@768": {
     "overflowX": false,
-    "h1": "Nothing at this address."
+    "h1": "No record at this address."
   },
   "home@1440": {
     "overflowX": false,
-    "h1": "Flight hardware, secure comms, and space data — built from t"
-  },
-  "projects@1440": {
-    "overflowX": false,
-    "h1": "Projects"
+    "h1": "Vedant Somani: The Archive"
   },
   "projects-saarthi@1440": {
     "overflowX": false,
@@ -134,6 +122,10 @@
   "projects-tessera@1440": {
     "overflowX": false,
     "h1": "TESSERA"
+  },
+  "projects-anav@1440": {
+    "overflowX": false,
+    "h1": "ANAV"
   },
   "projects-vajra@1440": {
     "overflowX": false,
@@ -155,10 +147,6 @@
     "overflowX": false,
     "h1": "IoT & Robotics Club website"
   },
-  "lab@1440": {
-    "overflowX": false,
-    "h1": "Lab"
-  },
   "lab-skynet@1440": {
     "overflowX": false,
     "h1": "SKYNET"
@@ -167,16 +155,16 @@
     "overflowX": false,
     "h1": "PRAHARI"
   },
-  "about@1440": {
+  "briefing@1440": {
     "overflowX": false,
-    "h1": "About"
+    "h1": "Vedant Somani"
   },
   "contact@1440": {
     "overflowX": false,
-    "h1": "Get in touch"
+    "h1": "Answer the signal"
   },
   "this-page-does-not-exist@1440": {
     "overflowX": false,
-    "h1": "Nothing at this address."
+    "h1": "No record at this address."
   }
 }

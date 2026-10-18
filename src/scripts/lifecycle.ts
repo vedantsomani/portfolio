@@ -18,3 +18,11 @@ export function onPage(init: () => InitResult | Promise<InitResult>): void {
 }
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Resolves once the cold open (src/scripts/intro.ts) has finished, or at once if none is running. */
+export function whenIntroDone(): Promise<void> {
+  if (!document.documentElement.dataset.intro) return Promise.resolve();
+  return new Promise((resolve) =>
+    document.addEventListener('intro:done', () => resolve(), { once: true }),
+  );
+}

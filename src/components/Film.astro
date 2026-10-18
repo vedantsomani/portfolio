@@ -1,0 +1,95 @@
+---
+import '../styles/archive/film-stage.css';
+// The film: one continuous rendered sequence (blender/film.py) that plays over the lab on the first
+// visit of a session, after the cold open: the signal from orbit, the landing, a crew member walking
+// up the street past a machine that wakes and scans for them, the dark lab, the power coming back,
+// and the hologram waking. It is served shot by shot (each file under the host's size limit) and
+// played back to back through two video elements, so it runs as one film. The only words are the
+// crew's radio (subtitled) and, at the end, the title. It plays by itself; Skip (or Escape) ends it
+// at once, and it fades into the lab it ends in. It needs JS and plays only when motion is allowed
+// (otherwise "Play the film" in the lab starts it).
+import { film } from '../data/site';
+
+interface FilmData {
+  duration: number;
+  tiers?: string[];
+  chapters: { id: string; start: number; end: number }[];
+}
+const data = Object.values(
+  import.meta.glob<FilmData>('../data/film.json', { eager: true, import: 'default' }),
+)[0];
+const chapters = data?.chapters ?? [];
+const startOf = new Map(chapters.map((c) => [c.id, c.start]));
+// Each radio line at its time in the whole film (lines for shots the film does not have are left out).
+const lines = film.lines
+  .filter((l) => startOf.has(l.shot))
+  .map((l) => ({ at: (startOf.get(l.shot) ?? 0) + l.at, who: l.who, text: l.text, voice: l.voice }))
+  .sort((a, b) => a.at - b.at);
+const orbit = chapters.find((c) => c.id === 'orbit');
+---
+
+{data && chapters.length > 0 && (
+  <section
+    id="film"
+    class="film-stage"
+    aria-label="The arrival: a rendered film"
+    data-film
+    data-chapters={JSON.stringify(chapters)}
+    data-lines={JSON.stringify(lines)}
+    data-signal-end={orbit ? orbit.end - 0.8 : 0}
+    data-duration={data.duration}
+    data-tiers={(data.tiers ?? ['desk', 'phone']).join(',')}
+    hidden
+  >
+    <video
+      class="film-stage__video is-live"
+      muted
+      playsinline
+      preload="none"
+      poster="/set/film/poster.avif"
+      aria-hidden="true"
+      data-film-video
+    />
+    <video
+      class="film-stage__video"
+      muted
+      playsinline
+      preload="none"
+      aria-hidden="true"
+      data-film-video
+    />
+    <div class="film-stage__shade" aria-hidden="true"></div>
+    {orbit && (
+      <p class="film-stage__signal" aria-hidden="true" data-film-signal>
+        {film.signal}
+      </p>
+    )}
+    <p class="film-stage__sub" aria-live="polite" data-film-sub>
+      <span class="film-stage__who" data-film-who></span>
+      <span class="film-stage__line" data-film-line></span>
+    </p>
+    <div class="film-stage__card" aria-hidden="true" data-film-card>
+      <p class="film-stage__name">{film.title.name}</p>
+      <p class="film-stage__by">{film.title.by}</p>
+    </div>
+    <div class="film-stage__ui">
+      <p class="film-stage__credit">{film.credit}</p>
+      <button type="button" class="film-stage__btn" data-film-skip>
+        Skip <span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <div class="film-stage__progress" aria-hidden="true">
+      <span data-film-progress></span>
+    </div>
+  </section>
+)}
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initFilm } from '../scripts/film';
+
+  onPage(() => {
+    const root = document.querySelector<HTMLElement>('[data-film]');
+    return root ? initFilm(root) : undefined;
+  });
+</script>

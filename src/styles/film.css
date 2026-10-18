@@ -1,0 +1,175 @@
+/* The film layer (SITE_SPEC §3–4, "Archive" direction): grain and vignette over every page, the
+   machine-world texture on blood fields, the page-cut panel, the sound toggle, and the cold open.
+   Reduced motion: the grain stops moving and the cold open never shows (BaseLayout never sets
+   data-intro). */
+
+@layer components {
+  /* ---------- Grain + vignette: the whole site is shot on film ---------- */
+  /* The vignette rides above everything; the grain sits behind the content (a fixed layer under the
+     page, over the canvas), so type and diagrams stay crisp. Photographs that need grain carry
+     their own (the hero). */
+  .film {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    z-index: -1;
+    pointer-events: none;
+    /* An 80 px noise tile (public/film/grain.png): cheap to paint, cached, never render-blocking. */
+    background-image: url('/film/grain.png');
+    background-size: 160px;
+    opacity: 0.1;
+    animation: grain 0.5s steps(6) infinite;
+  }
+
+  @keyframes grain {
+    0% {
+      transform: translate(0, 0);
+    }
+    20% {
+      transform: translate(-7%, 4%);
+    }
+    40% {
+      transform: translate(5%, -6%);
+    }
+    60% {
+      transform: translate(-3%, 8%);
+    }
+    80% {
+      transform: translate(8%, 2%);
+    }
+    100% {
+      transform: translate(-5%, -3%);
+    }
+  }
+
+  /* ---------- Machine world: blood fields carry scan lines and a slow pulse ---------- */
+  .field-oxblood {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .field-oxblood::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 4px),
+      radial-gradient(ellipse at 50% 120%, rgb(255 46 59 / 0.18), transparent 60%);
+    animation: pulse 4.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 0.75;
+    }
+    12% {
+      opacity: 1;
+    }
+    22% {
+      opacity: 0.8;
+    }
+    30% {
+      opacity: 0.95;
+    }
+  }
+
+  /* ---------- Page cut: the blood panel has scan lines and a hot leading edge ---------- */
+  .wipe {
+    background:
+      linear-gradient(var(--oxblood-hi), var(--oxblood-hi)) top / 100% 2px no-repeat,
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.3) 0 1px, transparent 1px 3px),
+      var(--oxblood);
+    box-shadow: 0 0 40px rgb(255 46 59 / 0.5);
+  }
+
+  /* ---------- Sound toggle (nav) ---------- */
+  .sound-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    background: none;
+    border: 0;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: var(--fs-small);
+    cursor: pointer;
+  }
+
+  .sound-toggle[hidden] {
+    display: none;
+  }
+
+  /* Phones: the bars alone; the label stays for screen readers. */
+  @media (max-width: 35.99rem) {
+    .sound-toggle__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  .sound-toggle:hover,
+  .sound-toggle[aria-pressed='true'] {
+    color: var(--ink);
+  }
+
+  /* Four bars: flat when silent, moving when on. */
+  .sound-toggle__bars {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+  }
+
+  .sound-toggle__bars i {
+    width: 2px;
+    height: 3px;
+    background: currentColor;
+  }
+
+  .sound-toggle[aria-pressed='true'] .sound-toggle__bars i {
+    background: var(--oxblood-hi);
+    animation: bars 0.9s ease-in-out infinite alternate;
+  }
+
+  .sound-toggle__bars i:nth-child(2) {
+    animation-delay: -0.3s !important;
+  }
+
+  .sound-toggle__bars i:nth-child(3) {
+    animation-delay: -0.6s !important;
+  }
+
+  .sound-toggle__bars i:nth-child(4) {
+    animation-delay: -0.15s !important;
+  }
+
+  @keyframes bars {
+    to {
+      height: 12px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .field-oxblood::before {
+    animation: none;
+  }
+}

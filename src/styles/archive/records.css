@@ -1,0 +1,871 @@
+/* Evidence records (SITE_SPEC §5): the Saarthi plate, the ANAV board, the TESSERA comparison, and
+   the restricted dossiers. Imported by those components, so only pages that show them carry it.
+   Every image is real; motion only ever reveals it (scan), never decorates over it. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@property --cut {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+
+@layer components {
+  /* ---------- Record frame: copy column + evidence ---------- */
+  .rec {
+    position: relative;
+    padding-block: var(--section);
+  }
+
+  .rec + .rec {
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .rec__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .rec__copy {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    container-type: inline-size;
+  }
+
+  .rec__copy > * {
+    margin: 0;
+  }
+
+  .rec__no {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--ink-2);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .rec__no::before {
+    content: '';
+    width: 2rem;
+    height: 1px;
+    background: var(--rule-strong);
+  }
+
+  .rec__title {
+    max-width: none;
+    /* Never wider than its column: the longest single word (TESSERA) fits at 15cqi. */
+    font-size: min(clamp(2.5rem, 1.1rem + 4.4vw, 5.5rem), 15cqi);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .rec__title a {
+    color: inherit;
+    background: none;
+    text-decoration: none;
+  }
+
+  .rec__title a:hover {
+    color: var(--oxblood-hi);
+  }
+
+  .rec__status {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    color: var(--ink-2);
+  }
+
+  .rec__status::before {
+    content: '';
+    flex: none;
+    width: 0.55em;
+    height: 0.55em;
+    border: 1px solid currentColor;
+  }
+
+  .rec__summary {
+    max-width: 34ch;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    line-height: 1.4;
+  }
+
+  .rec__note {
+    max-width: 44ch;
+    color: var(--ink-2);
+  }
+
+  .rec__results {
+    display: grid;
+    gap: 0;
+    margin-block-start: var(--space-2);
+    border-block-start: 1px solid var(--rule-strong);
+  }
+
+  .rec__results div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: 0.6rem;
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .rec__results dt {
+    color: var(--ink-2);
+  }
+
+  .rec__results dd {
+    margin: 0;
+    text-align: end;
+  }
+
+  .rec__role {
+    color: var(--ink-2);
+  }
+
+  .rec__more {
+    margin-block-start: var(--space-2);
+    font-weight: 550;
+  }
+
+  @media (min-width: 64rem) {
+    .rec__inner {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      align-items: start;
+    }
+
+    .rec__copy {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-4));
+    }
+
+    /* ANAV turns the page: the board leads on the left, the copy follows on the right. */
+    .rec--anav .rec__inner {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    }
+
+    .rec--anav .rec__copy {
+      order: 2;
+    }
+
+    /* Saarthi: copy and manifest share the left column; the plate holds the right. */
+    .rec--saarthi .rec__inner {
+      grid-template-areas: 'copy plate' 'manifest plate';
+      grid-template-rows: auto 1fr;
+      row-gap: var(--space-4);
+    }
+
+    .rec--saarthi .rec__copy {
+      position: static;
+      grid-area: copy;
+    }
+
+    .rec--saarthi .plate {
+      grid-area: plate;
+    }
+
+    .rec--saarthi .manifest {
+      grid-area: manifest;
+      margin: 0;
+    }
+  }
+
+  /* ---------- Saarthi: the parts manifest ---------- */
+  .manifest {
+    margin-block-start: var(--space-3);
+  }
+
+  .manifest__title {
+    margin-block-end: 0.5rem;
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-stretch: 112%;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .manifest__list {
+    border-block-start: 1px solid var(--rule-strong);
+    font-size: var(--fs-small);
+  }
+
+  .manifest__list li {
+    max-width: none;
+    display: grid;
+    grid-template-columns: 9.5ch minmax(0, 1fr);
+    gap: var(--space-2);
+    padding-block: 0.35rem;
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .manifest__ref {
+    color: var(--ink-2);
+  }
+
+  /* ---------- Saarthi: the plate ---------- */
+  .plate {
+    margin: 0;
+  }
+
+  .plate__frame {
+    --cut: 50%;
+    position: relative;
+    aspect-ratio: 1;
+    overflow: clip;
+    background: #13100e;
+    container-type: inline-size;
+  }
+
+  .plate__frame picture,
+  .plate__frame img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .plate__copper {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(var(--cut) 0 0 0);
+  }
+
+  /* A full-frame layer whose foot is the scan line: it moves by transform, never by layout. */
+  .plate__scan {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    translate: 0 calc(var(--cut) - 100%);
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 90px),
+      rgb(255 46 59 / 0.16) calc(100% - 2px),
+      var(--oxblood-hi) calc(100% - 2px)
+    );
+    pointer-events: none;
+  }
+
+  .plate__parts {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+  }
+
+  .plate__part {
+    position: absolute;
+    width: 0;
+    height: 0;
+    max-width: none;
+  }
+
+  .plate__dot {
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    background: rgb(9 10 9 / 0.55);
+  }
+
+  .plate__part--low .plate__dot {
+    border-color: var(--oxblood-hi);
+    box-shadow: 0 0 6px rgb(255 46 59 / 0.7);
+  }
+
+  .plate__label {
+    position: absolute;
+    display: none;
+    padding: 0.15rem 0.4rem;
+    background: rgb(9 10 9 / 0.86);
+    color: var(--ink);
+    font-size: clamp(0.625rem, 1.55cqi, 0.8125rem);
+    white-space: nowrap;
+  }
+
+  .plate__label b {
+    color: var(--ink-2);
+    font-weight: 400;
+  }
+
+  .plate__part--r .plate__label {
+    left: 10px;
+    top: 0;
+    translate: 0 -50%;
+  }
+
+  .plate__part--l .plate__label {
+    right: 10px;
+    top: 0;
+    translate: 0 -50%;
+  }
+
+  .plate__part--t .plate__label {
+    bottom: 10px;
+    left: 0;
+    translate: -50% 0;
+  }
+
+  .plate__part--b .plate__label {
+    top: 10px;
+    left: 0;
+    translate: -50% 0;
+  }
+
+  @container (min-width: 30rem) {
+    .plate__label {
+      display: block;
+    }
+  }
+
+  .plate__corner {
+    position: absolute;
+    z-index: 3;
+    width: 22px;
+    height: 22px;
+    border: 0 solid var(--ink-2);
+  }
+
+  .plate__corner--tl {
+    top: 12px;
+    left: 12px;
+    border-width: 1px 0 0 1px;
+  }
+
+  .plate__corner--br {
+    right: 12px;
+    bottom: 12px;
+    border-width: 0 1px 1px 0;
+  }
+
+  .plate__caption {
+    display: grid;
+    gap: 0.5rem;
+    margin-block-start: var(--space-2);
+    color: var(--ink-2);
+  }
+
+  .plate__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    color: var(--ink);
+  }
+
+  .plate__key span:last-child::before {
+    content: '';
+    display: inline-block;
+    width: 0.9em;
+    height: 1px;
+    margin-inline-end: 0.4em;
+    vertical-align: middle;
+    background: var(--oxblood-hi);
+  }
+
+  /* ---------- ANAV: the evidence board ---------- */
+  .board {
+    display: grid;
+    gap: var(--gutter);
+  }
+
+  .board .figure {
+    margin: 0;
+  }
+
+  .board__lead {
+    position: relative;
+  }
+
+  .board__lead img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* The vehicle in exhibit 01 (measured on the 1600 × 1200 frame: x 860–1540, y 540–1200). */
+  .board__bracket {
+    --c: var(--oxblood-hi);
+    --l: 20px;
+    position: absolute;
+    z-index: 3;
+    left: 54%;
+    top: 45%;
+    width: 42%;
+    height: 54%;
+    background:
+      linear-gradient(var(--c), var(--c)) top left / var(--l) 1.5px no-repeat,
+      linear-gradient(var(--c), var(--c)) top left / 1.5px var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / var(--l) 1.5px no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / 1.5px var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / var(--l) 1.5px no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / 1.5px var(--l) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / var(--l) 1.5px no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / 1.5px var(--l) no-repeat;
+    pointer-events: none;
+  }
+
+  .board__bracket-label {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-block-end: 4px;
+    padding: 0.1rem 0.4rem;
+    background: var(--oxblood-hi);
+    color: #0b0000;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+  }
+
+  .board__tag {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0.3rem 0.6rem;
+    background: rgb(9 10 9 / 0.82);
+    color: var(--ink);
+  }
+
+  .board__exhibits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--gutter);
+  }
+
+  .board__exhibit {
+    max-width: none;
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+  }
+
+  .board__exhibit img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .board__exhibit--tall img {
+    aspect-ratio: 3 / 4;
+  }
+
+  .board__exhibit--wide img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .board__caption {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  .board__caption .t-data {
+    display: block;
+    color: var(--ink);
+  }
+
+  @media (min-width: 64rem) {
+    /* Equal heights across the row: widths follow each photo's shape. */
+    .board__exhibits {
+      grid-template-columns: 0.75fr 0.75fr 1.333fr 1.333fr;
+    }
+  }
+
+  /* ---------- TESSERA: the comparison ---------- */
+  .compare {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .compare__picker {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .compare__legend {
+    margin-block-end: 0.5rem;
+    padding: 0;
+    color: var(--ink-2);
+  }
+
+  .compare__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem var(--space-3);
+  }
+
+  .compare__option {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    cursor: pointer;
+  }
+
+  .compare__option input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .compare__option span {
+    border-block-end: 1px solid transparent;
+    color: var(--ink-2);
+    font-stretch: 112%;
+    letter-spacing: 0.04em;
+    transition:
+      color var(--dur-1) linear,
+      border-color var(--dur-1) linear;
+  }
+
+  .compare__option:hover span {
+    color: var(--ink);
+  }
+
+  .compare__option input:checked + span {
+    border-color: var(--oxblood-hi);
+    color: var(--ink);
+  }
+
+  .compare__option input:focus-visible + span {
+    outline: 2px solid var(--oxblood-hi);
+    outline-offset: 4px;
+  }
+
+  /* One scene at a time: the first by default, the checked one where :has() is supported. */
+  .compare__scene {
+    display: none;
+    margin: 0;
+  }
+
+  .compare__scene:first-of-type {
+    display: block;
+  }
+
+  .compare:has(input:checked) .compare__scene {
+    display: none;
+  }
+
+  .compare:has(input[value='forest']:checked) [data-scene='forest'],
+  .compare:has(input[value='agriculture']:checked) [data-scene='agriculture'],
+  .compare:has(input[value='urban']:checked) [data-scene='urban'],
+  .compare:has(input[value='water']:checked) [data-scene='water'],
+  .compare:has(input[value='desert']:checked) [data-scene='desert'] {
+    display: block;
+  }
+
+  .compare__strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--gutter);
+  }
+
+  .compare__cell {
+    position: relative;
+    max-width: none;
+    display: grid;
+    align-content: start;
+    gap: 0.4rem;
+  }
+
+  .compare__role {
+    margin: 0;
+    padding-block-end: 0.35rem;
+    border-block-end: 1px solid var(--rule-strong);
+    color: var(--ink);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .compare__cell--tessera .compare__role,
+  .compare__cell--risk .compare__role {
+    border-color: var(--oxblood-hi);
+  }
+
+  .compare__img {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: clip;
+    background: var(--surface);
+  }
+
+  .compare__img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .compare__panel {
+    margin: 0;
+    color: var(--ink-2);
+  }
+
+  .compare__caption {
+    max-width: 70ch;
+    margin-block-start: var(--space-3);
+    color: var(--ink-2);
+  }
+
+  .compare__caption .t-data {
+    display: block;
+    margin-block-end: 0.25rem;
+    color: var(--ink);
+  }
+
+  @media (min-width: 48rem) {
+    .compare__strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* Ground truth stands apart: it is a reference, not a stage of the pipeline. */
+    .compare__cell--truth {
+      padding-inline-start: var(--gutter);
+      border-inline-start: 1px dashed var(--rule-strong);
+    }
+  }
+
+  /* ---------- Restricted dossiers ---------- */
+  .dossiers {
+    display: grid;
+    gap: var(--gutter);
+  }
+
+  .dossier {
+    max-width: none;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    border: 1px solid var(--rule-strong);
+    background: var(--surface);
+  }
+
+  .dossier__tab {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem var(--space-2);
+    padding: 0.6rem var(--space-3);
+    border-block-end: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+  }
+
+  .dossier__tab span:first-child {
+    color: var(--ink);
+  }
+
+  .dossier__tab span:first-child::before {
+    content: '';
+    display: inline-block;
+    width: 0.5em;
+    height: 0.5em;
+    margin-inline-end: 0.6em;
+    background: var(--oxblood-hi);
+    vertical-align: 0.1em;
+  }
+
+  .dossier__body {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .dossier__body > * {
+    margin: 0;
+  }
+
+  .dossier__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem var(--space-2);
+  }
+
+  .dossier__head > * {
+    margin: 0;
+  }
+
+  .dossier__title {
+    flex: 1 0 100%;
+    font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .dossier__title a {
+    color: inherit;
+    background: none;
+    text-decoration: none;
+  }
+
+  .dossier__title a:hover {
+    color: var(--oxblood-hi);
+  }
+
+  .dossier__stamp {
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--ink-2);
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .dossier__when {
+    color: var(--ink-2);
+  }
+
+  .dossier__line {
+    color: var(--ink);
+  }
+
+  .dossier__fields {
+    display: grid;
+    border-block-start: 1px solid var(--rule-strong);
+    font-size: var(--fs-small);
+  }
+
+  .dossier__fields div {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: var(--space-2);
+    padding-block: 0.5rem;
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .dossier__fields dt,
+  .dossier__label {
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-stretch: 112%;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .dossier__fields dd {
+    margin: 0;
+  }
+
+  .dossier__results ul {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dossier__results li {
+    max-width: none;
+  }
+
+  .dossier__withheld {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--ink-2);
+  }
+
+  .dossier__bar {
+    flex: none;
+    width: 2.5rem;
+    height: 0.7em;
+    background: var(--ink-2);
+  }
+
+  @media (min-width: 64rem) {
+    .dossiers {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dossier__fields div {
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+    }
+  }
+
+  /* ---------- Scroll: the machine reads the evidence once, as it enters ---------- */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .plate__frame {
+        animation: plate-cut linear both;
+        animation-timeline: view();
+        animation-range: entry 35% cover 55%;
+      }
+
+      .plate__parts {
+        animation: plate-parts linear both;
+        animation-timeline: view();
+        animation-range: entry 60% cover 50%;
+      }
+
+      /* The strip is read left to right, in pipeline order. */
+      .compare__img img {
+        animation: s-scan linear both;
+        animation-timeline: view();
+        animation-range: entry calc(var(--i, 0) * 15%) entry calc(55% + var(--i, 0) * 15%);
+      }
+
+      .dossier {
+        animation: dossier-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 70%;
+      }
+    }
+  }
+
+  @keyframes plate-cut {
+    from {
+      --cut: 100%;
+    }
+    to {
+      --cut: 50%;
+    }
+  }
+
+  @keyframes plate-parts {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+
+  /* Pulled from the file drawer: clipped, never faded, so the text keeps full contrast. */
+  @keyframes dossier-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+      translate: 0 32px;
+    }
+    to {
+      clip-path: inset(-1rem);
+      translate: none;
+    }
+  }
+}
+
+@layer components {
+  .records__all {
+    padding-block: 0 var(--space-6);
+    font-weight: 550;
+  }
+}

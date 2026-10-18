@@ -1,0 +1,131 @@
+/* Scroll language (SITE_SPEC §4): four verbs, CSS scroll-driven, no script. Each element declares
+   what it does with data-scroll="rise | scan | draw | drift" (space-separated to combine).
+     rise   lifts 48 px out of a mask as it enters (clipped, never faded, so contrast holds)
+     scan   a real photograph is read by the machine: it opens from the top behind a red scan line,
+            red-graded, and settles into the human grade by the time it is fully in view
+     draw   a rule or trace draws from its start as it enters
+     drift  a large image moves slower than the page (inside a clipping frame)
+   Without scroll timelines, or with reduced motion, nothing animates: every element is simply in
+   its final state. Never on diagrams, results, or text that must be read mid-animation. */
+
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  [data-scroll~='scan'] {
+    position: relative;
+    overflow: clip;
+  }
+
+  [data-scroll~='drift'] {
+    overflow: clip;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      [data-scroll~='rise'] {
+        animation: s-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 70%;
+      }
+
+      [data-scroll~='scan'] img {
+        animation: s-scan linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 85%;
+      }
+
+      [data-scroll~='scan']::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: linear-gradient(
+          to bottom,
+          transparent calc(100% - 60px),
+          rgb(255 46 59 / 0.14) calc(100% - 2px),
+          var(--oxblood-hi) calc(100% - 2px)
+        );
+        pointer-events: none;
+        animation: s-scanline linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 85%;
+      }
+
+      [data-scroll~='draw'] {
+        transform-origin: left center;
+        animation: s-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 20% entry 100%;
+      }
+
+      [data-scroll~='drift'] img {
+        scale: 1.12;
+        animation: s-drift linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+    }
+  }
+
+  /* Revealed through a mask, never faded: text is always at full contrast while it moves. */
+  @keyframes s-rise {
+    from {
+      clip-path: inset(-1rem -1rem 100% -1rem);
+      translate: 0 48px;
+    }
+    to {
+      /* A margin on every side, so focus rings and hover shifts are never clipped. */
+      clip-path: inset(-1rem -1rem -20% -1rem);
+      translate: none;
+    }
+  }
+
+  @keyframes s-scan {
+    0% {
+      clip-path: inset(0 0 100% 0);
+      filter: grayscale(1) sepia(1) saturate(4) hue-rotate(-38deg) brightness(0.7) contrast(1.15);
+    }
+    55% {
+      clip-path: inset(0 0 0 0);
+      filter: grayscale(1) sepia(0.6) saturate(2.5) hue-rotate(-38deg) brightness(0.85);
+    }
+    100% {
+      clip-path: inset(0 0 0 0);
+      filter: none;
+    }
+  }
+
+  @keyframes s-scanline {
+    0% {
+      translate: 0 -100%;
+      opacity: 1;
+    }
+    55% {
+      translate: 0 0;
+      opacity: 1;
+    }
+    70%,
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+
+  @keyframes s-draw {
+    from {
+      scale: 0 1;
+    }
+    to {
+      scale: 1 1;
+    }
+  }
+
+  @keyframes s-drift {
+    from {
+      translate: 0 -5%;
+    }
+    to {
+      translate: 0 5%;
+    }
+  }
+}

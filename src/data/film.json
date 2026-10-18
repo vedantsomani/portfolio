@@ -1,0 +1,45 @@
+{
+  "fps": 24,
+  "duration": 59.0,
+  "tiers": [
+    "phone",
+    "desk"
+  ],
+  "chapters": [
+    {
+      "id": "orbit",
+      "start": 0.0,
+      "end": 6.0
+    },
+    {
+      "id": "descent",
+      "start": 6.0,
+      "end": 12.0
+    },
+    {
+      "id": "ramp",
+      "start": 12.0,
+      "end": 20.0
+    },
+    {
+      "id": "street",
+      "start": 20.0,
+      "end": 30.0
+    },
+    {
+      "id": "approach",
+      "start": 30.0,
+      "end": 38.0
+    },
+    {
+      "id": "door",
+      "start": 38.0,
+      "end": 47.0
+    },
+    {
+      "id": "lab",
+      "start": 47.0,
+      "end": 59.0
+    }
+  ]
+}

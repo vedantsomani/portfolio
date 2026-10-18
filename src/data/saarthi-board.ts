@@ -22,6 +22,19 @@ export interface BoardPart {
 
 export const BOARD = { x0: 20, y0: 20, x1: 110, y1: 110 } as const;
 
+// The hero frame (scripts/kicad-hero.mjs): the board sits on a 2400 × 1600 canvas, 860 px tall
+// (BOARD_PX), right edge at x 1860 (BOARD_RIGHT), centred vertically. toFrame maps board mm to canvas
+// px, so the hero's annotations land on the parts they name. Re-check both if the script changes.
+export const HERO_FRAME = { width: 2400, height: 1600 } as const;
+const FRAME_BOARD_PX = 860;
+const PX_PER_MM = FRAME_BOARD_PX / (BOARD.y1 - BOARD.y0);
+const FRAME_LEFT = 1860 - (BOARD.x1 - BOARD.x0) * PX_PER_MM;
+const FRAME_TOP = (HERO_FRAME.height - FRAME_BOARD_PX) / 2;
+export const toFrame = (x: number, y: number): [number, number] => [
+  Math.round(FRAME_LEFT + (x - BOARD.x0) * PX_PER_MM),
+  Math.round(FRAME_TOP + (y - BOARD.y0) * PX_PER_MM),
+];
+
 // 80 × 80 mm M3 pattern and 30.5 × 30.5 mm stack pattern, both centred on the board.
 export const HOLES: [number, number][] = [
   [25, 25],
@@ -43,9 +56,10 @@ export const PARTS: BoardPart[] = [
     y: 65,
     w: 22,
     h: 22,
-    lx: 42,
+    // Left-aligned under the package: centred, it ran onto the (49.75, 80.25) mounting hole.
+    lx: 31,
     ly: 80.5,
-    la: 'middle',
+    la: 'start',
   },
   {
     ref: 'U301',
@@ -116,9 +130,10 @@ export const PARTS: BoardPart[] = [
     y: 68,
     w: 2.5,
     h: 3,
-    lx: 57.5,
-    ly: 69.2,
-    la: 'end',
+    // Below the package: to its left the label ran into the STM32H753 outline.
+    lx: 56,
+    ly: 73.4,
+    la: 'start',
   },
   {
     ref: 'U403',

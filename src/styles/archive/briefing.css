@@ -1,0 +1,380 @@
+/* Recruiter briefing (SITE_SPEC §5): a physical identity card is handed over once, then the page is
+   plain and still: no grain, no vignette, no scan lines over the text. Imported by briefing.astro. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  /* The film layers stay out of the briefing: an opaque page over the grain, no vignette. */
+  .brief-page {
+    position: relative;
+    background: var(--bg);
+    padding-block-end: var(--section);
+    overflow-x: clip;
+  }
+
+  html:has(.brief-page) .film {
+    display: none;
+  }
+
+  /* ---------- Head: the card and the one-line summary ---------- */
+  .brief-head {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: calc(var(--space-5)) var(--space-5);
+    align-items: center;
+  }
+
+  .brief-head__lead {
+    max-width: 34ch;
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.875rem);
+    line-height: 1.35;
+  }
+
+  .brief-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin-block-start: var(--space-4);
+  }
+
+  .brief-head__actions li {
+    max-width: none;
+  }
+
+  .brief-head__actions a:not(.btn) {
+    font-weight: 550;
+  }
+
+  @media (min-width: 64rem) {
+    .brief-head {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-6);
+    }
+  }
+
+  /* ---------- The identity card ---------- */
+  .idcard {
+    width: min(100%, 31rem);
+    overflow: clip;
+    border-radius: 14px;
+    background: #e4e7e0;
+    color: #0d0f0d;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .idcard__band {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: 0.6rem 1rem;
+    border-block-end: 3px solid var(--oxblood-hi);
+    background: #0d0f0d;
+    color: var(--ink);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .idcard__body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .idcard__photo {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: clip;
+    border-radius: 6px;
+    background: #0d0f0d;
+  }
+
+  .idcard__photo picture,
+  .idcard__photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--fx, 50%) var(--fy, 50%);
+  }
+
+  .idcard__id {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .idcard__name {
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
+    font-stretch: 112%;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .idcard__fields {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .idcard__fields dt {
+    color: #454b44;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .idcard__fields dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .idcard__fields .t-data {
+    font-size: 0.8125rem;
+  }
+
+  .idcard__focus {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-block-start: 1px solid #c3c8bf;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .idcard__note {
+    margin: 0;
+    padding: 0 1rem 0.75rem;
+    color: #454b44;
+  }
+
+  /* The handoff: the card is passed up into frame, turns flat, and settles. Once, on arrival. */
+  [data-motion='ok'] .idcard {
+    animation: idcard-hand 1.2s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .idcard__photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 40px),
+      rgb(255 46 59 / 0.2) calc(100% - 2px),
+      var(--oxblood-hi) calc(100% - 2px)
+    );
+    translate: 0 -100%;
+    animation: idcard-scan 0.9s ease-in-out 0.7s both;
+  }
+
+  [data-motion='ok'] .brief-head__copy {
+    animation: brief-copy 0.6s var(--ease-out) 0.6s both;
+  }
+
+  @keyframes idcard-hand {
+    0% {
+      translate: 0 45vh;
+      rotate: -12deg;
+      scale: 0.92;
+    }
+    60% {
+      translate: 0 -6px;
+      rotate: 1.5deg;
+      scale: 1.01;
+    }
+    100% {
+      translate: none;
+      rotate: none;
+      scale: 1;
+    }
+  }
+
+  @keyframes idcard-scan {
+    0% {
+      translate: 0 -100%;
+      opacity: 1;
+    }
+    85% {
+      translate: 0 0;
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+
+  @keyframes brief-copy {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(-1rem);
+    }
+  }
+
+  /* After the opening, focus lands on the name (a heading, not a control): no ring there. */
+  #brief-name:focus {
+    outline: none;
+  }
+
+  /* ---------- Sections: a plain ledger ---------- */
+  .brief-sec {
+    display: grid;
+    gap: var(--space-3);
+    padding-block-start: var(--space-5);
+  }
+
+  .brief-sec__title {
+    padding-block-end: 0.5rem;
+    border-block-end: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-stretch: 112%;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .brief-sec__more {
+    font-weight: 550;
+  }
+
+  .brief-work {
+    display: grid;
+  }
+
+  .brief-work__item {
+    max-width: none;
+    display: grid;
+    gap: 0.5rem;
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .brief-work__item > * {
+    margin: 0;
+  }
+
+  .brief-work__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem var(--space-3);
+  }
+
+  .brief-work__head > * {
+    margin: 0;
+  }
+
+  .brief-work__title {
+    font-size: var(--fs-h2);
+    font-stretch: 112%;
+    font-weight: 750;
+    text-transform: uppercase;
+  }
+
+  .brief-work__status {
+    color: var(--ink-2);
+  }
+
+  .brief-work__line {
+    max-width: 62ch;
+  }
+
+  .brief-work__facts {
+    display: grid;
+    gap: 0.35rem;
+    font-size: var(--fs-small);
+  }
+
+  .brief-work__facts div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .brief-work__facts dt {
+    color: var(--ink-2);
+  }
+
+  .brief-work__facts dd {
+    margin: 0;
+  }
+
+  .brief-roles {
+    display: grid;
+  }
+
+  .brief-roles li {
+    max-width: none;
+    display: grid;
+    gap: 0.25rem;
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .brief-roles p {
+    margin: 0;
+  }
+
+  .brief-roles__when {
+    color: var(--ink-2);
+  }
+
+  .brief-roles__name {
+    font-weight: 600;
+  }
+
+  .brief-roles__detail {
+    max-width: 70ch;
+    color: var(--ink-2);
+  }
+
+  .brief-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-h3);
+    font-weight: 550;
+  }
+
+  @media (min-width: 64rem) {
+    .brief-sec {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+      align-items: start;
+      column-gap: var(--gutter);
+    }
+
+    .brief-sec__title {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-3));
+      border: 0;
+    }
+
+    .brief-sec > :not(.brief-sec__title) {
+      grid-column: 2;
+    }
+
+    .brief-work__item {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--space-4);
+    }
+
+    .brief-work__head {
+      grid-row: 1 / 3;
+      flex-direction: column;
+    }
+
+    .brief-work__item > :not(.brief-work__head) {
+      grid-column: 2;
+    }
+  }
+}

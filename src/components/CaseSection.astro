@@ -1,6 +1,7 @@
 ---
 // One section of a case study or lab entry. With content it renders normally. Empty with a `todo`,
-// it shows a TODO block in dev and disappears in production (no empty headings ship).
+// it shows a TODO block in dev and disappears in production (no empty headings ship). Every section
+// sits below the header and cover, so each fades in once (SITE_SPEC §4.6).
 import Todo from './Todo.astro';
 import { SHOW_TODOS } from '../lib/todo';
 import { sectionId } from '../lib/content';
@@ -15,7 +16,7 @@ const id = sectionId(title);
 ---
 
 {(hasContent || (todo && SHOW_TODOS)) && (
-  <section id={id} class="case-section" aria-labelledby={`${id}-title`} data-trace-stop>
+  <section id={id} class="case-section" aria-labelledby={`${id}-title`} data-trace-stop data-reveal>
     <h2 id={`${id}-title`} class="case-section__title">
       {title}
     </h2>

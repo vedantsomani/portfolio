@@ -1,46 +1,53 @@
 import { getImage } from 'astro:assets';
-// Both come from one KiCad board file, pixel-aligned via the mounting holes (scripts/kicad-hero.mjs).
-import heroPhoto from '../assets/work/saarthi-hero.jpg';
-import heroXray from '../assets/work/saarthi-xray.jpg';
-// Mobile: a 4:3 cut around the board, taken at identical coordinates from both layers.
-import heroPhotoMobile from '../assets/work/saarthi-hero-mobile.jpg';
-import heroXrayMobile from '../assets/work/saarthi-xray-mobile.jpg';
+import type { ImageMetadata } from 'astro';
+import standIn from '../assets/work/workspace.jpg';
+import { hero } from '../data/site';
 
-// Hero art direction. Mobile: 4:3 crop, ≤ 60 KB, normal priority, so the headline is the intended
-// LCP element. Desktop (≥ 1024px): full frame ≤ 150 KB, preloaded with fetchpriority="high"
-// through a media-scoped <link> (an <img> can't scope fetchpriority).
-// The x-ray layer is AVIF only: it needs JS to appear at all, and every such browser decodes AVIF.
+// Hero portrait. Drop a photo of Vedant at src/assets/portrait/vedant.(jpg|jpeg|png|webp) and it
+// replaces the workspace stand-in on the next build; nothing else changes. The machine-vision layer
+// is computed from this same photo in the lens shader, so there is no second image to keep aligned.
+const found = import.meta.glob<ImageMetadata>('../assets/portrait/vedant.{jpg,jpeg,png,webp}', {
+  eager: true,
+  import: 'default',
+});
+const portrait = Object.values(found)[0] as ImageMetadata | undefined;
+const heroPhoto = portrait ?? standIn;
+/** The hero photo itself, for the briefing's identity card. */
+export const HERO_PHOTO = heroPhoto;
+export const HERO_IS_STAND_IN = !portrait;
+// The crop's focal point, shared by the CSS object-position and the lens shader. The desk photo's is
+// the laptop and the printer arm; the portrait's is hero.focus.
+export const HERO_FOCUS: [number, number] = portrait ? hero.focus : [0.6, 0.46];
+
+// Desktop (≥ 1024px): preloaded with fetchpriority="high" through a media-scoped <link>. Mobile:
+// normal priority. The photo is object-fit: cover, so the width it is drawn at depends on its
+// aspect: a landscape portrait in a tall frame is drawn much wider than the frame. The sizes below
+// follow the frames in src/styles/archive/hero.css (desktop: 66vw wide, full height; phones: full
+// width, min(68svh, 130vw) tall), so the browser picks a sharp file without over-fetching.
+const aspect = heroPhoto.width / heroPhoto.height;
+const r = (n: number) => Math.round(n);
 export const DESKTOP = '(min-width: 64rem)';
-export const DESK_SIZES = '60vw';
+export const DESK_SIZES = `max(66vw, ${r(100 * aspect)}vh)`;
+export const MOB_SIZES =
+  aspect > 0.75 ? `max(100vw, min(${r(68 * aspect)}vh, ${r(130 * aspect)}vw))` : '100vw';
 
-type Src = typeof heroPhoto;
 type Img = Awaited<ReturnType<typeof getImage>>;
 
-const variants = (src: Src, widths: number[], format: 'avif' | 'jpg', crop: boolean, q: number) =>
-  Promise.all(
-    widths.map((width) =>
-      getImage({
-        src,
-        width,
-        ...(crop ? { height: Math.round((width * 3) / 4), fit: 'cover' as const } : {}),
-        format,
-        quality: q,
-      }),
-    ),
-  );
+const variants = (widths: number[], format: 'avif' | 'jpg', q: number) =>
+  Promise.all(widths.map((width) => getImage({ src: heroPhoto, width, format, quality: q })));
 
 const srcset = (imgs: Img[]) => imgs.map((i) => `${i.src} ${i.attributes.width}w`).join(', ');
 
 export async function getHeroImages() {
-  const desk = [1280, 1600, 2400];
-  const mob = [480, 760, 1080];
-  const [deskAvif, deskJpg, mobAvif, mobJpg, xDesk, xMob] = await Promise.all([
-    variants(heroPhoto, desk, 'avif', false, 60),
-    variants(heroPhoto, desk, 'jpg', false, 70),
-    variants(heroPhotoMobile, mob, 'avif', true, 50),
-    variants(heroPhotoMobile, mob, 'jpg', true, 60),
-    variants(heroXray, desk, 'avif', false, 60),
-    variants(heroXrayMobile, mob, 'avif', true, 55),
+  const desk = [1280, 1600, 2000, 2400].filter((w) => w <= heroPhoto.width);
+  const mob = (aspect > 0.75 ? [640, 1000, 1400, 2000] : [480, 760, 1080]).filter(
+    (w) => w <= heroPhoto.width,
+  );
+  const [deskAvif, deskJpg, mobAvif, mobJpg] = await Promise.all([
+    variants(desk.length ? desk : [heroPhoto.width], 'avif', 60),
+    variants(desk.length ? desk : [heroPhoto.width], 'jpg', 70),
+    variants(mob, 'avif', 42),
+    variants(mob, 'jpg', 60),
   ]);
   const fallback = mobJpg[mobJpg.length - 1];
   return {
@@ -50,8 +57,6 @@ export async function getHeroImages() {
     deskJpg: srcset(deskJpg),
     mobAvif: srcset(mobAvif),
     mobJpg: srcset(mobJpg),
-    xrayDesk: srcset(xDesk),
-    xrayMob: srcset(xMob),
     fallback: {
       src: fallback.src,
       width: Number(fallback.attributes.width),

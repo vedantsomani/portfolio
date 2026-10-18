@@ -1,0 +1,277 @@
+/* The home hero, portrait first (SITE_SPEC §4.1, §5). Desktop: the photograph owns the right of the
+   frame at full strength, its left edge dissolving into the dark where the headline sits beside the
+   subject. Phones: the photograph leads, full-bleed, and the headline rises out of its foot. The
+   photo is never dimmed by an overlay: only its edges are masked. The crop is one focal point
+   (--fx/--fy, from src/lib/hero-images.ts) shared with the lens shader, so the machine layer lands
+   exactly on the photo. On arrival the photo rises out of black behind a scan line (.hero--boot,
+   added by Hero.astro after the cold open). Doubled class selectors outrank the older rules in
+   components.css whatever the inline order. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  .hero.hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    padding: 0 0 var(--space-5);
+    row-gap: 0;
+    overflow: clip;
+  }
+
+  .hero.hero > .hero__title-wrap,
+  .hero.hero > .hero__copy {
+    position: relative;
+    z-index: 2;
+    width: min(100% - 2 * var(--margin), var(--max));
+    margin-inline: auto;
+  }
+
+  .hero.hero > .hero__title-wrap {
+    pointer-events: none;
+    container-type: normal;
+  }
+
+  .hero.hero .hero__title {
+    max-width: 15ch;
+    font-size: clamp(2.4rem, 0.9rem + 5vw, 4.75rem);
+    line-height: 0.92;
+    text-shadow: 0 0 0.5em rgb(9 10 9 / 0.9);
+  }
+
+  .hero.hero .hero__copy {
+    padding-block: var(--space-3) 0;
+  }
+
+  .hero.hero .hero__supporting {
+    max-width: 38ch;
+  }
+
+  .hero.hero .hero__actions {
+    margin-block-start: var(--space-4);
+  }
+
+  /* ---------- The photograph ---------- */
+  .hero.hero > .hero__media {
+    position: relative;
+    order: -1;
+    z-index: 0;
+    height: min(68svh, 130vw);
+    grid-column: auto;
+    grid-row: auto;
+    /* Only the foot dissolves, into the headline. */
+    mask-image: linear-gradient(to top, transparent 0, #000 32%);
+  }
+
+  .hero.hero > .hero__title-wrap {
+    margin-block-start: calc(-1 * var(--space-6));
+  }
+
+  .hero.hero .lens,
+  .hero.hero .lens__stage,
+  .hero.hero .lens__photo {
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+    margin: 0;
+  }
+
+  .hero.hero .lens__stage {
+    background: var(--bg);
+  }
+
+  .hero.hero .lens__photo {
+    display: block;
+  }
+
+  .hero.hero .lens__photo img,
+  .hero.hero .lens__xray img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+    object-position: var(--fx, 50%) var(--fy, 50%);
+  }
+
+  .hero.hero .lens__stage::after {
+    content: none;
+  }
+
+  /* Grain belongs to the photograph, not the type: the page grain sits behind the content. */
+  .hero.hero .lens__stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image: url('/film/grain.png');
+    background-size: 160px;
+    opacity: 0.12;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  .hero.hero .hud {
+    inset: calc(var(--nav-h) + var(--space-2)) var(--margin) var(--space-6);
+  }
+
+  .hero.hero .hero__media .figure__caption {
+    left: auto;
+    right: var(--margin);
+    top: calc(var(--nav-h) + var(--space-1));
+    bottom: auto;
+    background: rgb(9 10 9 / 0.72);
+    text-align: end;
+  }
+
+  /* The machine-vision control sits with the other actions: one tab stop after the CTAs, the same
+     control on keyboard, touch, and mouse. */
+  .hero.hero .lens__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0;
+    color: var(--ink);
+    font-weight: 550;
+    text-decoration: none;
+  }
+
+  .hero.hero .lens__toggle[hidden] {
+    display: none;
+  }
+
+  .hero.hero .lens__toggle::before {
+    content: '';
+    width: 0.7em;
+    height: 0.7em;
+    border: 1.5px solid var(--oxblood-hi);
+    transition: background var(--dur-1) linear;
+  }
+
+  .hero.hero .lens__toggle[aria-pressed='true']::before {
+    background: var(--oxblood-hi);
+    box-shadow: var(--glow);
+  }
+
+  .hero.hero .lens__toggle:hover {
+    color: var(--oxblood-hi);
+  }
+
+  @media (min-width: 64rem) {
+    .hero.hero {
+      justify-content: center;
+      padding: calc(var(--nav-h) + var(--space-4)) 0 var(--space-5);
+    }
+
+    .hero.hero > .hero__media {
+      position: absolute;
+      inset: 0 0 0 34%;
+      order: 0;
+      height: auto;
+      /* An older rule centres it; on an absolute box that would shrink it to its content height. */
+      align-self: stretch;
+      /* The left edge and the foot dissolve into the dark; the subject stays at full strength. */
+      mask-image:
+        linear-gradient(to right, transparent 0, #000 26%),
+        linear-gradient(to top, transparent 0, #000 14%);
+      mask-composite: intersect;
+    }
+
+    .hero.hero > .hero__title-wrap {
+      margin-block-start: 0;
+    }
+
+    .hero.hero > .hero__title-wrap,
+    .hero.hero > .hero__copy {
+      padding-inline-end: 52%;
+    }
+
+    .hero.hero .hero__title {
+      max-width: none;
+      font-size: clamp(2.6rem, 0.6rem + 3.9vw, 4.75rem);
+    }
+
+    .hero.hero .hud {
+      inset: calc(var(--nav-h) + var(--space-3)) var(--margin) var(--space-4) 30%;
+    }
+
+    .hero.hero .hero__media .figure__caption {
+      top: auto;
+      bottom: var(--space-4);
+    }
+  }
+
+  /* ---------- Arrival: the photo rises out of black behind a scan line ---------- */
+  /* Held dark from the first frame (motion allowed, JS on), so it never flashes before the rise;
+     shown after 3 s whatever happens, if the script never adds .hero--boot. */
+  [data-motion='ok'] .hero:not(.hero--boot) .lens__stage {
+    filter: brightness(0);
+    animation: hero-failsafe 0s 3s forwards;
+  }
+
+  @keyframes hero-failsafe {
+    to {
+      filter: none;
+    }
+  }
+
+  .hero--boot .lens__stage {
+    animation: hero-rise 2.4s var(--ease-out) both;
+  }
+
+  .hero--boot .hero__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 80px),
+      rgb(255 46 59 / 0.14) calc(100% - 2px),
+      var(--oxblood-hi) calc(100% - 2px)
+    );
+    pointer-events: none;
+    translate: 0 -100%;
+    animation: hero-scan 1.8s ease-in-out 0.15s both;
+  }
+
+  @keyframes hero-rise {
+    0% {
+      filter: brightness(0);
+    }
+    35% {
+      filter: brightness(0.35) saturate(0) sepia(1) hue-rotate(-38deg) saturate(5);
+    }
+    100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes hero-scan {
+    0% {
+      translate: 0 -100%;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+
+  /* Further down the home page the hero is the subject the scan finds. */
+  .hero__kicker {
+    margin: 0 0 var(--space-2);
+    color: var(--oxblood-hi);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-shadow: var(--glow);
+  }
+}

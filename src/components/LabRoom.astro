@@ -1,0 +1,171 @@
+---
+import '../styles/archive/lab-room.css';
+// The lab: the home page and its interface. A Cycles render of the abandoned laboratory the film
+// ends in (blender/lab.py), with every record on a shelf as a real link laid over the render where
+// Blender measured it, the projector on the bench (the transmission), and the files and the film a
+// click away. Without JS it is a still with working links and the panels below it; on tall screens
+// the room keeps its full height and pans sideways under a swipe, opening on the bench. With JS and
+// motion, choosing a record pushes the camera in to its close-up before the file opens, and coming
+// back pulls the camera out to it.
+import { PAN_ART, getLabSet, type Anchor } from '../lib/lab-set';
+import { hero, site } from '../data/site';
+
+interface Props {
+  data: NonNullable<Awaited<ReturnType<typeof getLabSet>>>;
+  /** True when the film can be played (its files exist). */
+  film?: boolean;
+}
+const { data, film = false } = Astro.props;
+const { items, rest, close } = data;
+
+const f = (n: number) => n.toFixed(4);
+const vars = (a: Anchor) =>
+  `--ax: ${f(a.x)}; --ay: ${f(a.y)}; --x0: ${f(a.box[0])}; --y0: ${f(a.box[1])}; --x1: ${f(a.box[2])}; --y1: ${f(a.box[3])};`;
+// Labels sit under the item, or above it low in the frame; they align to the item's right edge in
+// the right third, so they never leave the frame.
+const side = (a: Anchor) => (a.box[3] > 0.72 ? 'up' : 'down');
+const edge = (a: Anchor) => (a.box[2] > 0.72 ? 'end' : 'start');
+const sizes = 'max(100vw, 178vh)';
+// Where tall screens open: the bench.
+const centre = items.find((it) => it.id === 'saarthi')?.at.x ?? 0.5;
+const tx = items.find((it) => it.id === 'transmission')?.at;
+---
+
+<section
+  id="lab"
+  class="lab-room"
+  aria-labelledby="lab-title"
+  data-lab
+  data-close={close.join(',')}
+  data-pan-art={PAN_ART}
+>
+  <div class="lab-room__stage">
+    <div class="lab-room__pan" data-lab-pan>
+      <div class="lab-room__frame" data-lab-frame>
+        <picture class="lab-room__rest">
+          <source media={PAN_ART} type="image/avif" srcset={rest.avifPan} sizes={sizes} />
+          <source media={PAN_ART} type="image/jpeg" srcset={rest.jpgPan} sizes={sizes} />
+          <source type="image/avif" srcset={rest.avif} sizes={sizes} />
+          <img
+            src={rest.src}
+            srcset={rest.jpg}
+            sizes={sizes}
+            width={rest.width}
+            height={rest.height}
+            alt="The lab, rendered: a steel bench under a hanging lamp, a laptop showing the Saarthi board and a projector throwing a hologram of Vedant beside it, racks of archive boxes behind against tall broken windows, and a caged rack under red light at the right."
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
+        {/* The hologram's light, alive over the still. */}
+        {tx && (
+          <span
+            class="lab-room__holo"
+            style={`--ax: ${f(tx.x)}; --ay: ${f(tx.y)}`}
+            aria-hidden="true"
+          />
+        )}
+        <ol class="lab-room__items" role="list" aria-label="Records in the lab" data-lab-items>
+          {items.map((it) => (
+            <li
+              class:list={[
+                'lab-item',
+                { 'lab-item--sealed': it.restricted, 'lab-item--tx': it.id === 'transmission' },
+              ]}
+              style={vars(it.at)}
+              data-lab-item={it.id}
+              data-side={side(it.at)}
+              data-edge={edge(it.at)}
+            >
+              <a
+                href={it.href}
+                class="lab-item__link"
+                data-lab-link
+                data-panel-open={it.id === 'transmission' ? 'transmission' : undefined}
+                data-track={it.id === 'transmission' ? 'transmission_play' : 'project_open'}
+              >
+                <span class="lab-item__mark" aria-hidden="true" />
+                <span class="lab-item__label">
+                  <span class="lab-item__id t-data">{it.record}</span>
+                  <span class="lab-item__title">{it.title}</span>
+                  {it.status && <span class="lab-item__status t-data">{it.status}</span>}
+                  <span class="lab-item__open">{it.action}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+    {/* Tall screens: open on the bench before the first paint, not at the room's left wall. */}
+    <script is:inline define:vars={{ centre, media: PAN_ART }}>
+      const pan = document.currentScript && document.currentScript.previousElementSibling;
+      if (pan && matchMedia(media).matches) {
+        pan.scrollLeft = centre * pan.scrollWidth - pan.clientWidth / 2;
+        // A scrolling region the keyboard can reach and scroll.
+        pan.tabIndex = 0;
+        pan.setAttribute('role', 'region');
+        pan.setAttribute('aria-label', 'The lab, panning sideways');
+      }
+    </script>
+    {/* The push-in's close-up: outside the frame, so it does not scale with the room. */}
+    <img class="lab-room__close" alt="" aria-hidden="true" decoding="async" data-lab-close />
+
+    <div class="lab-room__head">
+      <p class="lab-room__kicker t-data">
+        <span class="lab-room__live" aria-hidden="true"></span>
+        The Archive, signal live
+      </p>
+      <h1 id="lab-title" class="lab-room__title" tabindex="-1">
+        {site.name}
+      </h1>
+      <p class="lab-room__lede">{hero.title}</p>
+    </div>
+
+    <nav class="lab-room__dock" aria-label="The archive">
+      <a class="lab-room__cmd" href="#files" data-panel-open="files">
+        <span class="t-data">01</span> Files
+      </a>
+      <a class="lab-room__cmd" href="#transmission" data-panel-open="transmission">
+        <span class="t-data">02</span> Transmission
+      </a>
+      <a class="lab-room__cmd" href="/briefing">
+        <span class="t-data">03</span> Briefing
+      </a>
+      {film && (
+        <button type="button" class="lab-room__cmd lab-room__cmd--film" data-film-replay hidden>
+          <span class="t-data" aria-hidden="true">
+            ▶
+          </span>{' '}
+          Play the film
+        </button>
+      )}
+    </nav>
+    <p class="lab-room__note t-small">
+      <span class="lab-room__swipe">Swipe to look around. </span>Rendered in Blender; screens,
+      prints and labels show the real project files.
+    </p>
+  </div>
+</section>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initLabRoom } from '../scripts/lab-room';
+
+  onPage(() => {
+    const root = document.querySelector<HTMLElement>('[data-lab]');
+    if (!root) return undefined;
+    const replay = root.querySelector<HTMLButtonElement>('[data-film-replay]');
+    const play = () => window.dispatchEvent(new CustomEvent('archive:film-play'));
+    if (replay) {
+      replay.hidden = false;
+      replay.addEventListener('click', play);
+    }
+    const stop = initLabRoom(root);
+    return () => {
+      replay?.removeEventListener('click', play);
+      stop();
+    };
+  });
+</script>

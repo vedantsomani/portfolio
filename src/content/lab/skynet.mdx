@@ -4,6 +4,7 @@ slug: skynet
 status: simulation-tested
 date: 2026-07-14
 discipline: Autonomy
+restricted: true
 artifact: ../../assets/placeholders/skynet-cover.jpg
 artifactAlt: Placeholder for a SKYNET image
 artifactTodo: SKYNET image (SETU photo if item 5 is confirmed)
@@ -19,16 +20,23 @@ order: 1
 </CaseSection>
 
 <CaseSection title="Result">
-  <ul>
-    <li>
-      Nominal 2 m mission in ArduPilot SITL: climbed to 2.07 m, held about 1.96–2.00 m, landed and
-      disarmed.
-    </li>
-    <li>
-      Companion killed mid-hover: the autopilot switched to LAND after 4.2 s and disarmed on the
-      ground at 15.6 s.
-    </li>
-  </ul>
+  <Readout
+    title="ArduPilot SITL."
+    readings={[
+      {
+        value: '2.07 m',
+        label:
+          'Nominal 2 m mission: climbed to 2.07 m, held about 1.96–2.00 m, landed and disarmed.',
+        kind: 'sitl',
+      },
+      {
+        value: '4.2 s',
+        label:
+          'Companion killed mid-hover: the autopilot switched to LAND after 4.2 s and disarmed on the ground at 15.6 s.',
+        kind: 'sitl',
+      },
+    ]}
+  />
   <p>
     Both are simulation results. The code is deployed to the Raspberry Pi but has not yet been run
     against the real Pixhawk or airframe.

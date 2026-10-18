@@ -1,8 +1,10 @@
 ---
+import '../styles/archive/transmit.css';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ChapterHead from '../components/ChapterHead.astro';
 import ContactForm from '../components/ContactForm.astro';
 import Todo from '../components/Todo.astro';
-import { site } from '../data/site';
+import { reasons, site } from '../data/site';
 
 // Rendered on demand so a no-JS form POST can show its result on this page.
 export const prerender = false;
@@ -28,25 +30,73 @@ if (Astro.request.method === 'POST') {
   description="Internships, research collaborations, and hardware projects: write to Vedant Somani about embedded systems, drones, and the software around them."
   underNav
 >
-  <header class="contact-head field-oxblood on-oxblood grid">
-    <div class="contact-head__title display-fit">
-      <h1 class="t-display">Get in touch</h1>
-    </div>
-    <div class="contact-head__notes">
-      <p>Internships, research collaborations, and hardware projects.</p>
-      <p class="contact-head__email">
-        {site.email ? (
-          <a href={`mailto:${site.email}`} data-track="email_click">
-            {site.email}
-          </a>
-        ) : (
-          <Todo what="email" />
-        )}
-      </p>
-    </div>
-  </header>
+  {/* The transmitter: the archive's signal has been on the whole time; this is the way to answer
+       it. */}
+  <ChapterHead
+    title="Answer the signal"
+    kicker="The transmitter"
+    lede="Internships, research collaborations, and hardware projects. Write, and it reaches Vedant."
+  >
+    <p class="contact-head__email">
+      {site.email ? (
+        <a href={`mailto:${site.email}`} data-track="email_click">
+          {site.email}
+        </a>
+      ) : (
+        <Todo what="email" />
+      )}
+    </p>
+  </ChapterHead>
 
-  <section class="section grid contact-body" aria-label="Contact form">
-    <ContactForm values={values} />
+  {/* The console: what the channel is for and the direct lines on one side, the transmission on
+       the other. */}
+  <section class="console wrap" aria-label="Contact form">
+    <aside class="console__side">
+      <div class="console__group">
+        <p class="console__label">This channel is for</p>
+        <ul class="console__for" role="list">
+          {reasons
+            .filter((r) => r.value !== 'other')
+            .map((r) => (
+              <li>{r.label}</li>
+            ))}
+        </ul>
+      </div>
+      <div class="console__group">
+        <p class="console__label">Replies</p>
+        <p>By email.</p>
+      </div>
+      <div class="console__group">
+        <p class="console__label">Direct lines</p>
+        <ul class="console__lines" role="list">
+          {site.email && (
+            <li>
+              <a href={`mailto:${site.email}`} data-track="email_click">
+                {site.email}
+              </a>
+            </li>
+          )}
+          {site.github && (
+            <li>
+              <a href={site.github} data-track="github_out">
+                GitHub
+              </a>
+            </li>
+          )}
+          {site.linkedin && (
+            <li>
+              <a href={site.linkedin}>LinkedIn</a>
+            </li>
+          )}
+        </ul>
+      </div>
+    </aside>
+    <div class="console__panel">
+      <p class="console__bar t-data">
+        <span>Transmission</span>
+        <span class="contact-head__channel">Channel open</span>
+      </p>
+      <ContactForm values={values} />
+    </div>
   </section>
 </BaseLayout>

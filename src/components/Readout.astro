@@ -1,0 +1,55 @@
+---
+// A record's measurements as the machine reads them (SITE_SPEC §5): each value with what it is,
+// and where it comes from. The source tag is the archive's evidence class, and it is exactly the
+// site's honesty rule made visible (AGENTS.md rule 8): a simulation says simulation, synthetic data
+// says synthetic, an unmeasured number says not yet measured. Values restate the record's text.
+type ReadingKind =
+  | 'file'
+  | 'host-sim'
+  | 'sitl'
+  | 'test'
+  | 'acceptance'
+  | 'bench'
+  | 'synthetic'
+  | 'model'
+  | 'pending';
+
+const KIND: Record<ReadingKind, string> = {
+  file: 'Board file',
+  'host-sim': 'Host simulation',
+  sitl: 'SITL simulation',
+  test: 'Test suite',
+  acceptance: 'Acceptance test',
+  bench: 'Bench test',
+  synthetic: 'Synthetic sample',
+  model: 'Held-out test set',
+  pending: 'Not yet measured',
+};
+
+interface Reading {
+  value: string;
+  label: string;
+  kind: ReadingKind;
+}
+interface Props {
+  /** What was measured, on what, and when: one line. */
+  title: string;
+  readings: Reading[];
+}
+const { title, readings } = Astro.props;
+---
+
+<div class="readout">
+  <p class="readout__title">{title}</p>
+  <ul class="readout__list" role="list">
+    {readings.map((r) => (
+      <li class="readout__row">
+        <span class="readout__value t-data">{r.value}</span>
+        <span class="readout__label">{r.label}</span>
+        <span class="readout__kind t-data" data-kind={r.kind}>
+          {KIND[r.kind]}
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>

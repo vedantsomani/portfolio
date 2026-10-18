@@ -8,10 +8,15 @@ restricted: false
 year: '2026'
 stack: [Python, XGBoost, Streamlit, FastF1]
 builtOn: F1 Race Strategy Engine
-cover: ../../assets/placeholders/pitsense-cover.jpg
-coverAlt: Placeholder for a PitSense image
+disciplines: [software]
+architecture:
+  label: PitSense pipeline
+  columns:
+    - { title: Data, nodes: [2023 and 2024 seasons, Weather] }
+    - { title: Models, nodes: [Stint model, Race-time optimiser] }
+    - { title: Interface, nodes: [Streamlit dashboard, Command line] }
 coverTodo: PitSense dashboard screenshot
-order: 6
+order: 7
 repoUrl: https://github.com/vedantsomani/PitSense
 glance:
   problem: 'Search F1 pit laps and tyre compounds by total simulated race time, with every assumption editable.'
@@ -25,13 +30,6 @@ glance:
 </CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="PitSense pipeline"
-    columns={[
-      { title: 'Data', nodes: ['2023 and 2024 seasons', 'Weather'] },
-      { title: 'Models', nodes: ['Stint model', 'Race-time optimiser'] },
-      { title: 'Interface', nodes: ['Streamlit dashboard', 'Command line'] },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>PitSense is built on the open-source F1 Race Strategy Engine.</p>
 </CaseSection>

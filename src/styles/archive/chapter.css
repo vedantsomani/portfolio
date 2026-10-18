@@ -1,0 +1,264 @@
+/* Chapter header (ChapterHead.astro). Imported by the component, so only pages that use it carry it. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  /* Routine headers are short: the page's content starts within the first screen. Records with a
+     cover get a cinematic frame, but never more than ~80% of the viewport. */
+  .chapter {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    padding-block: calc(var(--nav-h) + var(--space-5)) var(--space-4);
+    overflow: clip;
+  }
+
+  .chapter--cover {
+    min-height: min(80svh, 54rem);
+    padding-block-end: var(--space-5);
+  }
+
+  .chapter__inner {
+    position: relative;
+    width: min(100% - 2 * var(--margin), var(--max));
+  }
+
+  /* ---------- Cover: the real image behind the title ---------- */
+  .chapter__cover {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .chapter__cover picture,
+  .chapter__cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .chapter__cover img {
+    object-fit: cover;
+    /* Human grade: cold and desaturated, but the evidence stays visible. */
+    filter: brightness(0.78) saturate(0.6) contrast(1.05);
+  }
+
+  .chapter__cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(to top, var(--bg) 0%, rgb(9 10 9 / 0.7) 30%, transparent 62%),
+      linear-gradient(to right, rgb(9 10 9 / 0.6), transparent 50%);
+  }
+
+  /* ---------- Type ---------- */
+  .chapter__back {
+    margin-block-end: var(--space-4);
+  }
+
+  .chapter__back a {
+    color: var(--ink-2);
+  }
+
+  .chapter__kicker {
+    margin-block-end: var(--space-2);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .chapter__title {
+    max-width: none;
+    font-stretch: 125%;
+    line-height: 0.88;
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .chapter--thin .chapter__title {
+    font-size: clamp(2.75rem, 1rem + 6.5vw, 7.5rem);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  .chapter--heavy .chapter__title {
+    font-size: clamp(2.5rem, 0.9rem + 5.6vw, 7rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  .chapter__trace {
+    display: block;
+    width: 100%;
+    height: 1.5rem;
+    margin-block: var(--space-3) var(--space-3);
+    overflow: visible;
+  }
+
+  .chapter__trace path {
+    fill: none;
+    stroke: var(--oxblood-hi);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 4px rgb(255 46 59 / 0.6));
+  }
+
+  .chapter__lede {
+    max-width: 38ch;
+    font-size: var(--fs-h3);
+    line-height: 1.35;
+  }
+
+  .chapter .restricted-mark {
+    margin-block-end: var(--space-3);
+  }
+
+  .chapter__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: var(--space-3) var(--space-4);
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--rule-strong);
+  }
+
+  .chapter__facts dt {
+    margin-block-end: 0.25rem;
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-stretch: 112%;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .chapter__facts dd {
+    margin: 0;
+  }
+
+  /* ---------- Arrival: motion allowed and JS on (html[data-motion='ok']) ---------- */
+  [data-motion='ok'] .chapter__title {
+    animation: ch-sharpen 0.9s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .chapter__trace path {
+    stroke-dasharray: 1;
+    animation: ch-draw 1.6s var(--ease-out) 0.25s both;
+  }
+
+  [data-motion='ok'] .chapter__back,
+  [data-motion='ok'] .chapter__kicker,
+  [data-motion='ok'] .chapter .restricted-mark,
+  [data-motion='ok'] .chapter__lede,
+  [data-motion='ok'] .chapter__inner > :not(h1, svg, dl, p),
+  [data-motion='ok'] .chapter__facts {
+    animation: ch-arrive 0.9s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .chapter__kicker {
+    animation-delay: 0.1s;
+  }
+
+  [data-motion='ok'] .chapter .restricted-mark {
+    animation-delay: 0.5s;
+  }
+
+  [data-motion='ok'] .chapter__lede {
+    animation-delay: 0.6s;
+  }
+
+  [data-motion='ok'] .chapter__inner > :not(h1, svg, dl, p) {
+    animation-delay: 0.75s;
+  }
+
+  [data-motion='ok'] .chapter__facts {
+    animation-delay: 0.85s;
+  }
+
+  /* The cover rises out of black behind a scan line. */
+  [data-motion='ok'] .chapter__cover {
+    animation: ch-cover 2.2s var(--ease-out) both;
+  }
+
+  /* The scan is a full-frame layer whose foot is the line: it moves by transform only, so it
+     never shifts layout. */
+  [data-motion='ok'] .chapter__cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 80px),
+      rgb(255 46 59 / 0.14) calc(100% - 2px),
+      var(--oxblood-hi) calc(100% - 2px)
+    );
+    pointer-events: none;
+    translate: 0 -100%;
+    animation: ch-scan 1.6s ease-in-out 0.2s both;
+  }
+
+  @keyframes ch-sharpen {
+    from {
+      filter: blur(14px);
+      scale: 1.03;
+    }
+    to {
+      filter: blur(0);
+      scale: 1;
+    }
+  }
+
+  @keyframes ch-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes ch-arrive {
+    from {
+      opacity: 0;
+      translate: 0 14px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  @keyframes ch-cover {
+    from {
+      filter: brightness(0);
+    }
+    to {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes ch-scan {
+    0% {
+      translate: 0 -100%;
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+}

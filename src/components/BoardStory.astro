@@ -1,0 +1,46 @@
+---
+// Saarthi, system by system (SITE_SPEC §4.5): the board map holds still while the record explains
+// it one group at a time: the flight computer, the safety controller, the sensors. As each step
+// reaches the middle of the screen its parts light up on the map (src/scripts/board-story.ts).
+// The map is drawn in KiCad millimetres from src/data/saarthi-board.ts, and the step text
+// restates the case study. Without JS every group stays lit and every step is simply there.
+import BoardMap from './BoardMap.astro';
+import { BOARD_SOURCE, VIEWS } from '../data/saarthi-board';
+---
+
+<figure class="board-story" data-board-story>
+  <p class="figure__exhibit">
+    <span class="figure__no"></span>
+    <span class="figure__kind">Diagram from the board file</span>
+  </p>
+  <div class="board-story__grid">
+    <div class="board-story__stage">
+      <BoardMap
+        view="all"
+        label="Top-down map of the Saarthi board: the STM32H753 flight MCU at the left, the STM32G431 safety MCU below it, the twelve servo outputs along the bottom edge with the RC input and safety switch on the right edge, and the IMUs and barometers in the centre."
+      />
+    </div>
+    <ol class="board-story__steps" role="list">
+      {VIEWS.map((v, i) => (
+        <li class="board-story__step" data-step={v.id}>
+          <p class="board-story__no t-data">{String(i + 1).padStart(2, '0')}</p>
+          <h3 class="board-story__title">{v.title}</h3>
+          <p class="board-story__text">{v.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <figcaption class="figure__caption t-small">
+    {BOARD_SOURCE} A diagram, not a photograph.
+  </figcaption>
+</figure>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initBoardStory } from '../scripts/board-story';
+
+  onPage(() => {
+    const root = document.querySelector<HTMLElement>('[data-board-story]');
+    return root ? initBoardStory(root) : undefined;
+  });
+</script>

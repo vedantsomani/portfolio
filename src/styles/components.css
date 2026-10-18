@@ -1,4 +1,9 @@
 @layer components {
+  :root {
+    /* A drilled pad for CSS-drawn traces (diagram connections): a filled --rule-strong circle. */
+    --trace-pad: radial-gradient(circle closest-side, var(--rule-strong) 90%, transparent);
+  }
+
   /* ---------- Skip link ---------- */
   .skip-link {
     position: absolute;
@@ -309,6 +314,11 @@
     position: relative;
   }
 
+  /* The exhibit label only shows inside a record (src/styles/archive/record.css). */
+  .figure__exhibit {
+    display: none;
+  }
+
   .figure__todo {
     position: absolute;
     top: var(--space-1);
@@ -330,574 +340,6 @@
     gap: var(--space-1) var(--space-2);
     margin-block-start: var(--space-1);
     color: var(--ink-2);
-  }
-
-  /* ---------- Hero ---------- */
-  /* Mobile: headline, then the photo full-bleed at 4:3, then the copy. */
-  .hero {
-    padding-block: var(--space-4) 0;
-    row-gap: var(--space-4);
-  }
-
-  .hero__title-wrap {
-    container-type: inline-size;
-  }
-
-  /* 11cqi keeps "controllers," inside its column at 320; the long headline runs 5–7 lines. */
-  .hero__title {
-    font-size: min(var(--fs-display), 11cqi);
-    line-height: 0.95;
-  }
-
-  .hero__supporting {
-    max-width: 44ch;
-    font-size: var(--fs-h3);
-    line-height: 1.4;
-  }
-
-  .hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-4);
-    margin-block-start: var(--space-4);
-  }
-
-  .hero__secondary {
-    font-weight: 550;
-  }
-
-  .grid > .hero__media {
-    grid-column: bleed;
-  }
-
-  /* ---------- X-ray lens ---------- */
-  .lens__stage {
-    position: relative;
-    overflow: hidden;
-    background: var(--surface);
-    /* Vertical swipes scroll the page; horizontal drags move the lens. */
-    touch-action: pan-y;
-  }
-
-  .lens__photo img,
-  .lens__xray img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-  }
-
-  .lens__xray {
-    position: absolute;
-    inset: 0;
-  }
-
-  .lens__xray[hidden] {
-    display: none;
-  }
-
-  .lens__xray img {
-    height: 100%;
-  }
-
-  /* CSS fallback: the x-ray shows through a soft circle at the smoothed pointer. */
-  .lens--css .lens__xray {
-    mask-image: radial-gradient(
-      circle var(--r, 0px) at var(--x, 50%) var(--y, 50%),
-      #000 60%,
-      transparent 100%
-    );
-  }
-
-  /* Reduced-motion toggle: a straight cut to the x-ray, no mask. */
-  .lens--xray .lens__xray {
-    mask-image: none;
-  }
-
-  .lens__canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity var(--dur-2) linear;
-  }
-
-  .lens__canvas.is-ready {
-    opacity: 1;
-  }
-
-  /* Follows the lens on the hero only; the native cursor stays. */
-  .lens__ring {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    width: 1.75rem;
-    height: 1.75rem;
-    margin: -0.875rem 0 0 -0.875rem;
-    border: 1.5px solid var(--ink);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: scale(0);
-  }
-
-  .lens:not(.lens--live) .lens__ring {
-    display: none;
-  }
-
-  @media (hover: none) {
-    .lens__ring {
-      display: none;
-    }
-  }
-
-  .lens__toggle {
-    min-height: 2.75rem;
-    padding: 0 0.25rem;
-    background: none;
-    border: 0;
-    color: var(--ink);
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: var(--ink-2);
-    text-underline-offset: 0.2em;
-    cursor: pointer;
-  }
-
-  .lens__toggle[aria-pressed='true'] {
-    text-decoration-color: var(--ink);
-    text-decoration-thickness: 2px;
-  }
-
-  /* Caption sits on the photo as a label, so the photo can run to the hero's edges. */
-  .hero__media .figure__caption {
-    position: absolute;
-    left: var(--margin);
-    bottom: var(--space-2);
-    z-index: 2;
-    margin: 0;
-    padding: 0.375rem 0.625rem;
-    background: var(--bg);
-  }
-
-  /* Desktop: photo cols 7–12 from the top of the hero to its bottom, bleeding right. The headline
-     (cols 1–8) sits above it in z-order and runs over its left edge. */
-  @media (min-width: 64rem) {
-    .hero {
-      grid-template-rows: auto 1fr;
-      min-height: clamp(38rem, calc(100svh - var(--nav-h)), 60rem);
-      padding: 0;
-      row-gap: 0;
-    }
-
-    .grid > .hero__title-wrap {
-      position: relative;
-      z-index: 2;
-      grid-column: 2 / 10;
-      grid-row: 1;
-      padding-block-start: var(--space-5);
-      pointer-events: none;
-    }
-
-    .hero__title {
-      font-size: min(6.25rem, 8.6cqi);
-    }
-
-    .grid > .hero__media {
-      grid-column: 8 / -1;
-      grid-row: 1 / -1;
-    }
-
-    .hero__media .lens,
-    .lens__stage,
-    .lens__photo {
-      height: 100%;
-    }
-
-    .lens__photo img {
-      height: 100%;
-      aspect-ratio: auto;
-    }
-
-    .hero__media .figure__caption {
-      left: var(--gutter);
-    }
-
-    .grid > .hero__copy {
-      grid-column: 2 / 7;
-      grid-row: 2;
-      align-self: end;
-      padding-block: var(--space-4) var(--space-5);
-    }
-  }
-
-  /* ---------- Work cards (Home, Projects) ---------- */
-  .section__head a,
-  .section__more a {
-    font-weight: 550;
-  }
-
-  /* One link per card: the title link's ::after covers the whole card, so the cover is clickable
-     too, and the focus ring goes round the card. */
-  .work-card {
-    position: relative;
-  }
-
-  .work-card__link::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-  }
-
-  .work-card:has(.work-card__link:focus-visible) {
-    outline: 2px solid var(--oxblood-hi);
-    outline-offset: 6px;
-  }
-
-  .work-card__link:focus-visible {
-    outline: none;
-  }
-
-  .work-card__meta {
-    display: grid;
-    gap: var(--space-1);
-    margin-block-start: var(--space-2);
-  }
-
-  .work-card__title {
-    font-size: var(--fs-h3);
-    font-stretch: 100%;
-    font-weight: 650;
-    letter-spacing: -0.005em;
-    line-height: 1.25;
-  }
-
-  .work-card__title a {
-    --ul-rest: 0%;
-  }
-
-  .work-card__status,
-  .work-card__summary,
-  .work-card__role {
-    color: var(--ink-2);
-  }
-
-  .work-pair,
-  .projects__pair {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    row-gap: var(--space-5);
-  }
-
-  .work-card--large {
-    grid-column: 1 / -1;
-  }
-
-  .work-card--small {
-    grid-column: 5 / -1;
-  }
-
-  .projects {
-    display: grid;
-    gap: var(--space-6);
-  }
-
-  /* The lead card spans the whole list; its --large column span belongs to the pair grids only
-     (in this one-column grid it would create implicit columns and squeeze the pair). */
-  .projects > .work-card {
-    grid-column: 1 / -1;
-  }
-
-  @media (min-width: 64rem) {
-    .work-card--large {
-      grid-column: 1 / 9;
-    }
-
-    .work-card--small {
-      grid-column: 10 / -1;
-      margin-block-start: 10rem;
-    }
-
-    .projects__pair .work-card--large {
-      grid-column: 1 / 8;
-    }
-
-    .projects__pair .work-card--small {
-      grid-column: 9 / -1;
-      margin-block-start: 8rem;
-    }
-  }
-
-  /* ---------- Hardware hall ---------- */
-  .hall__list {
-    display: grid;
-    gap: var(--gutter);
-  }
-
-  @media (min-width: 48rem) {
-    .hall__list {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  /* align-content: start keeps images the same height when one card has fewer spec lines. */
-  .hall__item {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    background: var(--bg);
-    color: var(--ink);
-  }
-
-  .hall__item[hidden] {
-    display: none;
-  }
-
-  .hall__meta {
-    display: grid;
-    gap: var(--space-1);
-  }
-
-  .hall__meta > p:not(.hall__link) {
-    color: var(--ink-2);
-  }
-
-  .hall__specs {
-    display: grid;
-    gap: 0.25rem;
-    margin-block-start: var(--space-2);
-  }
-
-  .hall__link {
-    margin-block-start: var(--space-2);
-    font-weight: 550;
-  }
-
-  /* The hall's cards are --bg surfaces, so links and focus rings use the canvas colours. */
-  .on-oxblood .hall__item a:hover {
-    color: var(--oxblood-hi);
-  }
-
-  .on-oxblood .hall__item :focus-visible,
-  .on-oxblood .hall__stage:focus-visible {
-    outline-color: var(--oxblood-hi);
-  }
-
-  .hall__stage {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background: var(--bg);
-    cursor: grab;
-    touch-action: pan-y;
-  }
-
-  .hall__stage:active {
-    cursor: grabbing;
-  }
-
-  .hall__canvas,
-  .hall__sprite {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .hall__sprite {
-    background-repeat: no-repeat;
-    background-size: 2400% 100%;
-  }
-
-  /* The render stands in for the 3D view until it loads; the canvas then covers it. */
-  .hall__stage-poster,
-  .hall__stage-poster img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  .hall--live .hall__stage-poster {
-    visibility: hidden;
-  }
-
-  .hall:not(.hall--live) .hall__hint {
-    visibility: hidden;
-  }
-
-  .hall__hint {
-    position: absolute;
-    left: var(--space-3);
-    bottom: var(--space-2);
-    color: var(--ink-2);
-    pointer-events: none;
-  }
-
-  .hall__controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .hall__controls[hidden] {
-    display: none;
-  }
-
-  .hall__btn {
-    min-height: 2.75rem;
-    padding: 0 0.75rem;
-    background: none;
-    border: 1px solid currentColor;
-    color: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .hall__count {
-    min-width: 5ch;
-    text-align: center;
-  }
-
-  /* No JS: just the list. With JS (html[data-motion], set before first paint): one stage beside
-     the active object's details, controls underneath, from the first frame, so the hall never
-     shifts when Three.js arrives. */
-  html:not([data-motion]) .hall__stage,
-  html:not([data-motion]) .hall__controls {
-    display: none;
-  }
-
-  [data-motion] .hall {
-    display: grid;
-    gap: var(--gutter);
-  }
-
-  [data-motion] .hall__poster {
-    display: none;
-  }
-
-  [data-motion] .hall__list {
-    grid-template-columns: 1fr;
-  }
-
-  .hall:not(.hall--ready) .hall__item:not(:first-child) {
-    display: none;
-  }
-
-  @media (min-width: 64rem) {
-    [data-motion] .hall {
-      grid-template-columns: 7fr 5fr;
-    }
-
-    [data-motion] .hall__controls {
-      grid-column: 1 / -1;
-    }
-  }
-
-  /* ---------- More projects (archive list on /projects) ---------- */
-  .archive__head {
-    display: grid;
-    gap: var(--space-1);
-    margin-block-end: var(--space-4);
-  }
-
-  .archive__lede {
-    color: var(--ink-2);
-  }
-
-  .archive__list {
-    display: grid;
-  }
-
-  .archive__item {
-    display: grid;
-    gap: var(--space-1) var(--gutter);
-    max-width: none;
-    padding-block: var(--space-3);
-    border-top: 1px solid var(--rule);
-  }
-
-  .archive__year {
-    color: var(--ink-2);
-  }
-
-  .archive__body {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  .archive__title {
-    font-size: var(--fs-h3);
-  }
-
-  .archive__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem var(--space-2);
-    color: var(--ink-2);
-  }
-
-  .archive__evidence {
-    color: var(--ink-2);
-  }
-
-  .archive__photos {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 20rem));
-    gap: var(--space-1);
-    margin-block-start: var(--space-2);
-  }
-
-  .archive__photos img {
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-  }
-
-  .archive__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-3);
-    align-content: start;
-    font-weight: 550;
-  }
-
-  @media (min-width: 48rem) {
-    .archive__item {
-      grid-template-columns: 6rem minmax(0, 1fr) auto;
-      align-items: baseline;
-    }
-  }
-
-  .archive__sub {
-    margin-block: var(--space-5) var(--space-2);
-  }
-
-  .archive__small {
-    display: grid;
-  }
-
-  .archive__small li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem var(--space-2);
-    max-width: none;
-    padding-block: var(--space-2);
-    border-top: 1px solid var(--rule);
-  }
-
-  .archive__small-title {
-    font-weight: 650;
-  }
-
-  .archive__small-line {
-    color: var(--ink-2);
-    flex: 1 1 20rem;
   }
 
   /* ---------- Guided views (Saarthi) ---------- */
@@ -1143,106 +585,6 @@
   /* 10cqi keeps two-line headings on wide screens; 15cqi stops long words overflowing at 320. */
   .display-fit > .t-display {
     font-size: min(var(--fs-display), max(10cqi, min(3rem, 15cqi)));
-  }
-
-  /* ---------- Final CTA (full-bleed oxblood) ---------- */
-  /* Closing field: one clear ask at heading scale, not a second hero. */
-  .final-cta {
-    padding-block: var(--space-6);
-    margin-block-start: var(--section);
-    row-gap: var(--space-3);
-  }
-
-  .final-cta__title {
-    font-size: clamp(2.25rem, 1.6rem + 2.8vw, 4rem);
-    font-stretch: 125%;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 0.95;
-  }
-
-  .final-cta__lede {
-    font-size: var(--fs-h3);
-    line-height: 1.4;
-  }
-
-  .final-cta__copy {
-    min-height: 2.75rem;
-    padding: 0 0.75rem;
-    background: none;
-    border: 1px solid currentColor;
-    color: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .final-cta__copy[hidden] {
-    display: none;
-  }
-
-  @media (min-width: 64rem) {
-    .grid > .final-cta__head {
-      grid-column: 2 / 10;
-    }
-  }
-
-  .final-cta__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3) var(--space-5);
-  }
-
-  .final-cta__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-4);
-  }
-
-  .final-cta__links a {
-    font-weight: 550;
-  }
-
-  /* ---------- Footer ---------- */
-  .footer {
-    padding-block: var(--space-5);
-    border-top: 1px solid var(--rule);
-  }
-
-  .final-cta + .footer,
-  main:has(> .final-cta:last-child) + .footer {
-    border-top: 0;
-  }
-
-  .footer__inner {
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .footer__nav ul,
-  .footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-3);
-  }
-
-  .footer__nav a {
-    --ul-rest: 0%;
-  }
-
-  .footer__legal {
-    color: var(--ink-2);
-  }
-
-  @media (min-width: 64rem) {
-    .footer__inner {
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-    }
-
-    .footer__legal {
-      grid-column: 1 / -1;
-    }
   }
 
   /* ---------- Page header (Projects, Lab, About) ---------- */
@@ -1641,15 +983,28 @@
     font-weight: 550;
   }
 
-  .arch__trace {
-    align-self: flex-start;
-    width: 2.5rem;
-    height: 1rem;
-    margin: var(--space-1) 0 var(--space-1) var(--space-3);
-    transform: rotate(90deg);
-    fill: var(--rule-strong);
-    stroke: var(--rule-strong);
-    stroke-width: 2;
+  /* A connection: a trace with a pad at each end, drawn in CSS so it turns with the layout (down on
+     narrow screens, across on desktop), plus its label where the page names the link. */
+  .arch__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.5rem;
+    padding-inline-start: calc(var(--space-3) - 3px);
+  }
+
+  .arch__wire {
+    flex: none;
+    align-self: stretch;
+    width: 7px;
+    background:
+      var(--trace-pad) center top / 7px 7px no-repeat,
+      var(--trace-pad) center bottom / 7px 7px no-repeat,
+      linear-gradient(var(--rule-strong), var(--rule-strong)) center / 2px 100% no-repeat;
+  }
+
+  .arch__link-label {
+    color: var(--ink-2);
   }
 
   @media (min-width: 64rem) {
@@ -1661,18 +1016,36 @@
     .arch__col {
       flex: 1;
       flex-direction: row;
-      align-items: center;
+      align-items: stretch;
     }
 
-    .arch__block {
-      align-self: stretch;
-    }
-
-    .arch__trace {
+    /* Sized to its label (up to 9rem), never squeezed by the blocks beside it. */
+    .arch__link {
       flex: none;
-      align-self: center;
-      margin: 0;
-      transform: none;
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      justify-items: center;
+      gap: 0;
+      min-width: 2.5rem;
+      max-width: 9rem;
+      padding: 0 0.25rem;
+    }
+
+    .arch__wire {
+      grid-row: 2;
+      width: 100%;
+      height: 7px;
+      background:
+        var(--trace-pad) left center / 7px 7px no-repeat,
+        var(--trace-pad) right center / 7px 7px no-repeat,
+        linear-gradient(var(--rule-strong), var(--rule-strong)) center / 100% 2px no-repeat;
+    }
+
+    .arch__link-label {
+      grid-row: 1;
+      align-self: end;
+      padding-block-end: 0.375rem;
+      text-align: center;
     }
   }
 
@@ -1717,79 +1090,6 @@
     color: var(--ink-2);
   }
 
-  /* ---------- Telemetry ---------- */
-  .telemetry {
-    display: grid;
-    gap: var(--space-2);
-    padding-block: var(--section) 0;
-  }
-
-  .grid > .telemetry,
-  .telemetry {
-    width: min(100% - 2 * var(--margin), var(--max));
-    margin-inline: auto;
-  }
-
-  .telemetry svg {
-    width: 100%;
-    height: auto;
-    background: var(--surface);
-  }
-
-  .telemetry__axis {
-    stroke: var(--rule);
-    stroke-width: 1;
-  }
-
-  .telemetry__line {
-    fill: none;
-    stroke: var(--ink);
-    stroke-width: 2;
-    stroke-linejoin: round;
-  }
-
-  .telemetry figcaption {
-    color: var(--ink-2);
-  }
-
-  /* ---------- About ---------- */
-  .about {
-    row-gap: var(--space-5);
-  }
-
-  .about__heading {
-    margin-block-start: var(--space-5);
-  }
-
-  .about__roles {
-    display: grid;
-    gap: var(--space-2);
-  }
-
-  .about__role-title {
-    font-weight: 600;
-  }
-
-  .about__role-title .t-data,
-  .about__role-detail {
-    color: var(--ink-2);
-  }
-
-  .about__resume {
-    margin-block-start: var(--space-4);
-    font-weight: 600;
-  }
-
-  @media (min-width: 64rem) {
-    .grid > .about__photo {
-      grid-column: 2 / 6;
-    }
-
-    .grid > .about__text {
-      grid-column: 7 / -2;
-    }
-  }
-
   /* ---------- 404 ---------- */
   .not-found {
     padding-block: var(--section);
@@ -1807,6 +1107,54 @@
   @media (min-width: 64rem) {
     .grid > .not-found__title {
       grid-column: 2 / 11;
+    }
+  }
+
+  /* ---------- Touch targets ---------- */
+  /* Short text links in lists get a hit area about 40 px tall on touch screens, from a pseudo-element,
+     so nothing moves; the lists open their row gaps so neighbouring areas never overlap. Links inside
+     running text keep their line (WCAG 2.5.8 exempts them). */
+  @media (pointer: coarse) {
+    :is(
+        .footer__nav,
+        .footer__links,
+        .on-page__list,
+        .case-head__back,
+        .archive__links,
+        .archive__small,
+        .final-cta__links,
+        .section__head,
+        .hall__link,
+        .timeline__item
+      )
+      a {
+      position: relative;
+    }
+
+    :is(
+        .footer__nav,
+        .footer__links,
+        .on-page__list,
+        .case-head__back,
+        .archive__links,
+        .archive__small,
+        .final-cta__links,
+        .section__head,
+        .hall__link,
+        .timeline__item
+      )
+      a::before {
+      content: '';
+      position: absolute;
+      inset: -0.625rem -0.25rem;
+    }
+
+    .footer__nav ul,
+    .footer__links,
+    .on-page__list,
+    .archive__links,
+    .final-cta__links {
+      row-gap: 1.25rem;
     }
   }
 }

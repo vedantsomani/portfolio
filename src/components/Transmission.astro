@@ -1,0 +1,116 @@
+---
+import '../styles/archive/panels.css';
+// The transmission: what the lab's projector plays, over the lab (a panel, opened from the
+// projector, the dock, the nav, or /#transmission). The hologram is a Blender render of his real
+// portrait photograph projected as light (blender/lab.py --shots holoanim), looping; under it, the
+// subject in his own words and the roles he has held. The film plays only while the panel is open,
+// and never under reduced motion (its first frame stays). Without JS this is a section below the
+// files.
+import Todo from './Todo.astro';
+import { about, site } from '../data/site';
+
+interface ArrivalData {
+  hologram?: { video: boolean; poster: boolean };
+}
+const data = Object.values(
+  import.meta.glob<ArrivalData>('../data/arrival.json', { eager: true, import: 'default' }),
+)[0];
+const holo = data?.hologram;
+---
+
+<section
+  id="transmission"
+  class="panel panel--tx"
+  aria-labelledby="transmission-title"
+  data-panel="transmission"
+>
+  <div class="panel__bar">
+    <p class="panel__kicker panel__kicker--tx t-data">Transmission, recorded</p>
+    <button type="button" class="panel__close" data-panel-close hidden>
+      Close <span aria-hidden="true">×</span>
+    </button>
+  </div>
+
+  {holo?.poster && (
+    <figure class="tx__screen">
+      <video
+        class="tx__film"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster="/set/holo/poster.avif"
+        aria-hidden="true"
+        data-tx-film
+        data-video={holo.video ? '1' : undefined}
+      />
+      <figcaption class="tx__note t-small">
+        Rendered in Blender: his portrait photograph, projected as light. The photo's background and
+        lighting were AI-edited; the face is the original.
+      </figcaption>
+    </figure>
+  )}
+
+  <h2 id="transmission-title" class="panel__title" tabindex="-1">
+    {site.name}
+  </h2>
+  <dl class="tx__fields">
+    <div>
+      <dt>Programme</dt>
+      <dd>{about.education}</dd>
+    </div>
+    <div>
+      <dt>Based in</dt>
+      <dd>{site.location}</dd>
+    </div>
+    <div>
+      <dt>Works on</dt>
+      <dd>Flight hardware, secure comms, space data</dd>
+    </div>
+  </dl>
+  <div class="tx__statement">
+    <p class="tx__lead">
+      I'm Vedant Somani, a B.Tech computer science student at Bennett University (2024–28). I build
+      flight controllers, drones, and the software that runs on and around them.
+    </p>
+    <p>
+      My projects cross the line between hardware and software on purpose. Saarthi is a
+      flight-controller board and its firmware; TESSERA turns thermal satellite imagery into colour
+      for ISRO's hackathon; VAJRA is a point-to-point post-quantum link. Each one only works if the
+      layers under it are understood.
+    </p>
+    <p>
+      I'm building toward defence technology: autonomous systems that can be trusted because their
+      hardware, software, and communication were designed together.
+    </p>
+    <Todo what="confirm the wording of all three paragraphs, especially the last" block />
+  </div>
+
+  <h3 class="panel__sub">Roles</h3>
+  <ol class="tx__roles" role="list">
+    {about.roles.map((r) => (
+      <li>
+        <p class="tx__when t-data">{r.when}</p>
+        <p class="tx__role">
+          {r.title}, {r.org}
+        </p>
+        <p class="tx__detail">{r.detail}</p>
+      </li>
+    ))}
+    {about.awards.map((a) => (
+      <li>
+        <p class="tx__when t-data">Programme</p>
+        <p class="tx__role">{a}</p>
+      </li>
+    ))}
+  </ol>
+
+  <p class="tx__actions">
+    <a class="btn btn--primary" href="/briefing" data-track="transmission_briefing">
+      Read the briefing
+    </a>
+    <a class="tx__more" href="/contact">
+      Answer the signal
+    </a>
+  </p>
+</section>

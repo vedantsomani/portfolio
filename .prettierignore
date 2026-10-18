@@ -9,3 +9,9 @@ worker-configuration.d.ts
 qa
 public/og
 public/hall
+
+# Written by blender/lab.py, blender/briefing.py and scripts/set-images.mjs
+src/data/lab-set.json
+src/data/briefing-film.json
+src/data/arrival.json
+src/data/film.json

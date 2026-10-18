@@ -1,0 +1,229 @@
+---
+// Recruiter briefing (SITE_SPEC §2, §5): the direct route. It opens once on a satellite briefing
+// that lands the identity card in its place (BriefingIntel), then the page is still and plain: who, education, selected work with Vedant's part and the
+// evidence, roles, recognition, contact. Every line comes from the same sources as the rest of the
+// site (src/data/site.ts, the content collections); nothing here is written only for this page.
+import '../styles/archive/briefing.css';
+import { Picture } from 'astro:assets';
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import BriefingIntel from '../components/BriefingIntel.astro';
+import { about, hero, site } from '../data/site';
+import { statusLabel } from '../lib/content';
+import { HERO_FOCUS, HERO_IS_STAND_IN, HERO_PHOTO } from '../lib/hero-images';
+
+const need = async <C extends 'projects' | 'lab'>(c: C, id: string) => {
+  const e = await getEntry(c, id);
+  if (!e) throw new Error(`Briefing needs ${c}/${id}`);
+  return e;
+};
+
+const [saarthi, tessera, anav, vajra] = await Promise.all(
+  ['saarthi', 'tessera', 'anav', 'vajra'].map((id) => need('projects', id)),
+);
+const skynet = await need('lab', 'skynet');
+
+interface Work {
+  title: string;
+  href: string;
+  status: string;
+  line: string;
+  part?: string;
+  evidence?: string;
+  restricted?: boolean;
+}
+const results = (r?: { label: string; value: string }[]) =>
+  r && r.length ? r.map((x) => `${x.label}: ${x.value}`).join('; ') : undefined;
+
+const work: Work[] = [saarthi, tessera, anav, vajra].map((p) => ({
+  title: p.data.title,
+  href: `/projects/${p.id}`,
+  status: statusLabel(p.data.status) ?? '',
+  line: p.data.summary,
+  part: p.data.role.length ? p.data.role.join(', ') : undefined,
+  evidence: results(p.data.results) ?? p.data.glance?.exists,
+  restricted: p.data.restricted,
+}));
+work.push({
+  title: skynet.data.title,
+  href: `/lab/${skynet.id}`,
+  status: statusLabel(skynet.data.status) ?? '',
+  line: 'A dual-brain aircraft stack: a Pixhawk flight controller for real-time control and a Raspberry Pi companion for the mission.',
+  evidence: skynet.data.result,
+  restricted: true,
+});
+
+const photoAlt = HERO_IS_STAND_IN ? about.photoAlt : hero.photoAlt;
+const [fx, fy] = HERO_FOCUS;
+---
+
+<BaseLayout
+  title="Recruiter briefing"
+  og="briefing"
+  description="Vedant Somani in one page: B.Tech CSE at Bennett University, flight hardware, satellite imagery and secure links, with the evidence for each."
+>
+  <BriefingIntel />
+  <article class="brief-page" aria-labelledby="brief-name">
+    <header class="brief-head wrap">
+      <div class="idcard" data-idcard>
+        <div class="idcard__band t-data">
+          <span>Recruiter briefing</span>
+          <span>vedantsomani.tech</span>
+        </div>
+        <div class="idcard__body">
+          <div class="idcard__photo" style={`--fx: ${fx * 100}%; --fy: ${fy * 100}%`}>
+            <Picture
+              src={HERO_PHOTO}
+              alt={photoAlt}
+              formats={['avif']}
+              fallbackFormat="jpg"
+              widths={[240, 400, 560]}
+              sizes="(min-width: 48rem) 11rem, 34vw"
+              quality={60}
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+          <div class="idcard__id">
+            <h1 id="brief-name" class="idcard__name">
+              {site.name}
+            </h1>
+            <dl class="idcard__fields">
+              <div>
+                <dt>Programme</dt>
+                <dd>{about.education}</dd>
+              </div>
+              <div>
+                <dt>Based in</dt>
+                <dd>{site.location}</dd>
+              </div>
+              {site.email && (
+                <div>
+                  <dt>Email</dt>
+                  <dd class="t-data">{site.email}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </div>
+        <p class="idcard__focus">{hero.title}</p>
+        {HERO_IS_STAND_IN && <p class="idcard__note t-small">Photo: the desk, Greater Noida.</p>}
+      </div>
+
+      <div class="brief-head__copy">
+        <p class="brief-head__lead">{hero.supporting}</p>
+        <ul class="brief-head__actions" role="list">
+          {site.email && (
+            <li>
+              <Button href={`mailto:${site.email}`} data-track="email_click">
+                Email {site.email}
+              </Button>
+            </li>
+          )}
+          {__HAS_RESUME__ && (
+            <li>
+              <a href="/resume.pdf" data-track="resume_download">
+                Résumé (PDF)
+              </a>
+            </li>
+          )}
+          {site.github && (
+            <li>
+              <a href={site.github} data-track="github_out">
+                GitHub
+              </a>
+            </li>
+          )}
+          {site.linkedin && (
+            <li>
+              <a href={site.linkedin}>LinkedIn</a>
+            </li>
+          )}
+        </ul>
+      </div>
+    </header>
+
+    <section class="brief-sec wrap" aria-labelledby="brief-work">
+      <h2 id="brief-work" class="brief-sec__title">
+        Selected work
+      </h2>
+      <ol class="brief-work" role="list">
+        {work.map((w) => (
+          <li class="brief-work__item">
+            <div class="brief-work__head">
+              <h3 class="brief-work__title">
+                <a href={w.href}>{w.title}</a>
+              </h3>
+              <p class="brief-work__status t-data">
+                {w.restricted && 'Restricted. '}
+                {w.status}
+              </p>
+            </div>
+            <p class="brief-work__line">{w.line}</p>
+            <dl class="brief-work__facts">
+              {w.part && (
+                <div>
+                  <dt>Role</dt>
+                  <dd>{w.part}</dd>
+                </div>
+              )}
+              {w.evidence && (
+                <div>
+                  <dt>Evidence</dt>
+                  <dd>{w.evidence}</dd>
+                </div>
+              )}
+            </dl>
+          </li>
+        ))}
+      </ol>
+      <p class="brief-sec__more">
+        <a href="/#index">Every project, with its evidence</a>
+      </p>
+    </section>
+
+    <section class="brief-sec wrap" aria-labelledby="brief-roles">
+      <h2 id="brief-roles" class="brief-sec__title">
+        Roles
+      </h2>
+      <ol class="brief-roles" role="list">
+        {about.roles.map((r) => (
+          <li>
+            <p class="brief-roles__when t-data">{r.when}</p>
+            <p class="brief-roles__name">
+              {r.title}, {r.org}
+            </p>
+            <p class="brief-roles__detail">{r.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="brief-sec wrap" aria-labelledby="brief-rec">
+      <h2 id="brief-rec" class="brief-sec__title">
+        Recognition and education
+      </h2>
+      <ul class="brief-roles" role="list">
+        {about.awards.map((a) => (
+          <li>
+            <p class="brief-roles__name">{a}</p>
+          </li>
+        ))}
+        <li>
+          <p class="brief-roles__name">{about.education}</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="brief-sec brief-sec--contact wrap" aria-labelledby="brief-contact">
+      <h2 id="brief-contact" class="brief-sec__title">
+        Contact
+      </h2>
+      <p class="brief-contact">
+        {site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+        <a href="/contact">Contact form</a>
+      </p>
+    </section>
+  </article>
+</BaseLayout>

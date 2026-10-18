@@ -1,0 +1,1402 @@
+/* Records (SITE_SPEC §5): case studies and lab entries as recovered records in the archive. Two
+   layers on one page: the human evidence (photos, the engineer's words, cold grade, quiet type) and
+   the machine's reading of it (red mono annotations: exhibit numbers, evidence classes, sources).
+   The machine layer is the honesty rule made visible: every exhibit and every number says what kind
+   of evidence it is. Imported by RecordHead, so only record pages carry it. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  /* =====================================================================
+     Header: retrieval
+     ===================================================================== */
+  .rhead {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Restricted: the classification band, the only full-width red on a record. */
+  .rhead__band {
+    position: relative;
+    z-index: 3;
+    max-width: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1rem;
+    margin: 0;
+    padding: calc(var(--nav-h) + 0.6rem) var(--margin) 0.6rem;
+    background:
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 4px),
+      var(--oxblood);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.06em;
+  }
+
+  .rhead__band strong {
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .rhead__band span:last-child {
+    color: rgb(231 233 228 / 0.8);
+  }
+
+  .rhead__band-mark {
+    width: 0.65em;
+    height: 0.65em;
+    background: var(--oxblood-hi);
+    box-shadow: var(--glow);
+  }
+
+  /* The frame: the cover (or the sealed field) with the title card over its foot. */
+  .rhead__frame {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(74svh, 46rem);
+    padding-block: calc(var(--nav-h) + var(--space-5)) var(--space-4);
+    overflow: clip;
+  }
+
+  .rhead--restricted .rhead__frame {
+    padding-block-start: var(--space-6);
+  }
+
+  .rhead--sealed .rhead__frame {
+    min-height: min(48svh, 30rem);
+    background:
+      radial-gradient(ellipse 70% 60% at 70% 40%, rgb(255 255 255 / 0.03), transparent 70%),
+      var(--bg);
+  }
+
+  /* The lab's close-up of the record on its shelf: the room seen past the file, dim and far. */
+  .rhead__set {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.42;
+    filter: saturate(0.8);
+    mask-image: linear-gradient(to top, transparent, #000 45%);
+  }
+
+  .rhead--sealed:has(.rhead__set) .rhead__frame {
+    isolation: isolate;
+    min-height: min(68svh, 42rem);
+  }
+
+  /* No image yet: the record's ID, huge and hollow, stands in for one. Never a stand-in picture. */
+  .rhead__ghost {
+    position: absolute;
+    inset: auto -0.04em -0.12em auto;
+    margin: 0;
+    color: transparent;
+    font-size: clamp(8rem, 4rem + 22vw, 26rem);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.8;
+    -webkit-text-stroke: 1px var(--rule-strong);
+    pointer-events: none;
+    user-select: none;
+    visibility: hidden;
+  }
+
+  .rhead__ghost.is-ready {
+    visibility: visible;
+  }
+
+  .rhead--restricted .rhead__ghost {
+    -webkit-text-stroke-color: rgb(255 46 59 / 0.35);
+  }
+
+  .rhead__cover {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    margin: 0;
+  }
+
+  .rhead__cover-img,
+  .rhead__cover-img picture,
+  .rhead__cover-img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rhead__cover-img img {
+    object-fit: cover;
+    /* Human grade: cold, desaturated, but the evidence stays readable. */
+    filter: brightness(0.8) saturate(0.6) contrast(1.05);
+  }
+
+  .rhead__cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, var(--bg) 0%, rgb(9 10 9 / 0.72) 28%, transparent 62%),
+      linear-gradient(to right, rgb(9 10 9 / 0.62), transparent 55%);
+    pointer-events: none;
+  }
+
+  /* Exhibit 00: the cover's evidence class, on the image like an evidence tag. */
+  .rhead__exhibit {
+    position: absolute;
+    right: var(--margin);
+    top: calc(var(--nav-h) + var(--space-3));
+    z-index: 2;
+    display: grid;
+    justify-items: end;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0.35rem 0.6rem;
+    background: rgb(9 10 9 / 0.78);
+    color: var(--ink);
+    text-align: end;
+  }
+
+  .rhead__exhibit span:first-child {
+    color: var(--oxblood-hi);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .rhead--restricted .rhead__exhibit {
+    top: var(--space-3);
+  }
+
+  /* HUD corners on the frame. */
+  .rhead__corner {
+    position: absolute;
+    z-index: 2;
+    width: 26px;
+    height: 26px;
+    border: 0 solid var(--ink-2);
+    pointer-events: none;
+  }
+
+  .rhead__corner--tl {
+    top: calc(var(--nav-h) + var(--space-2));
+    left: calc(var(--margin) - 12px);
+    border-width: 1px 0 0 1px;
+  }
+
+  .rhead__corner--tr {
+    display: none;
+  }
+
+  .rhead--restricted .rhead__corner--tl {
+    top: var(--space-2);
+  }
+
+  .rhead__card {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .rhead__card > * {
+    margin: 0;
+  }
+
+  .rhead__path {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .rhead__path a {
+    color: var(--ink-2);
+  }
+
+  .rhead__path a:hover {
+    color: var(--oxblood-hi);
+  }
+
+  .rhead__path [aria-current] {
+    color: var(--ink);
+  }
+
+  /* The title card: the cold open's credit style, then the record's name. */
+  .rhead__kicker {
+    color: var(--ink);
+    font-size: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+    font-stretch: 125%;
+    font-weight: 300;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+  }
+
+  .rhead__title {
+    max-width: none;
+    font-size: clamp(2.5rem, 0.9rem + 6vw, 7rem);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 0.88;
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    hyphens: none;
+    text-shadow: 0 0 0.6em rgb(9 10 9 / 0.7);
+  }
+
+  .rhead__summary {
+    max-width: 40ch;
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+    line-height: 1.35;
+  }
+
+  /* The file card: a form, filled in. */
+  .rhead__file {
+    position: relative;
+    z-index: 1;
+    padding-block: 0 var(--space-4);
+  }
+
+  .rhead__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+    margin: 0;
+    border-block-start: 1px solid var(--rule-strong);
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .rhead__field {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: 0.75rem 0.9rem 0.9rem;
+    border-inline-end: 1px solid var(--rule);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .rhead__field dt {
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .rhead__field dd {
+    margin: 0;
+    font-size: var(--fs-small);
+  }
+
+  .rhead__field--status {
+    grid-column: 1 / -1;
+  }
+
+  /* The status, stamped. */
+  .rhead__stamp,
+  .rend__stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.3rem 0.65rem;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .rhead__stamp::before,
+  .rend__stamp::before {
+    content: '';
+    width: 0.55em;
+    height: 0.55em;
+    background: var(--oxblood-hi);
+  }
+
+  @media (min-width: 64rem) {
+    .rhead__corner--tr {
+      display: block;
+      top: calc(var(--nav-h) + var(--space-2));
+      right: calc(var(--margin) - 12px);
+      border-width: 1px 1px 0 0;
+    }
+
+    .rhead--restricted .rhead__corner--tr {
+      top: var(--space-2);
+    }
+
+    .rhead__exhibit {
+      top: auto;
+      bottom: var(--space-4);
+    }
+
+    .rhead--restricted .rhead__exhibit {
+      top: auto;
+    }
+
+    .rhead__field--status {
+      grid-column: auto / span 2;
+    }
+  }
+
+  /* Arrival (motion allowed, JS on). The cover crosses from the machine's grade into the human
+     one behind a scan line; the title card settles; the file fills in. */
+  [data-motion='ok'] .rhead__cover-img img {
+    animation: rec-cross 2.2s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .rhead__cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 90px),
+      rgb(255 46 59 / 0.16) calc(100% - 2px),
+      var(--oxblood-hi) calc(100% - 2px)
+    );
+    translate: 0 -100%;
+    pointer-events: none;
+    animation: rec-scan 1.6s ease-in-out 0.15s both;
+  }
+
+  [data-motion='ok'] .rhead__kicker {
+    animation: rec-track 1.4s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .rhead__title {
+    animation: rec-sharpen 0.9s var(--ease-out) both;
+  }
+
+  [data-motion='ok'] .rhead__summary,
+  [data-motion='ok'] .rhead__path {
+    animation: rec-arrive 0.8s var(--ease-out) 0.3s both;
+  }
+
+  [data-motion='ok'] .rhead__field {
+    animation: rec-fill 0.6s var(--ease-out) both;
+    animation-delay: calc(0.45s + var(--n, 0) * 0.06s);
+  }
+
+  /* Starts when the face is ready (RecordHead adds .is-ready), so it never plays unseen. */
+  [data-motion='ok'] .rhead__ghost.is-ready {
+    animation: rec-ghost 1.8s var(--ease-out) both;
+  }
+
+  @keyframes rec-sharpen {
+    from {
+      filter: blur(14px);
+      scale: 1.03;
+    }
+    to {
+      filter: blur(0);
+      scale: 1;
+    }
+  }
+
+  @keyframes rec-arrive {
+    from {
+      opacity: 0;
+      translate: 0 14px;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  @keyframes rec-cross {
+    0% {
+      filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-38deg) contrast(1.6) brightness(0.45);
+    }
+    45% {
+      filter: grayscale(1) sepia(1) saturate(5) hue-rotate(-38deg) contrast(1.4) brightness(0.7);
+    }
+    100% {
+      filter: brightness(0.8) saturate(0.6) contrast(1.05);
+    }
+  }
+
+  @keyframes rec-scan {
+    0% {
+      translate: 0 -100%;
+      opacity: 0;
+    }
+    10%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+
+  /* Letter-spacing opens, as on the cold open's cards (@property --track lives in intro.css; here
+     the plain property animates, which is enough for one short line). */
+  @keyframes rec-track {
+    from {
+      letter-spacing: 0.18em;
+      opacity: 0;
+    }
+    to {
+      letter-spacing: 0.42em;
+      opacity: 1;
+    }
+  }
+
+  @keyframes rec-fill {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+
+  @keyframes rec-ghost {
+    from {
+      opacity: 0;
+      translate: 0 0.06em;
+    }
+    to {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  /* =====================================================================
+     Body: briefing, chapters, exhibits, readouts
+     ===================================================================== */
+  .record-body {
+    display: grid;
+    gap: var(--space-5);
+    width: min(100% - 2 * var(--margin), var(--max));
+    margin-inline: auto;
+    padding-block: var(--space-5) 0;
+    counter-reset: chapter exhibit;
+  }
+
+  .record-main {
+    min-width: 0;
+  }
+
+  .record-main > * {
+    max-width: 52rem;
+  }
+
+  /* ---------- The index (the rail) ---------- */
+  .record-index__title {
+    display: flex;
+    gap: 0.6rem;
+    margin-block-end: var(--space-2);
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .record-index__title .t-data {
+    color: var(--oxblood-hi);
+    letter-spacing: 0.08em;
+  }
+
+  .record-index__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem var(--space-3);
+    counter-reset: rail;
+  }
+
+  .record-index__list li {
+    max-width: none;
+  }
+
+  .record-index__list a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+    color: var(--ink-2);
+    font-weight: 500;
+    background: none;
+    transition: color var(--dur-2) linear;
+  }
+
+  .record-index__list a::before {
+    counter-increment: rail;
+    content: counter(rail, decimal-leading-zero);
+    color: var(--rule-strong);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    transition: color var(--dur-2) linear;
+  }
+
+  .record-index__list a:hover,
+  .record-index__list a[aria-current] {
+    color: var(--ink);
+  }
+
+  .record-index__list a[aria-current]::before {
+    color: var(--oxblood-hi);
+  }
+
+  @media (min-width: 64rem) {
+    .record-body {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+      gap: var(--space-6);
+    }
+
+    .record-body--single .record-main {
+      grid-column: 2;
+    }
+
+    .record-index {
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-4));
+      align-self: start;
+      padding-inline-start: var(--space-2);
+      border-inline-start: 1px solid var(--rule);
+    }
+
+    .record-index__list {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 0;
+    }
+
+    .record-index__list a[aria-current] {
+      position: relative;
+    }
+
+    .record-index__list a[aria-current]::after {
+      content: '';
+      position: absolute;
+      left: calc(-1 * var(--space-2) - 1px);
+      top: 0.3rem;
+      bottom: 0.3rem;
+      width: 2px;
+      background: var(--oxblood-hi);
+      box-shadow: 0 0 8px rgb(255 46 59 / 0.7);
+    }
+  }
+
+  /* ---------- Briefing ---------- */
+  .briefing {
+    margin-block-end: var(--space-6);
+  }
+
+  .briefing__title,
+  .record-main .case-section__title::after {
+    color: var(--ink-2);
+  }
+
+  .briefing__title {
+    margin-block-end: var(--space-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .briefing__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    margin: 0;
+    border-block-start: 1px solid var(--rule-strong);
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .briefing__cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    padding: var(--space-3);
+    border-inline-end: 1px solid var(--rule);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .briefing__cell dt {
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .briefing__cell dd {
+    margin: 0;
+    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    line-height: 1.45;
+  }
+
+  /* The key result carries the machine's mark. */
+  .briefing__cell--result::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 18px;
+    height: 18px;
+    border-top: 2px solid var(--oxblood-hi);
+    border-left: 2px solid var(--oxblood-hi);
+  }
+
+  /* ---------- Chapters ---------- */
+  .record-main .case-section {
+    counter-increment: chapter;
+    scroll-margin-top: calc(var(--nav-h) + var(--space-3));
+  }
+
+  .record-main .case-section + .case-section {
+    margin-block-start: var(--space-6);
+  }
+
+  .record-main .case-section__title {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+    margin-block-end: var(--space-3);
+    padding-block-start: var(--space-3);
+    font-size: clamp(1.375rem, 1rem + 1.4vw, 2.125rem);
+    font-stretch: 125%;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+
+  .record-main .case-section__title::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--oxblood-hi);
+    font-family: var(--font-mono);
+    font-size: var(--fs-data);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+  }
+
+  /* The chapter rule: drawn from the left as the chapter arrives. */
+  .record-main .case-section__title::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(to right, var(--rule-strong), var(--rule) 60%, transparent);
+    transform-origin: left center;
+  }
+
+  .record-main .prose {
+    font-size: clamp(1.0625rem, 1.02rem + 0.2vw, 1.1875rem);
+    line-height: 1.65;
+  }
+
+  .record-main .prose > :where(p, ul, ol) {
+    max-width: 62ch;
+  }
+
+  .record-main .prose ul:not([role]) {
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  .record-main .prose ul:not([role]) li {
+    position: relative;
+    padding-inline-start: 1.4rem;
+  }
+
+  .record-main .prose ul:not([role]) li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 0.7rem;
+    height: 1px;
+    background: var(--oxblood-hi);
+  }
+
+  /* ---------- Exhibits: every figure is evidence, numbered and classed ---------- */
+  .figure__exhibit {
+    display: none;
+  }
+
+  .record-main :is(.figure, .arch, .board-story, .compare) {
+    counter-increment: exhibit;
+    margin-block: var(--space-4);
+  }
+
+  .record-main .compare {
+    max-width: none;
+  }
+
+  .record-main :is(.figure, .arch, .board-story, .compare) > .figure__exhibit {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem var(--space-2);
+    margin: 0 0 0.6rem;
+    padding-block-end: 0.45rem;
+    border-block-end: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .figure__no::before {
+    content: 'Exhibit ' counter(exhibit, decimal-leading-zero);
+    color: var(--oxblood-hi);
+  }
+
+  .figure__kind {
+    color: var(--ink-2);
+  }
+
+  /* Photographs and renders sit in a frame with corner ticks: the archive's evidence mount. */
+  .record-main .figure:has(picture) {
+    position: relative;
+  }
+
+  .record-main .figure:has(picture) picture {
+    position: relative;
+    display: block;
+    overflow: clip;
+  }
+
+  .record-main .figure:has(picture) picture::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    background:
+      linear-gradient(var(--ink-2), var(--ink-2)) top left / 16px 1px no-repeat,
+      linear-gradient(var(--ink-2), var(--ink-2)) top left / 1px 16px no-repeat,
+      linear-gradient(var(--ink-2), var(--ink-2)) bottom right / 16px 1px no-repeat,
+      linear-gradient(var(--ink-2), var(--ink-2)) bottom right / 1px 16px no-repeat;
+    pointer-events: none;
+  }
+
+  .record-main .figure__caption {
+    margin-block-start: 0.6rem;
+  }
+
+  .record-main .figure-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--gutter);
+    max-width: none;
+  }
+
+  .record-main .figure-pair .figure {
+    margin-block: 0;
+  }
+
+  /* ---------- Schematic (ArchDiagram) ---------- */
+  .record-main .arch {
+    max-width: none;
+  }
+
+  .record-main .arch__block {
+    position: relative;
+    padding: var(--space-3);
+    background: rgb(17 19 17 / 0.6);
+    border: 1px solid var(--rule-strong);
+  }
+
+  .record-main .arch__block::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background:
+      linear-gradient(var(--ink), var(--ink)) top left / 12px 1.5px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) top left / 1.5px 12px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) bottom right / 12px 1.5px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) bottom right / 1.5px 12px no-repeat;
+    pointer-events: none;
+  }
+
+  .record-main .arch__title {
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .record-main .arch__nodes {
+    gap: 0.35rem;
+    font-weight: 500;
+  }
+
+  .record-main .arch__nodes li {
+    position: relative;
+    max-width: none;
+    padding-inline-start: 0.9rem;
+  }
+
+  .record-main .arch__nodes li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--ink-2);
+  }
+
+  .record-main .arch__wire {
+    background:
+      var(--trace-pad) center top / 7px 7px no-repeat,
+      var(--trace-pad) center bottom / 7px 7px no-repeat,
+      linear-gradient(var(--oxblood-hi), var(--oxblood-hi)) center / 1.5px 100% no-repeat;
+    filter: drop-shadow(0 0 3px rgb(255 46 59 / 0.6));
+  }
+
+  .record-main .arch__link-label {
+    color: var(--ink);
+    font-size: 0.75rem;
+  }
+
+  /* Inside a record the schematic is a signal chain, top to bottom at every width: each stage a
+     full-width block (its name on the left, its parts on the right), joined by a red trace with
+     the link's label beside it. Overrides the side-by-side layout the diagram uses elsewhere. */
+  .record-main .arch__flow,
+  .record-main .arch__col {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .record-main .arch__col {
+    flex: none;
+  }
+
+  .record-main .arch__link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: none;
+    min-height: 3rem;
+    padding: 0 0 0 calc(var(--space-3) - 3px);
+  }
+
+  .record-main .arch__wire {
+    width: 7px;
+    height: auto;
+    align-self: stretch;
+    background:
+      var(--trace-pad) center top / 7px 7px no-repeat,
+      var(--trace-pad) center bottom / 7px 7px no-repeat,
+      linear-gradient(var(--oxblood-hi), var(--oxblood-hi)) center / 1.5px 100% no-repeat;
+    transform-origin: center top;
+  }
+
+  .record-main .arch__link-label {
+    padding: 0;
+    text-align: start;
+  }
+
+  @media (min-width: 48rem) {
+    .record-main .arch__block {
+      grid-template-columns: minmax(9rem, 0.32fr) minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-3);
+    }
+
+    .record-main .arch__nodes {
+      grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+      gap: 0.4rem var(--space-3);
+    }
+  }
+
+  /* ---------- Saarthi, system by system ---------- */
+  .board-story {
+    max-width: none;
+  }
+
+  .board-story__grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .board-story__stage {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--space-2));
+    z-index: 1;
+    align-self: start;
+    padding: var(--space-2);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+  }
+
+  .board-story .board-map {
+    width: 100%;
+    max-height: 52svh;
+  }
+
+  .board-story__steps {
+    display: grid;
+    gap: 0;
+  }
+
+  .board-story__step {
+    max-width: none;
+    display: grid;
+    align-content: center;
+    gap: 0.5rem;
+    min-height: 34svh;
+    padding-block: var(--space-4);
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .board-story__step > * {
+    margin: 0;
+  }
+
+  .board-story__no {
+    color: var(--ink-2);
+  }
+
+  .board-story__title {
+    font-size: var(--fs-h3);
+    font-stretch: 112%;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .board-story__text {
+    max-width: 40ch;
+    color: var(--ink-2);
+    transition: color var(--dur-3) linear;
+  }
+
+  .board-story--live .board-story__step:not(.is-active) .board-story__title {
+    color: var(--ink-2);
+  }
+
+  .board-story__step.is-active .board-story__no {
+    color: var(--oxblood-hi);
+  }
+
+  .board-story__step.is-active .board-story__text {
+    color: var(--ink);
+  }
+
+  /* On the map, the group being read is the machine's: red. */
+  .board-story .board-map__part rect {
+    transition:
+      fill var(--dur-3) linear,
+      stroke var(--dur-3) linear;
+  }
+
+  .board-story [data-view='flight'] .board-map__part--flight rect,
+  .board-story [data-view='safety'] .board-map__part--safety rect,
+  .board-story [data-view='sensors'] .board-map__part--sensors rect {
+    fill: rgb(255 46 59 / 0.28);
+    stroke: var(--oxblood-hi);
+  }
+
+  @media (min-width: 64rem) {
+    .board-story__grid {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: start;
+    }
+
+    .board-story__stage {
+      top: calc(var(--nav-h) + var(--space-4));
+    }
+
+    .board-story__step {
+      min-height: 46svh;
+    }
+  }
+
+  /* ---------- Readouts ---------- */
+  .readout {
+    margin-block: var(--space-4);
+    max-width: none;
+  }
+
+  .readout + .readout {
+    margin-block-start: var(--space-5);
+  }
+
+  .readout__title {
+    margin-block-end: 0.6rem;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+
+  .readout__list {
+    display: grid;
+    border-block-start: 1px solid var(--rule-strong);
+  }
+
+  .readout__row {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem 1.25rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .readout__value {
+    color: var(--ink);
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+    line-height: 1.1;
+  }
+
+  .readout__label {
+    line-height: 1.45;
+  }
+
+  /* The source tag: the archive's evidence class. */
+  .readout__kind {
+    justify-self: start;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .readout__kind:is(
+    [data-kind='host-sim'],
+    [data-kind='sitl'],
+    [data-kind='synthetic'],
+    [data-kind='model']
+  ) {
+    border-color: rgb(255 46 59 / 0.55);
+    color: var(--oxblood-hi);
+  }
+
+  .readout__kind[data-kind='pending'] {
+    border-style: dashed;
+  }
+
+  .readout__kind[data-kind='file'],
+  .readout__kind[data-kind='test'],
+  .readout__kind[data-kind='acceptance'],
+  .readout__kind[data-kind='bench'] {
+    border-color: var(--ink-2);
+    color: var(--ink);
+  }
+
+  @media (min-width: 48rem) {
+    .readout__row {
+      grid-template-columns: minmax(8rem, 0.3fr) minmax(0, 1fr) auto;
+      align-items: baseline;
+    }
+  }
+
+  /* Tables in a record read as readouts too. */
+  .record-main .prose table {
+    width: 100%;
+    max-width: none;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+  }
+
+  .record-main .prose th {
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-block-end: 1px solid var(--rule-strong);
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-align: start;
+    text-transform: uppercase;
+  }
+
+  .record-main .prose td {
+    padding: 0.7rem 0.75rem 0.7rem 0;
+    border-block-end: 1px solid var(--rule);
+    vertical-align: baseline;
+  }
+
+  .record-main .prose tbody tr:first-child td:first-child {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* =====================================================================
+     End of record
+     ===================================================================== */
+  .rend {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-6) var(--section);
+  }
+
+  .rend__grid {
+    display: grid;
+    gap: var(--space-3);
+    border-block-start: 1px solid var(--rule-strong);
+    padding-block-start: var(--space-3);
+  }
+
+  .rend__block {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    scroll-margin-top: calc(var(--nav-h) + var(--space-3));
+  }
+
+  .rend__block > * {
+    margin: 0;
+  }
+
+  .rend__label {
+    color: var(--ink-2);
+    font-size: 0.6875rem;
+    font-stretch: 112%;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .rend__stamp {
+    justify-self: start;
+    max-width: 100%;
+    padding: 0.55rem 0.9rem;
+    border-width: 2px;
+    font-size: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+  }
+
+  .rend__sealed-line {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .rend__seal {
+    flex: none;
+    width: 3rem;
+    height: 0.8em;
+    background: var(--ink-2);
+  }
+
+  .rend__note {
+    color: var(--ink-2);
+  }
+
+  .rend__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem var(--space-4);
+    font-weight: 550;
+  }
+
+  .rend__end {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: var(--space-4) 0 0;
+    color: var(--ink-2);
+    font-size: 0.75rem;
+    font-stretch: 125%;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+  }
+
+  .rend__end::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .rend__end .t-data {
+    color: var(--oxblood-hi);
+    letter-spacing: 0.1em;
+  }
+
+  /* The next record waits in the machine's grade; hover or focus brings it into the human one. */
+  .rend__next {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: clamp(14rem, 34vw, 26rem);
+    padding: var(--space-4);
+    overflow: clip;
+    border: 1px solid var(--rule-strong);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .rend__next-img,
+  .rend__next-img picture,
+  .rend__next-img img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rend__next-img img {
+    object-fit: cover;
+    filter: grayscale(1) sepia(1) saturate(5) hue-rotate(-38deg) contrast(1.4) brightness(0.45);
+    transition:
+      filter 900ms var(--ease-out),
+      scale 900ms var(--ease-out);
+  }
+
+  .rend__next-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(9 10 9 / 0.85), transparent 70%);
+  }
+
+  .rend__next:hover .rend__next-img img,
+  .rend__next:focus-visible .rend__next-img img {
+    filter: brightness(0.75) saturate(0.6);
+    scale: 1.02;
+  }
+
+  .rend__next-text {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .rend__next-kicker {
+    color: var(--oxblood-hi);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .rend__next-title {
+    font-size: clamp(2.25rem, 1rem + 5vw, 5.5rem);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .rend__more {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem var(--space-4);
+    font-weight: 550;
+  }
+
+  .rend__more .t-data {
+    color: var(--ink-2);
+  }
+
+  .rend__channel {
+    margin: 0;
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 64rem) {
+    .rend__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  /* =====================================================================
+     Scroll: chapters arrive, exhibits are read, schematics draw in flow order
+     ===================================================================== */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .record-main .case-section__title {
+        animation: s-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 80%;
+      }
+
+      .record-main .case-section__title::after {
+        animation: s-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 100%;
+      }
+
+      .record-main .figure:has(picture) img {
+        animation: s-scan linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 85%;
+      }
+
+      /* The schematic is drawn in the order the data flows, as it is read: each stage's trace
+         runs down into it, then the stage opens. */
+      .record-main .arch__block {
+        animation: arch-in linear both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 70%;
+      }
+
+      .record-main .arch__wire {
+        animation: arch-wire linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+
+      .readout__row {
+        animation: s-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 90%;
+      }
+
+      .rend__next {
+        animation: rend-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 70%;
+      }
+    }
+  }
+
+  @keyframes arch-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(-1rem);
+    }
+  }
+
+  @keyframes arch-wire {
+    from {
+      scale: 1 0;
+    }
+    to {
+      scale: 1 1;
+    }
+  }
+
+  @keyframes rend-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+}

@@ -26,6 +26,7 @@ export default defineConfig({
   // instead of redirecting to /about/.
   build: { format: 'file', inlineStylesheets: 'always' },
   trailingSlash: 'never',
+
   adapter: cloudflare({
     // Every image sits on a prerendered page, so optimise at build time. No Images binding.
     imageService: 'compile',

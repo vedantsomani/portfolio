@@ -2,35 +2,24 @@
 @layer tokens, reset, base, layout, components, utilities;
 
 /*
+  Two grades (SITE_SPEC §3, "Archive" direction, 2026-10-16):
+    human world   cold, desaturated grey-green: bg, surface, ink, ink-2, rules
+    machine world blood and signal red: --oxblood (blood field), --oxblood-hi (machine red)
+
   Contrast ratios (WCAG 2.x relative luminance), computed from the hex values below.
-
-  Text on canvas / surface
-    ink        #F2EBE4 on bg       #14100E  16.01  AAA
-    ink        #F2EBE4 on surface  #1E1916  14.74  AAA
-    ink-2      #A99D93 on bg                 7.14  AAA
-    ink-2      #A99D93 on surface            6.58  AA
-    oxblood-hi #E25964 on bg                 5.27  AA
-    oxblood-hi #E25964 on surface            4.85  AA
-
-  Text on oxblood fields
-    ink        on oxblood #5A1E14           10.90  AAA  (all text on oxblood)
-    ink-2      on oxblood                    4.86  AA   (small meta only)
-    bg         on ink (inverted button)     16.01  AAA
-    bg         on oxblood-hi (button hover)  5.27  AA
-
-  Non-text (WCAG 1.4.11, needs 3:1)
-    rule-strong #75675E on bg                3.48  input borders
-    rule-strong on surface                   3.20
-    ink focus ring on oxblood               10.90
-    oxblood-hi focus ring on bg / surface    5.27 / 4.85
-    rule #352C27 on bg                       1.39  decorative only, never the sole cue
-
-  Banned pairs
-    ink on oxblood-hi                        3.04  fails (can't pass: see SITE_SPEC fix, button text flips to bg)
-    oxblood as text on bg                    1.47  fails
-
-  --oxblood-hi #E25964 = hsl(355 70% 61.6%). Chosen over 0° and 350° variants: far enough from
-  terracotta (#D97757, ΔE 22.9) without leaning pink.
+    ink        #E7E9E4 on bg      #090A09  16.22  AAA
+    ink        on surface         #111311  15.26  AAA
+    ink-2      #979D95 on bg                7.15  AAA
+    ink-2      on surface                   6.73  AA
+    oxblood-hi #FF2E3B on bg                5.39  AA
+    oxblood-hi on surface                   5.07  AA
+    ink        on oxblood #3D0507          14.04  AAA
+    ink-2      on oxblood                   6.19  AA
+    oxblood-hi on oxblood                   4.66  AA
+    bg         on oxblood-hi (button text)  5.39  AA
+  Non-text (needs 3:1)
+    rule-strong #5D655B on bg / surface     3.28 / 3.09
+    rule #222621                            decorative only, never the sole cue
 */
 
 @layer tokens {
@@ -38,18 +27,24 @@
     color-scheme: dark;
 
     /* Colour */
-    --bg: #14100e;
-    --surface: #1e1916;
-    --ink: #f2ebe4;
-    --ink-2: #a99d93;
-    --rule: #352c27;
-    --rule-strong: #75675e;
-    --oxblood: #5a1e14;
-    --oxblood-hi: #e25964;
+    --bg: #090a09;
+    --surface: #111311;
+    --ink: #e7e9e4;
+    --ink-2: #979d95;
+    --rule: #222621;
+    --rule-strong: #5d655b;
+    --oxblood: #3d0507;
+    --oxblood-hi: #ff2e3b;
+    /* Machine-world extras: HUD glow and the deep blood used by the tear. */
+    --glow: 0 0 0.6em rgb(255 46 59 / 0.55);
+    --blood-deep: #1c0203;
 
     /* Type */
     --font-sans: 'Archivo', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    /* Courier New has Plex Mono's advance width (0.6 em), so text set in mono wraps the same before
+       and after the web font swaps in, and nothing below it shifts. Elsewhere the platform mono
+       (Menlo, Roboto Mono, Droid Sans Mono) is 0.6 em as well. */
+    --font-mono: 'IBM Plex Mono', 'Courier New', ui-monospace, monospace;
 
     /* Scale: 1.25 from 17px at 375, 1.333 from 18px at 1440, interpolated. */
     --fs-display: clamp(3rem, 1.063rem + 8.26vw, 8.5rem);

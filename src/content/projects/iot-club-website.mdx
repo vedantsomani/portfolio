@@ -8,10 +8,16 @@ restricted: false
 year: '2026'
 role: [Sole developer]
 stack: [Next.js, React Three Fiber, Supabase, GSAP]
-cover: ../../assets/placeholders/iot-cover.jpg
-coverAlt: Placeholder for a screenshot of the IoT & Robotics Club website
+disciplines: [software]
+results:
+  - { label: Commits, value: 40 of 40 }
+architecture:
+  label: Club website architecture
+  columns:
+    - { title: Front end, nodes: [Next.js, React Three Fiber 3D hero, GSAP motion] }
+    - { title: Data, nodes: [Supabase] }
 coverTodo: club website screenshot, and a working live URL (the Vercel URL returns 404)
-order: 7
+order: 8
 repoUrl: https://github.com/vedantsomani/iot-website
 glance:
   problem: "One site for the club's events, projects, and members."
@@ -22,12 +28,6 @@ glance:
 <CaseSection title="Objective">One site for the club's events, projects, and members.</CaseSection>
 
 <CaseSection title="Architecture">
-  <ArchDiagram
-    label="Club website architecture"
-    columns={[
-      { title: 'Front end', nodes: ['Next.js', 'React Three Fiber 3D hero', 'GSAP motion'] },
-      { title: 'Data', nodes: ['Supabase'] },
-    ]}
-  />
+  <ArchDiagram {...frontmatter.architecture} />
   <p>I wrote every commit in the repository (40 of 40).</p>
 </CaseSection>
