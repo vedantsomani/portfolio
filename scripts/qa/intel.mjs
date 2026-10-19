@@ -1,4 +1,4 @@
-// The briefing's opening (BriefingIntel.astro): screenshots through its timeline, desktop and phone,
+// The briefing's opening (BriefingCard.astro): screenshots through its timeline, desktop and phone,
 // then checks that it hands over to the page (card in place, focus on the name, overlay gone).
 // Usage: node scripts/qa/intel.mjs [outdir]   (needs the preview on http://127.0.0.1:8787)
 import { mkdir } from 'node:fs/promises';
@@ -24,14 +24,14 @@ for (const [name, viewport] of [
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(BASE + '/briefing', { waitUntil: 'load' });
-  report(await page.locator('[data-intel]').isVisible(), `${name}: the briefing opens on the feed`);
+  report(await page.locator('[data-cardin]').isVisible(), `${name}: the briefing opens on the feed`);
   const t0 = Date.now();
-  for (const at of [0.3, 1.6, 3.0, 4.3, 5.4, 6.8]) {
+  for (const at of [0.3, 0.8, 1.2, 1.6, 2.3, 2.9, 3.6, 4.3]) {
     const wait = at * 1000 - (Date.now() - t0);
     if (wait > 0) await page.waitForTimeout(wait);
     await page.screenshot({ path: `${out}/${name}-${String(at).replace('.', '_')}s.png` });
   }
-  await page.waitForSelector('[data-intel]', { state: 'hidden', timeout: 6000 });
+  await page.waitForSelector('[data-cardin]', { state: 'hidden', timeout: 6000 });
   await page.waitForTimeout(300);
   report(
     (await page.evaluate(() => document.activeElement?.id)) === 'brief-name',
@@ -51,7 +51,7 @@ for (const [name, viewport] of [
   const page = await ctx.newPage();
   await page.goto(BASE + '/briefing', { waitUntil: 'load' });
   await page.keyboard.press('Escape');
-  await page.waitForSelector('[data-intel]', { state: 'hidden', timeout: 2000 });
+  await page.waitForSelector('[data-cardin]', { state: 'hidden', timeout: 2000 });
   const op = await page.locator('[data-idcard]').evaluate((e) => getComputedStyle(e).opacity);
   report(op === '1', 'Escape: the page at once, the card shown');
   await ctx.close();

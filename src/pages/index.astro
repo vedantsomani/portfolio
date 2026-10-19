@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import IntroCredits from '../components/IntroCredits.astro';
 import LabRoom from '../components/LabRoom.astro';
+import PhoneHome from '../components/PhoneHome.astro';
 import Film from '../components/Film.astro';
 import Files from '../components/Files.astro';
 import Transmission from '../components/Transmission.astro';
@@ -23,6 +24,7 @@ const film = Object.keys(import.meta.glob('../data/film.json', { eager: true }))
   description="Vedant Somani builds flight hardware, secure comms, and space-data pipelines from the silicon up: embedded systems, drones, and the software around them."
 >
   <IntroCredits />
+  <PhoneHome film={film} />
   {lab && <LabRoom data={lab} film={film} />}
   <Film />
   <Files />

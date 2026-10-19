@@ -1,0 +1,128 @@
+---
+import '../styles/archive/phone-home.css';
+// The home page on a phone (640px wide or less): no cold open, no film, no 3D room, just the
+// person and the work. Who he is with his photo, what he builds, the ways to reach him, and every
+// project as a card into its record. The film stays one tap away ("Watch the film"). It is shown
+// by a media query (phone-home.css), and BaseLayout and film.ts keep the cold open and the film
+// from starting by themselves on a phone; the cinematic home is untouched on bigger screens.
+import { Picture } from 'astro:assets';
+import Button from './Button.astro';
+import { about, hero, site } from '../data/site';
+import { getProjects, recordIds, statusLabel } from '../lib/content';
+import { HERO_FOCUS, HERO_PHOTO, HERO_IS_STAND_IN } from '../lib/hero-images';
+
+interface Props {
+  film: boolean;
+}
+const { film } = Astro.props;
+const filmData = Object.values(
+  import.meta.glob<{ duration: number }>('../data/film.json', { eager: true, import: 'default' }),
+)[0];
+const secs = Math.round(filmData?.duration ?? 0);
+const length = secs ? `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}` : '';
+const [projects, ids] = await Promise.all([getProjects(), recordIds()]);
+const work = projects
+  .map((p) => ({
+    href: `/projects/${p.id}`,
+    id: ids.get(`projects/${p.id}`) ?? 'R-00',
+    title: p.data.title,
+    line: p.data.summary,
+    status: statusLabel(p.data.status),
+    cover: p.data.cover,
+  }))
+  .sort((a, b) => a.id.localeCompare(b.id));
+const [fx, fy] = HERO_FOCUS;
+const photoAlt = HERO_IS_STAND_IN ? about.photoAlt : hero.photoAlt;
+---
+
+<section class="phone-home" aria-labelledby="phone-name" data-phone-home>
+  <div class="phone-home__photo" style={`--fx: ${fx * 100}%; --fy: ${fy * 100}%`}>
+    <Picture
+      src={HERO_PHOTO}
+      alt={photoAlt}
+      formats={['avif']}
+      fallbackFormat="jpg"
+      widths={[400, 640, 900]}
+      sizes="100vw"
+      quality={62}
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <div class="phone-home__intro wrap">
+    <p class="phone-home__kicker t-data">Portfolio</p>
+    <h1 id="phone-name" class="phone-home__name">
+      {site.name}
+    </h1>
+    <p class="phone-home__title">{hero.title}</p>
+    <p class="phone-home__lead">{hero.supporting}</p>
+    <div class="phone-home__actions">
+      <Button href="/contact" block>
+        Get in touch
+      </Button>
+      <a class="phone-home__link" href="/briefing">
+        Recruiter briefing →
+      </a>
+      {__HAS_RESUME__ && (
+        <a class="phone-home__link" href="/resume.pdf">
+          Résumé (PDF)
+        </a>
+      )}
+    </div>
+    {film && (
+      <button type="button" class="phone-home__film" data-phone-film>
+        <span aria-hidden="true">▶</span> Watch the film{' '}
+        {length && <span class="t-data">{length}</span>}
+      </button>
+    )}
+  </div>
+
+  <div class="phone-home__work wrap">
+    <h2 class="phone-home__h t-data">Selected work</h2>
+    <ol class="phone-home__cards" role="list">
+      {work.map((w) => (
+        <li>
+          <a class="phone-card" href={w.href}>
+            {w.cover && (
+              <Picture
+                class="phone-card__img"
+                src={w.cover}
+                alt=""
+                formats={['avif']}
+                fallbackFormat="jpg"
+                widths={[400, 720]}
+                sizes="calc(100vw - 2rem)"
+                quality={60}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <span class="phone-card__body">
+              <span class="phone-card__id t-data">
+                {w.id}
+                {w.status && <span>{w.status}</span>}
+              </span>
+              <span class="phone-card__title">{w.title}</span>
+              {w.line && <span class="phone-card__line">{w.line}</span>}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+    <a class="phone-home__link phone-home__all" href="/#files">
+      Every record →
+    </a>
+  </div>
+</section>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+
+  onPage(() => {
+    const btn = document.querySelector<HTMLButtonElement>('[data-phone-film]');
+    if (!btn) return undefined;
+    const play = () => window.dispatchEvent(new CustomEvent('archive:film-play'));
+    btn.addEventListener('click', play);
+    return () => btn.removeEventListener('click', play);
+  });
+</script>

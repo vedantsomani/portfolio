@@ -35,7 +35,7 @@ export const film = {
     { shot: 'lab-bench', at: 5.7, who: 'Command', text: 'Who is that?' },
   ] as { shot: string; at: number; who: string; text: string; voice?: string }[],
   // The card the film ends on, before it fades into the lab.
-  title: { name: 'The Archive', by: 'Vedant Somani' },
+  title: { name: 'Vedant Somani', by: 'Flight hardware · Secure comms · Space data' },
   credit:
     'Rendered in Blender. The Earth is NASA’s Blue Marble; the plants, props and surfaces are photo-scanned (Poly Haven, CC0). The city, the machines, the crew and the craft are set dressing.',
 };

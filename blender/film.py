@@ -155,7 +155,14 @@ tiers = [t for t, (res, _) in TIERS.items() if src_w >= res[0] * 0.8]
 chapters, start = [], 0
 for i, (name, d, files) in enumerate(shots):
     n = len(files)
-    chapters.append({'id': name, 'start': round(start / FPS, 3), 'end': round((start + n) / FPS, 3)})
+    ch = {'id': name, 'start': round(start / FPS, 3), 'end': round((start + n) / FPS, 3)}
+    # Where the crew's feet land in this shot (arrival.py and lab.py write them): the page plays a
+    # footstep on each.
+    steps = os.path.join(OUT, 'steps', f'{name}.json')
+    if os.path.exists(steps):
+        with open(steps, encoding='utf-8') as fh:
+            ch['steps'] = [t for t in json.load(fh) if t < n / FPS]
+    chapters.append(ch)
     start += n
     for tag in tiers:
         res, quality = TIERS[tag]

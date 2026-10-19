@@ -20,6 +20,11 @@
 //   tube       a fluorescent tube striking: ticks and a buzz
 //   seal       the helmet coming off: two latch clicks and the seal breaking (a short hiss)
 //   title      the title card: a low hit
+//   step-metal a boot on the lander's ramp: a dull hit and a short ring
+//   step       a boot on broken concrete and grit: soft, a little gravelly
+//   amb-*      the place under it all, crossfaded shot to shot: wind (the street), dark (the dead
+//              lab's room tone), hum (the mains back on: 50 Hz and its harmonics, the tubes'
+//              buzz); amb-off fades it out
 // radioVoice() plays a recorded line through a radio's narrow band.
 type Cue = 'heartbeat' | 'boom' | 'static' | 'tick';
 export type FilmCue =
@@ -36,8 +41,15 @@ export type FilmCue =
   | 'breaker'
   | 'tube'
   | 'seal'
-  | 'title';
+  | 'title'
+  | 'step-metal'
+  | 'step'
+  | 'amb-wind'
+  | 'amb-dark'
+  | 'amb-hum'
+  | 'amb-off';
 let engine: { stop: (at: number) => void } | null = null;
+let bed: { kind: string; stop: (at: number) => void } | null = null;
 
 const KEY = 'sound';
 let ctx: AudioContext | null = null;
@@ -162,6 +174,77 @@ function burst(
   src.connect(bp).connect(g).connect(out);
   src.start(at, Math.random());
   src.stop(at + dur + 0.05);
+}
+
+// The ambient bed: one at a time, the old one fading out over a second as the new one fades in.
+function ambient(c: AudioContext, out: AudioNode, kind: string | null, at: number) {
+  if (bed?.kind === kind) return;
+  bed?.stop(at);
+  bed = null;
+  if (!kind) return;
+  const bus = c.createGain();
+  bus.gain.setValueAtTime(0.0001, at);
+  bus.gain.exponentialRampToValueAtTime(1, at + 1.4);
+  bus.connect(out);
+  const stops: AudioScheduledSourceNode[] = [];
+  const osc = (f: number, type: OscillatorType, level: number) => {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.value = level;
+    o.connect(g).connect(bus);
+    o.start(at);
+    stops.push(o);
+  };
+  const hiss = (type: BiquadFilterType, f: number, q: number, level: number, wobble = 0) => {
+    const src = noiseSource(c);
+    const flt = c.createBiquadFilter();
+    flt.type = type;
+    flt.frequency.value = f;
+    flt.Q.value = q;
+    const g = c.createGain();
+    g.gain.value = level;
+    if (wobble) {
+      // Gusts: the filter and the level drift slowly, out of step with each other.
+      for (const [rate, depth, target] of [
+        [0.11, f * 0.45, flt.frequency],
+        [0.07, level * 0.6, g.gain],
+      ] as const) {
+        const lfo = c.createOscillator();
+        const lg = c.createGain();
+        lfo.frequency.value = rate * wobble;
+        lg.gain.value = depth;
+        lfo.connect(lg).connect(target);
+        lfo.start(at);
+        stops.push(lfo);
+      }
+    }
+    src.connect(flt).connect(g).connect(bus);
+    src.start(at, Math.random() * 1.5);
+    stops.push(src);
+  };
+  if (kind === 'wind') {
+    hiss('lowpass', 650, 0.6, 0.06, 1);
+    hiss('bandpass', 1600, 0.5, 0.012, 1.7);
+  } else if (kind === 'dark') {
+    hiss('lowpass', 120, 0.7, 0.07);
+    osc(38, 'sine', 0.018);
+  } else if (kind === 'hum') {
+    osc(50, 'sine', 0.03);
+    osc(100, 'triangle', 0.012);
+    osc(150, 'sine', 0.006);
+    hiss('lowpass', 220, 0.8, 0.025);
+    hiss('bandpass', 3000, 9, 0.004);
+  }
+  bed = {
+    kind,
+    stop(t) {
+      bus.gain.cancelScheduledValues(t);
+      bus.gain.setTargetAtTime(0.0001, t, 0.4);
+      for (const n of stops) n.stop(t + 2.5);
+    },
+  };
 }
 
 export function cue(name: Cue): void {
@@ -326,6 +409,23 @@ export function filmCue(name: FilmCue): void {
       burst(c, out, now, 0.02, 3600, 4, 0.08);
       burst(c, out, now + 0.11, 0.02, 3300, 4, 0.07);
       burst(c, out, now + 0.2, 0.7, 5200, 0.7, 0.035);
+      break;
+    case 'step-metal':
+      thump(c, out, now, 0.22);
+      burst(c, out, now, 0.12, 1900, 12, 0.035);
+      tone(c, out, now, 540, 520, 0.18, 'triangle', 0.008);
+      break;
+    case 'step':
+      thump(c, out, now, 0.08);
+      burst(c, out, now, 0.07, 700 + Math.random() * 300, 0.9, 0.03);
+      break;
+    case 'amb-wind':
+    case 'amb-dark':
+    case 'amb-hum':
+      ambient(c, out, name.slice(4), now);
+      break;
+    case 'amb-off':
+      ambient(c, out, null, now);
       break;
     case 'title':
       thump(c, out, now, 0.8);

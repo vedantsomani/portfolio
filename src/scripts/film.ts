@@ -19,6 +19,7 @@ const EFFECTS: Record<string, [number, FilmCue][]> = {
   ],
   ramp: [
     [0.4, 'hiss'],
+    [0.9, 'amb-wind'],
     [3.4, 'clunk'],
   ],
   street: [
@@ -28,9 +29,11 @@ const EFFECTS: Record<string, [number, FilmCue][]> = {
   ],
   approach: [[4.0, 'servo']],
   door: [[6.3, 'creak']],
+  'lab-enter': [[0.0, 'amb-dark']],
   'lab-breaker': [
     [0.45, 'creak'],
     [2.17, 'breaker'],
+    [2.3, 'amb-hum'],
   ],
   'lab-power': [
     [0.27, 'tube'],
@@ -50,6 +53,7 @@ interface Chapter {
   id: string;
   start: number;
   end: number;
+  steps?: number[];
 }
 
 interface Line {
@@ -122,8 +126,15 @@ export function initFilm(root: HTMLElement): () => void {
   let live = 0; // the player showing it
   let carding: number | undefined;
   const now = () => chapters[idx].start + players[live].currentTime;
+  // The effects, and a footstep wherever the crew's feet land (metal on the lander's ramp).
   const cues = chapters
-    .flatMap((c) => (EFFECTS[c.id] ?? []).map(([at, name]) => ({ at: c.start + at, name })))
+    .flatMap((c) => [
+      ...(EFFECTS[c.id] ?? []).map(([at, name]) => ({ at: c.start + at, name })),
+      ...(c.steps ?? []).map((at) => ({
+        at: c.start + at,
+        name: (c.id === 'ramp' ? 'step-metal' : 'step') as FilmCue,
+      })),
+    ])
     .sort((a, b) => a.at - b.at);
   let nextCue = 0;
   let nextLine = 0;
@@ -161,6 +172,15 @@ export function initFilm(root: HTMLElement): () => void {
   const load = () => {
     cue(players[0], 0);
     cue(players[1], 1);
+    ahead(2);
+  };
+  // The shot after the next one, into the HTTP cache at low priority (not on Save-Data), so a
+  // slow line has two shots in hand at every cut instead of one.
+  const fetched = new Set<number>();
+  const ahead = (i: number) => {
+    if (conn?.saveData || i >= chapters.length || fetched.has(i)) return;
+    fetched.add(i);
+    void fetch(part(i), { priority: 'low' } as RequestInit).catch(() => fetched.delete(i));
   };
 
   const lock = (yes: boolean) => {
@@ -217,6 +237,7 @@ export function initFilm(root: HTMLElement): () => void {
       cur.classList.remove('is-live');
       cur.pause();
       cue(cur, idx + 1);
+      ahead(idx + 2);
     };
     if (nxt.readyState >= 2) return go();
     waiting = true;
@@ -289,6 +310,7 @@ export function initFilm(root: HTMLElement): () => void {
     store.set(SEEN, '1');
     for (const p of players) p.pause();
     filmCue('engine-cut');
+    filmCue('amb-off');
     subEl.classList.remove('is-on');
     signal?.classList.remove('is-on');
     shown = -1;
@@ -298,7 +320,13 @@ export function initFilm(root: HTMLElement): () => void {
       root.classList.remove('film-stage--playing', 'film-stage--out', 'film-stage--card');
       lock(false);
       window.dispatchEvent(new CustomEvent('archive:film-end'));
-      document.querySelector<HTMLElement>('#lab-title')?.focus({ preventScroll: true });
+      // Back to the name on whichever home is showing: the lab, or on a phone its simple page.
+      const lab = document.querySelector<HTMLElement>('#lab-title');
+      const target = lab?.offsetParent ? lab : document.getElementById('phone-name');
+      if (target) {
+        target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
     };
     if (!fade || reducedMotion()) return done();
     root.classList.add('film-stage--out');
@@ -325,8 +353,15 @@ export function initFilm(root: HTMLElement): () => void {
   });
   on(window, 'archive:film-play', () => void start());
 
-  const first = store.get(SEEN) !== '1' && !reducedMotion() && !location.hash;
+  const first =
+    store.get(SEEN) !== '1' &&
+    !reducedMotion() &&
+    !location.hash &&
+    !matchMedia('(max-width: 40rem)').matches; // a phone's home has a button for it
   if (first) {
+    // The film's black stage (its first frame as poster) goes up under the cold open now, so the
+    // open cuts straight into the film, never to the lab for the moment the first shot takes to start.
+    root.hidden = false;
     // Buffer during the cold open (after the page has loaded), then play when it ends.
     const early = () => {
       if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 1200 });

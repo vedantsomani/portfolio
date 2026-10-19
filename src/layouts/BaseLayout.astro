@@ -111,9 +111,10 @@ const beacon =
           try {
             if (!reduce && !sessionStorage.getItem('hero-revealed')) d.dataset.reveal = 'pending';
             // Cold open: home, first visit this session, motion allowed (IntroCredits, intro.ts),
-            // and not a link to a place further down it (/#lab, /#transmission).
+            // not on a phone (PhoneHome is its home), and not a link further down it (/#files).
             if (
               !reduce &&
+              !matchMedia('(max-width: 40rem)').matches &&
               location.pathname === '/' &&
               !location.hash &&
               !sessionStorage.getItem('intro-seen')

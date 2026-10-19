@@ -1,0 +1,47 @@
+---
+import '../styles/archive/cardin.css';
+// The briefing's opening: the room goes dark and the page's own ID card comes in from the side of
+// the screen, flipping over and over, lands in the middle, is read (a scan, a lock on the photo,
+// the name decoding), and goes into its place on the page (scripts/cardin.ts). Live animation of
+// the real card, not a film: its text stays sharp and it lands exactly where the page has it.
+// Once per session, JS on, motion allowed; Skip and Escape go straight to the page.
+---
+
+<div class="cardin" data-handoff data-cardin hidden>
+  {/* Before first paint: only on the first visit of a session, with motion allowed. */}
+  <script is:inline>
+    (function () {
+      const el = document.currentScript && document.currentScript.parentElement;
+      try {
+        if (
+          el &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+          sessionStorage.getItem('archive:handoff') !== '1'
+        ) {
+          el.hidden = false;
+          document.documentElement.classList.add('cardin-on');
+        }
+      } catch {
+        /* storage blocked: no opening, the page is simply there */
+      }
+    })();
+  </script>
+  <div class="cardin__grid" aria-hidden="true"></div>
+  <p class="cardin__head" aria-hidden="true">
+    <span class="cardin__dot"></span>
+    <span data-cardin-type>Incoming dossier · Recruiter briefing</span>
+  </p>
+  <button type="button" class="cardin__skip" data-handoff-skip>
+    Skip <span aria-hidden="true">→</span>
+  </button>
+</div>
+
+<script>
+  import { onPage } from '../scripts/lifecycle';
+  import { initCardIn } from '../scripts/cardin';
+
+  onPage(() => {
+    const el = document.querySelector<HTMLElement>('[data-cardin]');
+    return el ? initCardIn(el) : undefined;
+  });
+</script>

@@ -1,0 +1,191 @@
+/* The home page on a phone (PhoneHome.astro): a plain page, the person and the work. On bigger
+   screens it is not there; on a phone the cinematic room is not. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  .phone-home {
+    display: none;
+  }
+
+  @media (max-width: 40rem) {
+    .phone-home {
+      display: block;
+      padding-bottom: var(--space-7, 4rem);
+    }
+
+    /* The cinematic home stays on bigger screens. */
+    [data-lab],
+    .lab-room {
+      display: none !important;
+    }
+
+    .phone-home__photo {
+      position: relative;
+      height: min(62svh, 120vw);
+      overflow: clip;
+      background: #0d0f0d;
+    }
+
+    .phone-home__photo picture,
+    .phone-home__photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: var(--fx, 50%) var(--fy, 30%);
+    }
+
+    /* The photo fades into the page. */
+    .phone-home__photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 55%, var(--bg, #0b0c0b) 100%);
+    }
+
+    .phone-home__intro {
+      position: relative;
+      margin-top: -4.5rem;
+    }
+
+    .phone-home__kicker {
+      margin: 0 0 0.4rem;
+      color: var(--oxblood-hi, #ff2e3b);
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .phone-home__name {
+      margin: 0;
+      font-size: clamp(2.4rem, 12vw, 3.2rem);
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .phone-home__title {
+      margin: 0.9rem 0 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .phone-home__lead {
+      margin: 0.7rem 0 0;
+      color: var(--fg-dim, rgb(236 233 225 / 0.72));
+      line-height: 1.5;
+    }
+
+    .phone-home__actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 1.4rem;
+    }
+
+    .phone-home__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      color: inherit;
+    }
+
+    .phone-home__film {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      min-height: 2.75rem;
+      margin-top: 0.6rem;
+      border: 1px solid rgb(236 233 225 / 0.28);
+      background: rgb(236 233 225 / 0.04);
+      color: inherit;
+      font: inherit;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+
+    .phone-home__film .t-data {
+      opacity: 0.6;
+    }
+
+    .phone-home__work {
+      margin-top: 2.6rem;
+    }
+
+    .phone-home__h {
+      margin: 0 0 0.9rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .phone-home__cards {
+      display: grid;
+      gap: 0.9rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .phone-card {
+      display: block;
+      overflow: clip;
+      border: 1px solid rgb(236 233 225 / 0.14);
+      border-radius: 10px;
+      background: rgb(236 233 225 / 0.03);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .phone-card__img,
+    .phone-card picture,
+    .phone-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .phone-card__body {
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.9rem 1rem 1rem;
+    }
+
+    .phone-card__id {
+      display: flex;
+      gap: 0.8rem;
+      align-items: baseline;
+      white-space: nowrap;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.65;
+    }
+
+    /* A long status wraps on its own, beside the record number. */
+    .phone-card__id span {
+      white-space: normal;
+    }
+
+    .phone-card__title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .phone-card__line {
+      color: var(--fg-dim, rgb(236 233 225 / 0.72));
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .phone-home__all {
+      margin-top: 1rem;
+    }
+  }
+}

@@ -31,6 +31,11 @@ MODELS = [
     # What grew back.
     'island_tree_01', 'shrub_01', 'shrub_02', 'fern_02', 'moss_01', 'grass_medium_01',
     'weed_plant_02', 'nettle_plant', 'dead_tree_trunk', 'root_cluster_01', 'rock_moss_set_01',
+    # The lab's hardware corner (blender/hardware.py): real scanned bench gear and tools.
+    'circuit_board', 'retro_multimeter', 'vintage_radio_transceiver', 'vintage_spacecraft_instrument',
+    'industrial_microscope', 'desk_lamp_arm_01', 'metal_tool_chest', 'tool_cart', 'steel_frame_shelves_02',
+    'pliers', 'screwdrivers_02', 'measuring_tape_01', 'modular_electric_cables', 'power_box_01',
+    'plastic_crate_02', 'metal_stool_02', 'magnifying_glass_01',
 ]
 
 TEXTURES = [

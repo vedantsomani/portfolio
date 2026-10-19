@@ -252,11 +252,17 @@ def _put(ob, parent, loc=(0, 0, 0), rot=(0, 0, 0)):
 class Crew:
     """The figure. root: position and heading in the world. j: the joints by name."""
 
-    def __init__(self, name='crew', lamp=True, real=None):
-        real = (REAL if real is None else real) and os.path.exists(HUMAN)
+    def __init__(self, name='crew', lamp=True, real=None, human=None, idle=None, clock=0.0):
+        # human: another person's file (blender/human.py --who ...); idle: their standing clip;
+        # clock: seconds added to the shot's clock for their recorded motion, so two people standing
+        # together never breathe and shift in step.
+        self.human_path = human or HUMAN
+        self.clock = clock
+        real = (REAL if real is None else real) and os.path.exists(self.human_path)
         self.real = real
         self.helm = self.face = None
         self.crouch = 0.0  # 0 → 1: knees bent, weight down and forward (the shot sets it)
+        self._rest_fingers = {}
         self.fog = 0.45  # how much each breath fogs the visor (cold, dark places more)
         self.fog_value = None
         self.motion = None
@@ -264,7 +270,7 @@ class Crew:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             import mocap
             if mocap.available():
-                self.motion = (mocap, mocap.get('walk', WALK_CLIP), mocap.get('idle', IDLE_CLIP))
+                self.motion = (mocap, mocap.get('walk', WALK_CLIP), mocap.get('idle', idle or IDLE_CLIP))
         D = self._human(name) if real else {
             'pelvis': (0, 0, 0.98), 'spine': (0, 0, 0.1), 'chest': (0, 0, 0.24), 'neck': (0, 0.0, 0.22),
             'head': (0, 0.025, 0.14), 'hip': (0.1, 0, -0.05), 'thigh': 0.44, 'shin': 0.41, 'ankle_h': 0.083,
@@ -405,7 +411,7 @@ class Crew:
     def _human(self, name):
         """Bring in the real crew member (blender/human.py), turn it to face +Y like the figure, and
         measure its skeleton: the joints are laid out to match it, so feet and hands land true."""
-        with bpy.data.libraries.load(HUMAN, link=False) as (src, dst):
+        with bpy.data.libraries.load(self.human_path, link=False) as (src, dst):
             dst.objects = list(src.objects)
         parts = [o for o in dst.objects if o is not None]
         for o in parts:
@@ -657,7 +663,52 @@ class Crew:
             return q
 
         feet = {}
+        rolls = {}
+        if self.motion:
+            # Real legs: each foot where the recorded walk has it at this point of the step, mapped
+            # along the path by distance (so a planted foot stays exactly where it landed, on a
+            # curve too), and turned as the recording turns it (heel strike, roll, toe-off).
+            _, walk, _ = self.motion
+            ky = S / walk.travel.length  # our stride against the clip's
+            kx = self.hip_w / max(0.05, walk.hip_w)
+            u = (d / S + phase0) % 1.0
+
+            def place_at(dist, lat, z):
+                p_, h_ = path(dist)
+                right = Vector((math.cos(h_), math.sin(h_), 0.0))
+                q_pt = Vector(p_) + right * lat
+                q_pt.z = ground(q_pt) + self.ankle_h + z
+                return q_pt, h_
+
+            for s, side, name in ((-1, 'L', 'Left'), (1, 'R', 'Right')):
+                on, frac = walk.stance[name]
+                e = (u - on) % 1.0  # strides since this foot last came down
+                d_strike = d - e * S
+                rel_on, _ = walk.foot(name, on)
+                print_dist = d_strike + rel_on.y * ky  # its footprint, along the path
+                print_lat = rel_on.x * kx
+                rel, q = walk.foot(name, u)
+                if e < frac:
+                    # Down: pinned to its footprint, flat on the ground.
+                    q_pt, h_ = place_at(print_dist, print_lat, 0.0)
+                    feet[side] = (True, print_dist, q_pt, 0.0)
+                else:
+                    # In the air: the recording's own swing, bent so it leaves this footprint and
+                    # lands exactly on the next one.
+                    t = _smooth((e - frac) / (1.0 - frac))
+                    off_rel, _ = walk.foot(name, (on + frac) % 1.0)
+                    d_off = d_strike + frac * S
+                    err0 = (print_dist - (d_off + off_rel.y * ky), print_lat - off_rel.x * kx, -off_rel.z)
+                    err1 = (0.0, 0.0, -rel_on.z)
+                    dist = d + rel.y * ky + err0[0] * (1 - t) + err1[0] * t
+                    lat = rel.x * kx + err0[1] * (1 - t) + err1[1] * t
+                    z = max(0.0, rel.z + err0[2] * (1 - t) + err1[2] * t)
+                    q_pt, h_ = place_at(dist, lat, z)
+                    feet[side] = (False, dist, q_pt, 0.0)
+                rolls[side] = (q, h_)
         for s, side, off in ((-1, 'L', 0.0), (1, 'R', 0.5)):
+            if self.motion:
+                break
             ph = (d / S + off + phase0) % 1.0
             base = d - ph * S + 0.3 * S  # this cycle's footprint: where the foot is, or last was, down
             if ph < 0.6:
@@ -669,15 +720,26 @@ class Crew:
                 q = foot_at(base, s).lerp(foot_at(base + S, s), _smooth(u))
                 q.z += 0.1 * math.sin(math.pi * u) + 0.03 * (1 - u) ** 2
                 feet[side] = (False, base, q, math.radians(-16 * (1 - u) ** 2 + 9 * u * u))
-        if a < 1.0:
+        if a < 1.0 and self.motion:
+            # Stopping: the feet come together beside the path into a stance (lifted as they come,
+            # not dragged), and turn flat.
+            for side, s in (('L', -1), ('R', 1)):
+                down, dist, q, toe = feet[side]
+                stand = foot_at(d, s)
+                lift = Vector((0.0, 0.0, 0.04 * math.sin(math.pi * a) * (0.0 if down else 1.0)))
+                feet[side] = (down, dist, stand.lerp(q, a) + lift, 0.0)
+        if a < 1.0 and not self.motion:
             # Stopping: a swinging foot comes down beside the one that is planted.
             for side, other, s in (('L', 'R', -1), ('R', 'L', 1)):
                 down, _, q, toe = feet[side]
                 if not down and feet[other][0]:
-                    feet[side] = (False, 0, foot_at(feet[other][1], s).lerp(q, a), toe * a)
+                    # Lifted as it comes in, not dragged: an arc up and down onto its place.
+                    lift = Vector((0.0, 0.0, 0.045 * math.sin(math.pi * a)))
+                    feet[side] = (False, 0, foot_at(feet[other][1], s).lerp(q, a) + lift, toe * a)
             mid = (feet['L'][2] + feet['R'][2]) / 2
             r = self.root.location
             self.root.location = (r.x + (mid.x - r.x) * (1 - a), r.y + (mid.y - r.y) * (1 - a), r.z)
+        self.feet_down = {k: v[0] for k, v in feet.items()}  # for fx.Steps: which feet are planted
         # Never a locked knee dragging a foot: if a leg cannot reach its footprint without
         # straightening fully, the hips drop just enough (as a body does: the knee gives).
         for _ in range(3):
@@ -705,6 +767,16 @@ class Crew:
             j[f'knee{side}'].rotation_euler = (-bend, 0.0, 0.0)
             # The sole level with the ground (less the push-off and the toe-up before landing).
             j[f'ankle{side}'].rotation_euler = (-(tilt + pitch - bend) + toe, 0.0, math.radians(-3 * s))
+            if side in rolls:
+                # The recorded foot's turn (heel strike, roll, push-off), as the world sees it,
+                # blended to flat as the walk stops: the ankle's rotation that gives it.
+                bpy.context.view_layer.update()
+                q, h_ = rolls[side]
+                q = Quaternion().slerp(q, a)
+                want = Matrix.Rotation(h_, 4, 'Z') @ q.to_matrix().to_4x4()
+                knee_w = j[f'knee{side}'].matrix_world.to_3x3().normalized().to_4x4()
+                local = (knee_w.inverted() @ want).to_quaternion()
+                j[f'ankle{side}'].rotation_euler = local.to_euler('XYZ', j[f'ankle{side}'].rotation_euler)
 
     def _recorded(self, cycles, a, look, breath):
         """The body from real motion: the recorded walk at this point of the step cycle (cycles:
@@ -712,7 +784,7 @@ class Crew:
         are solved after this to the footprints; look turns the head on top of the recording."""
         mocap, walk, idle = self.motion
         j = self.j
-        p = mocap.blend(idle.pose(TIME), walk.pose(cycles % 1.0), a)
+        p = mocap.blend(idle.pose(TIME + self.clock), walk.pose(cycles % 1.0), a)
 
         def put(name, q):
             j[name].rotation_euler = q.to_euler('XYZ', j[name].rotation_euler)
@@ -728,6 +800,35 @@ class Crew:
         j['chest'].rotation_euler.x += math.radians(1.0 * math.sin(breath)) * (1 - a)
         # The hips: their recorded bob and sway, round the height the legs can reach both feet from.
         j['pelvis'].location = (p['sway'] * a, 0.0, self.pz - 0.008 - 0.045 * a + p['lift'])
+
+    GRIP = {'Index': (38, 52, 30), 'Middle': (46, 60, 34), 'Ring': (58, 66, 36), 'Pinky': (64, 66, 34),
+            'Thumb': (-6, 28, 24)}
+
+    def grip(self, side, k):
+        """Close a hand (side 'L' or 'R') k of the way from its rest into a grip: a card or a strap
+        held between the thumb and the fingers. Keyed with keys()."""
+        if not self.real:
+            return
+        sd = 'Left' if side == 'L' else 'Right'
+        pb = self.rig.pose.bones
+        for finger, angs in self.GRIP.items():
+            for n, a in enumerate(angs, 1):
+                b = pb.get(f'mixamorig:{sd}Hand{finger}{n}')
+                if b is None:
+                    continue
+                rest = self._rest_fingers.get(b.name)
+                if rest is None:
+                    rest = self._rest_fingers[b.name] = b.rotation_quaternion.copy()
+                q = rest @ Quaternion((1.0, 0.0, 0.0), -math.radians(a) * k)
+                b.rotation_quaternion = q
+
+    def hand(self, side):
+        """The hand's world matrix as the body really has it now (the evaluated skeleton)."""
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        rig = self.rig.evaluated_get(dg)
+        sd = 'Left' if side == 'L' else 'Right'
+        return rig.matrix_world @ rig.pose.bones[f'mixamorig:{sd}Hand'].matrix
 
     def reach_to(self, side, target, k=1.0, pole=(0.6, -0.4, -1.0)):
         """Put a hand on a world point: the arm solved by inverse kinematics (shoulder, elbow),
@@ -788,6 +889,9 @@ class Crew:
             out += [(self.face, 'energy')]
         if self.fog_value is not None:
             out += [(self.fog_value, 'default_value')]
+        if self.real:
+            # The fingers (grip() moves them).
+            out += [(b, 'rotation_quaternion') for b in self.rig.pose.bones if 'Hand' in b.name and b.name[-1].isdigit()]
         return out
 
 

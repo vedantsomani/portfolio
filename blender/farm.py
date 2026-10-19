@@ -47,6 +47,7 @@ ap.add_argument('--threshold', default='', help='adaptive noise threshold for th
 ap.add_argument('--volstep', default='', help='volume step rate for this pass')
 ap.add_argument('--max', action='store_true', help='the uncompromised render settings')
 ap.add_argument('--nodust', action='store_true', help='leave out the footstep dust and the motes')
+ap.add_argument('--backend', default='', help='CUDA: CUDA before OptiX (faster on GPUs without RT cores)')
 args = ap.parse_args()
 GPUS = [int(g) for g in args.gpus.split(',')]  # a GPU listed twice runs two renders at once
 SKIP = set(filter(None, args.skip.split(',')))
@@ -68,6 +69,8 @@ def env(gpu=None):
     e = dict(os.environ)
     if gpu is not None:
         e['CUDA_VISIBLE_DEVICES'] = str(gpu)
+    if args.backend:
+        e['ARCHIVE_GPU'] = args.backend
     if args.libs:
         e['LD_LIBRARY_PATH'] = args.libs + ':' + e.get('LD_LIBRARY_PATH', '')
     return e
@@ -127,6 +130,11 @@ if args.preview:
                                          '--samples', '12', '--slice', f'{k}/{SLICES}'], f'preview-{s}-{k}'))
 
 if 'build' not in SKIP:
+    if 'door' in SHOTS:
+        # The lab room the door shot looks into, before that shot is built.
+        say('build lab room')
+        if blender('lab.py', ['--shots', 'room', '--art', 'none'], 'build-lab-room.log', threads=48):
+            sys.exit(f'lab room failed; see {LOGS}/build-lab-room.log')
     say(f'build {SHOTS}')
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         codes = dict(zip(SHOTS, pool.map(build, SHOTS)))

@@ -75,7 +75,10 @@ C.REAL = '--toy' not in sys.argv  # the real crew member (blender/human.py); --t
 def use_gpu(scene):
     """The fastest GPU backend there is (preferences are not saved in .blend files)."""
     prefs = bpy.context.preferences.addons['cycles'].preferences
-    for kind in ('OPTIX', 'CUDA'):
+    # OptiX first where it has RT cores to run on (the laptop); ARCHIVE_GPU=CUDA puts CUDA first, which
+    # on a GPU without them (the H200s) renders the same picture several times faster.
+    order = ('CUDA', 'OPTIX') if os.environ.get('ARCHIVE_GPU') == 'CUDA' else ('OPTIX', 'CUDA')
+    for kind in order:
         try:
             prefs.compute_device_type = kind
             prefs.get_devices()
@@ -98,6 +101,10 @@ if OPTS['stage'] == 'render':
     bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT, 'work', f'{shot}.blend'))
     sc = bpy.context.scene
     use_gpu(sc)
+    if not sc.compositing_node_group:
+        fx.film_look(sc)  # built before the film look existed: it gets it now
+    sc.render.compositor_device = 'CPU'  # never a graphics context on another GPU
+    sc.render.use_persistent_data = True  # the scene stays loaded from frame to frame
     # --res WxH and --samples given here override what the shot was built with (a faster pass).
     if OPTS['res']:
         sc.render.resolution_x, sc.render.resolution_y = (int(v) for v in OPTS['res'].split('x'))
@@ -1031,12 +1038,17 @@ cylinder('Laptop cable', (0.42, TY - 0.05, TZ + 0.005), 0.004, 0.5, M['cord'], r
 # Generic bench dressing (tools, not project hardware).
 box('Solder station', (-0.72, TY + 0.15, TZ + 0.05), (0.19, 0.16, 0.1), M['darksteel'], bevel=0.008)
 cylinder('Iron holder', (-0.52, TY + 0.15, TZ + 0.06), 0.03, 0.11, M['darksteel'], r2=0.02)
-box('Multimeter', (0.62, TY - 0.05, TZ + 0.02), (0.09, 0.18, 0.04), M['yellow'], rot=(0, 0, 0.4), bevel=0.008)
 cylinder('Mug', (0.9, TY + 0.25, TZ + 0.05), 0.042, 0.1, M['mug'])
-box('Toolbox', (-1.0, TY + 0.32, TZ + 0.09), (0.42, 0.2, 0.18), M['steel'], bevel=0.01)
 for i in range(9):
     card(f'Bench paper {i}', (random.uniform(-0.75, 0.75), TY + random.uniform(-0.25, 0.35), TZ + 0.001 + i * 0.0015),
          0.21, 0.297, M['paper'], rot=FLAT(random.uniform(-0.9, 0.9)))
+
+# The hardware: a maker bench with a 3D printer, a scope, a supply and a robot arm; a drone and the
+# Saarthi board itself on this bench; a rover and a half-built frame on the floor; real scanned
+# bench gear around them (blender/hardware.py).
+import hardware  # noqa: E402
+
+hardware.build(TZ, WORK, M['steel'], M['darksteel'])
 
 # The bench lamp: a hanging enamel shade on a cord, its pool falling on the laptop.
 LAMP = Vector((0.0, TY - 0.12, 1.8))
@@ -1483,6 +1495,7 @@ if 'room' in OPTS['shots']:
         if m.name == 'Beacon':
             m['archive_beacon'] = 1  # the door shot finds it by this
     os.makedirs(os.path.join(OUT, 'work'), exist_ok=True)
+    bpy.ops.file.pack_all()  # its pictures inside it: it renders the same on any machine
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'work', 'lab-room.blend'))
     print('[lab] room: built blender/out/work/lab-room.blend', flush=True)
     sys.exit(0)
@@ -1930,6 +1943,7 @@ for name in film_shots:
         steps.sample((f + 1) / FILM_FPS)
     mean, worst = steps.slide()
     print(f'[lab] {name}: planted feet skate {mean:.3f} m/s on average, {worst:.3f} at worst', flush=True)
+    steps.save(os.path.join(OUT, 'steps', f'{name}.json'))
     ev = steps.events()
     if ev:
         fx.puffs('footdust', ev, fx.dust_mat('footdust', (0.5, 0.5, 0.48), 1.2))
@@ -1937,6 +1951,7 @@ for name in film_shots:
     fx.motes('motes', (-W + 0.3, FRONT + 0.3, 0.15), (W - 0.3, BACK - 0.7, H - 0.3), 70000 if ULTRA else 15000)
     SCENE.frame_start, SCENE.frame_end = 1, n
     SCENE.render.fps = FILM_FPS
+    fx.film_look(SCENE)  # the same grade, bloom and lens as the street's shots
     SCENE.render.use_motion_blur = True
     SCENE.render.motion_blur_shutter = 0.5 if ULTRA else 0.35
     if ULTRA:

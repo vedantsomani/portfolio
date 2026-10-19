@@ -1,0 +1,289 @@
+/* The briefing's opening (BriefingCard.astro, scripts/cardin.ts): a dark room with a faint grid, a
+   mono heading, and the page's own ID card flipping in above it. */
+
+/* Same layer order as tokens.css: this file can be inlined before it. */
+@layer tokens, reset, base, layout, components, utilities;
+
+@layer components {
+  html.cardin-on {
+    overflow: hidden;
+  }
+
+  /* The card rides above the dark, unseen until it comes in (the script moves it). */
+  html.cardin-on .idcard {
+    position: relative;
+    z-index: 61;
+    opacity: 0;
+    will-change: transform;
+    transform-origin: 50% 50%;
+  }
+
+  html.cardin-on .idcard,
+  html.cardin-done .idcard,
+  html.cardin-on .idcard__photo::after,
+  html.cardin-done .idcard__photo::after {
+    animation: none;
+  }
+
+  .cardin {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: radial-gradient(ellipse at 50% 45%, #121512 0%, #050605 70%);
+    color: rgb(236 233 225 / 0.72);
+    font-family: var(--font-mono);
+  }
+
+  .cardin[hidden] {
+    display: none;
+  }
+
+  .cardin__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(236 233 225 / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(236 233 225 / 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 50%, #000 30%, transparent 75%);
+  }
+
+  .cardin__head {
+    position: absolute;
+    top: calc(4vmin + 0.9rem);
+    left: calc(4vmin + 0.4rem);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .cardin__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--oxblood-hi, #ff2e3b);
+    box-shadow: 0 0 12px var(--oxblood-hi, #ff2e3b);
+    animation: cardin-blink 1s steps(2, jump-none) infinite;
+  }
+
+  @keyframes cardin-blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  .cardin__skip {
+    position: absolute;
+    top: calc(4vmin + 0.4rem);
+    right: calc(4vmin + 0.4rem);
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 1px solid rgb(236 233 225 / 0.35);
+    background: rgb(0 0 0 / 0.35);
+    color: #f2efe8;
+    font: inherit;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .cardin__skip:hover {
+    border-color: #f2efe8;
+  }
+
+  /* On the card while it plays (the script adds these and takes them away). */
+  .cardin-back {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.4rem 1.6rem;
+    border-radius: inherit;
+    background:
+      repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 2px, transparent 2px 9px),
+      linear-gradient(160deg, #1d211d, #0b0d0b);
+    color: rgb(236 233 225 / 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0;
+    /* It is seen from behind: mirrored back to read the right way round. */
+    transform: scaleX(-1);
+  }
+
+  .cardin-back span:first-child {
+    color: #f2efe8;
+    font-family: var(--font-display, inherit);
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+  }
+
+  .cardin-sheen,
+  .cardin-holo {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .cardin-sheen {
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.55) 48%,
+      rgb(255 255 255 / 0.85) 50%,
+      rgb(255 255 255 / 0.5) 52%,
+      transparent 65%
+    );
+    background-size: 300% 100%;
+    mix-blend-mode: soft-light;
+  }
+
+  .cardin-holo {
+    background: linear-gradient(120deg, #ff3d77, #ffd93d, #3dff9e, #3dc5ff, #a53dff, #ff3d77);
+    background-size: 220% 220%;
+    mix-blend-mode: overlay;
+  }
+
+  .cardin-scan {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent calc(100% - 46px),
+      rgb(255 46 59 / 0.22) calc(100% - 2px),
+      var(--oxblood-hi, #ff2e3b) calc(100% - 2px)
+    );
+    translate: 0 -100%;
+    opacity: 0;
+  }
+
+  .cardin-scan.is-on {
+    animation: cardin-scan 0.95s ease-in-out both;
+  }
+
+  @keyframes cardin-scan {
+    0% {
+      translate: 0 -100%;
+      opacity: 1;
+    }
+    85% {
+      translate: 0 0;
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+
+  .cardin-lock {
+    position: absolute;
+    inset: 6px;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .cardin-lock i {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--oxblood-hi, #ff2e3b);
+  }
+
+  .cardin-lock i:nth-child(1) {
+    top: 0;
+    left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .cardin-lock i:nth-child(2) {
+    top: 0;
+    right: 0;
+    border-left: 0;
+    border-bottom: 0;
+  }
+
+  .cardin-lock i:nth-child(3) {
+    right: 0;
+    bottom: 0;
+    border-left: 0;
+    border-top: 0;
+  }
+
+  .cardin-lock i:nth-child(4) {
+    bottom: 0;
+    left: 0;
+    border-right: 0;
+    border-top: 0;
+  }
+
+  .cardin-lock.is-on {
+    animation: cardin-lock 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes cardin-lock {
+    from {
+      opacity: 0;
+      scale: 1.7;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  .cardin-stamp {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    z-index: 6;
+    padding: 0.2rem 0.5rem;
+    border: 1.5px solid var(--oxblood-hi, #ff2e3b);
+    background: rgb(10 12 10 / 0.7);
+    color: var(--oxblood-hi, #ff2e3b);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    translate: -50% 0;
+    rotate: -6deg;
+    opacity: 0;
+  }
+
+  .cardin-stamp.is-on {
+    animation: cardin-stamp 0.42s cubic-bezier(0.2, 1.6, 0.4, 1) 0.15s both;
+  }
+
+  @keyframes cardin-stamp {
+    from {
+      opacity: 0;
+      scale: 1.8;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cardin__dot {
+      animation: none;
+    }
+  }
+}

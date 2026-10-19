@@ -85,7 +85,10 @@ def use_gpu(scene):
     """The fastest GPU backend there is (preferences are not saved in .blend files)."""
     prefs = bpy.context.preferences.addons['cycles'].preferences
     device = 'CPU'
-    for kind in ('OPTIX', 'CUDA'):
+    # OptiX first where it has RT cores to run on (the laptop); ARCHIVE_GPU=CUDA puts CUDA first, which
+    # on a GPU without them (the H200s) renders the same picture several times faster.
+    order = ('CUDA', 'OPTIX') if os.environ.get('ARCHIVE_GPU') == 'CUDA' else ('OPTIX', 'CUDA')
+    for kind in order:
         try:
             prefs.compute_device_type = kind
             prefs.get_devices()
@@ -1416,7 +1419,16 @@ def build_lab(rng, beacon=60.0):
     b = Builder()
     w, d, fh = LAB_W, LAB_D, 4.8
     ex = DOOR_X + w / 2  # entrance x in the local frame
-    b.box((w / 2, (3.2 + d) / 2, LAB_H / 2), (w, d - 3.2, LAB_H), C)
+    # The block is a shell (walls, the roof below), so the corridor from the entrance runs into it
+    # and the lab (lab.py's room, placed by the door shot) sits inside: an opening 3 m wide.
+    t = 0.3
+    for x0, x1 in ((0, ex - 1.5), (ex + 1.5, w)):
+        b.box(((x0 + x1) / 2, 3.2 + t / 2, LAB_H / 2), (x1 - x0, t, LAB_H), C)
+    b.box((ex, 3.2 + t / 2, (3.0 + LAB_H) / 2), (3.0, t, LAB_H - 3.0), C)
+    b.box((w / 2, d - t / 2, LAB_H / 2), (w, t, LAB_H), C)
+    for x in (t / 2, w - t / 2):
+        b.box((x, (3.2 + d) / 2, LAB_H / 2), (t, d - 3.2, LAB_H), C)
+    b.box((w / 2, (3.2 + d) / 2, 0.05), (w, d - 3.2, 0.1), C)
     for f in range(3):
         z0 = f * fh
         if f == 0:
@@ -1424,7 +1436,10 @@ def build_lab(rng, beacon=60.0):
             for x0, x1 in ((0, ex - 3.4), (ex + 3.4, w)):
                 b.box(((x0 + x1) / 2, 0.3, 2.4), (x1 - x0, 0.6, 4.8), C)
             b.box((ex, 0.3, 4.3), (6.8, 0.6, 1.0), C)
-            b.box((ex, 3.0, 1.9), (6.8, 0.2, 3.8), DARK)
+            # The lobby's back wall, open in the middle where the corridor goes in.
+            for x0, x1 in ((ex - 3.4, ex - 1.5), (ex + 1.5, ex + 3.4)):
+                b.box(((x0 + x1) / 2, 3.0, 1.9), (x1 - x0, 0.2, 3.8), DARK)
+            b.box((ex, 3.0, 3.4), (3.0, 0.2, 0.8), DARK)
             for sx in (-1, 1):
                 b.box((ex + sx * 3.3, 1.6, 1.9), (0.2, 2.8, 3.8), C)
             # Glass doors: frames, one leaf gone, one ajar.
@@ -1482,8 +1497,6 @@ def build_lab(rng, beacon=60.0):
         sign = link(bpy.data.objects.new('sign', cu))
         sign.location = (DOOR_X, LAB_Y - 4.12, 3.92)
         sign.rotation_euler = (math.radians(90), 0, 0)
-    # Deep inside, the transmitter's red beacon on its battery: the only light in the building.
-    point('lab-inside', (DOOR_X + 0.8, LAB_Y + 2.4, 2.8), 3.0, (1.0, 0.07, 0.04), 0.06)
 
     # The mast and the beacon.
     steel = plain('mast', (0.12, 0.12, 0.11), 0.5, 0.9)
@@ -2340,6 +2353,41 @@ def shot_approach():
     return n, step, keys
 
 
+LAB_ROOM = (DOOR_X, LAB_Y + 14.2)  # where lab.py's origin sits: its corridor starts at the lobby's back
+
+
+def place_lab_room():
+    """The lab itself behind the entrance (lab.py --shots room): its corridor runs from the lobby
+    into the room, dark but for the daylight from its high windows and the transmitter's beacon,
+    so from the street the doors look into the real place the next shots are in. Returns the
+    beacon's strength (to blink it) and a red light at it (its spill)."""
+    path = os.path.join(WORK, 'lab-room.blend')
+    if not os.path.exists(path):
+        print('[arrival] no lab room (run lab.py --shots room); the doors show a dark lobby', flush=True)
+        return None, point('lab-inside', (DOOR_X + 0.8, LAB_Y + 2.4, 2.8), 3.0, (1.0, 0.07, 0.04), 0.06)
+    with bpy.data.libraries.load(path, link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    root = link(bpy.data.objects.new('lab-room', None))
+    root.location = (LAB_ROOM[0], LAB_ROOM[1], 0.0)
+    beacon, at = None, None
+    for ob in dst.objects:
+        if ob is None:
+            continue
+        SCENE.collection.objects.link(ob)
+        if ob.parent is None:
+            ob.parent = root
+        for slot in getattr(ob, 'material_slots', []):
+            m = slot.material
+            if m and m.get('archive_beacon') and m.node_tree:
+                for nd in m.node_tree.nodes:
+                    if nd.type == 'EMISSION':
+                        beacon = nd.inputs['Strength']
+                at = ob
+    bpy.context.view_layer.update()
+    spot = (sum((at.matrix_world @ Vector(c) for c in at.bound_box), Vector()) / 8) if at else         Vector((DOOR_X, LAB_Y + 14.0, 2.5))
+    return beacon, point('lab-inside', tuple(spot + Vector((0, -0.3, 0.1))), 1.5, (1.0, 0.07, 0.04), 0.05)
+
+
 def shot_door():
     """Nine seconds: under the canopy to the door with the light behind it; a hand on the glass,
     the door swings in, and they step through. The camera stays outside."""
@@ -2350,7 +2398,7 @@ def shot_door():
     m, L = street_world(rng)
     ivy(IVY_RNG, LAB_Y, -1, -LAB_W / 2, DOOR_X - 4.2, LAB_H, 26, axis='y', out=0.8)
     ivy(IVY_RNG, LAB_Y, -1, DOOR_X + 4.2, LAB_W / 2, LAB_H, 30, axis='y', out=0.8)
-    inside = bpy.data.objects['lab-inside']
+    beacon, inside = place_lab_room()
     hinge = bpy.data.objects['lab-door-hinge']
     fig = C.Crew('crew')
     n = 216
@@ -2393,12 +2441,18 @@ def shot_door():
         cam.location = eye.lerp(hold, k) + shake(t * 9, 0.01)
         look_at(cam, target.lerp(sign, 0.55 * up).lerp(Vector((door_x, LAB_Y + 3.0, 1.4)), k))
         cam.data.dof.focus_distance = (pos + Vector((0, 0, 1.3)) - cam.location).length
-        inside.data.energy = 30.0 if (t * 9.0) % 1.5 < 0.12 else 3.0  # the beacon's blink
+        # The transmitter's beacon deep in the room, blinking as it does in the lab's own shots.
+        on = (t * 9.0) % 1.5 < 0.12
+        inside.data.energy = 18.0 if on else 1.5
+        if beacon is not None:
+            beacon.default_value = 10.0 if on else 0.6
         # Under the canopy the camera opens up, as an eye does in the dark.
         SCENE.view_settings.exposure = -0.4 + 0.75 * ease(span(t, 0.3, 0.62))
 
     keys = [(cam, 'location'), (cam, 'rotation_euler'), (cam.data.dof, 'focus_distance'),
             (hinge, 'rotation_euler'), (inside.data, 'energy'), (SCENE.view_settings, 'exposure')] + fig.keys()
+    if beacon is not None:
+        keys.append((beacon, 'default_value'))
     return n, step, keys
 
 
@@ -2447,6 +2501,7 @@ def finish_scene():
             print(f'[arrival] {len(ev)} footsteps raise dust', flush=True)
     if ULTRA:
         adaptive()
+    fx.film_look(SCENE)  # the same grade, bloom and lens on every shot
 
 
 def run(name):
@@ -2458,6 +2513,10 @@ def run(name):
         # A shot built (and baked) earlier: open it and render this process's share of frames.
         bpy.ops.wm.open_mainfile(filepath=blend)
         SCENE = bpy.context.scene
+        if not SCENE.compositing_node_group:
+            fx.film_look(SCENE)  # built before the film look existed: it gets it now
+        SCENE.render.compositor_device = 'CPU'  # never a graphics context on another GPU
+        SCENE.render.use_persistent_data = True  # the scene stays loaded from frame to frame
         print('[arrival] device', use_gpu(SCENE), flush=True)
         # --res and --samples given here override what the shot was built with (a faster pass).
         argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
@@ -2516,6 +2575,7 @@ def run(name):
         if STEPS:
             mean, worst = STEPS.slide()
             print(f'[arrival] {name}: planted feet skate {mean:.3f} m/s on average, {worst:.3f} at worst', flush=True)
+            STEPS.save(os.path.join(ROOT, 'blender', 'out', 'steps', f'{name}.json'))
         SCENE.frame_start, SCENE.frame_end = 1, frames
         SCENE.render.fps = FPS
         SCENE.render.use_motion_blur = not OPTS['preview']

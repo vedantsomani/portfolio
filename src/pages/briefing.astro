@@ -1,6 +1,6 @@
 ---
 // Recruiter briefing (SITE_SPEC §2, §5): the direct route. It opens once on a satellite briefing
-// that lands the identity card in its place (BriefingIntel), then the page is still and plain: who, education, selected work with Vedant's part and the
+// that flips the identity card in from the side and lands it in its place (BriefingCard), then the page is still and plain: who, education, selected work with Vedant's part and the
 // evidence, roles, recognition, contact. Every line comes from the same sources as the rest of the
 // site (src/data/site.ts, the content collections); nothing here is written only for this page.
 import '../styles/archive/briefing.css';
@@ -8,7 +8,7 @@ import { Picture } from 'astro:assets';
 import { getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
-import BriefingIntel from '../components/BriefingIntel.astro';
+import BriefingCard from '../components/BriefingCard.astro';
 import { about, hero, site } from '../data/site';
 import { statusLabel } from '../lib/content';
 import { HERO_FOCUS, HERO_IS_STAND_IN, HERO_PHOTO } from '../lib/hero-images';
@@ -63,7 +63,7 @@ const [fx, fy] = HERO_FOCUS;
   og="briefing"
   description="Vedant Somani in one page: B.Tech CSE at Bennett University, flight hardware, satellite imagery and secure links, with the evidence for each."
 >
-  <BriefingIntel />
+  <BriefingCard />
   <article class="brief-page" aria-labelledby="brief-name">
     <header class="brief-head wrap">
       <div class="idcard" data-idcard>

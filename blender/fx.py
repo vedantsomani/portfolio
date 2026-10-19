@@ -351,23 +351,34 @@ class Steps:
     holds (0 for none)."""
 
     def __init__(self, fig, ground=0.0, strength=1.0):
+        self.fig = fig
         self.feet = [fig.j['ankleL'], fig.j['ankleR']]
+        # The thresholds below are for an ankle 8.3 cm off the floor; a taller ankle shifts them.
+        self.lift = getattr(fig, 'ankle_h', 0.083) - 0.083
         self.ground = ground if callable(ground) else (lambda p, z=ground: z)
         self.strength = strength if callable(strength) else (lambda p, s=strength: s)
         self.track = {0: [], 1: []}
 
     def sample(self, t):
         bpy.context.view_layer.update()
+        down = getattr(self.fig, 'feet_down', None)
         for i, f in enumerate(self.feet):
-            self.track[i].append((t, f.matrix_world.translation.copy()))
+            planted = down.get('LR'[i]) if down else None
+            self.track[i].append((t, f.matrix_world.translation.copy(), planted))
 
     def slide(self, contact=0.11):
         """How much planted feet skate: the mean and the 95th-percentile ground speed (m/s) of a
         foot while it is down. A clean walk is near zero."""
         speeds = []
         for tr in self.track.values():
-            for (t0, p0), (t1, p1) in zip(tr, tr[1:]):
-                if p0.z - self.ground(p0) < contact and p1.z - self.ground(p1) < contact:
+            for (t0, p0, d0), (t1, p1, d1) in zip(tr, tr[1:]):
+                c = contact + self.lift
+                if d0 is not None:
+                    # The figure says which feet are planted: only those count.
+                    if d0 and d1:
+                        speeds.append((p1 - p0).xy.length / (t1 - t0))
+                    continue
+                if p0.z - self.ground(p0) < c and p1.z - self.ground(p1) < c:
                     speeds.append((p1 - p0).xy.length / (t1 - t0))
         if not speeds:
             return 0.0, 0.0
@@ -378,16 +389,29 @@ class Steps:
         """Each landing: the frame a foot comes down to the ground (its ankle within contact of
         the floor) from the air."""
         out = []
+        contact += self.lift
         for tr in self.track.values():
             last = -1e9
-            for (_, p0), (t1, p1) in zip(tr, tr[1:]):
+            for (_, p0, d0), (t1, p1, d1) in zip(tr, tr[1:]):
                 base = self.ground(p1)
-                if p0.z - self.ground(p0) > contact >= p1.z - base and t1 - last > gap:
+                # A landing: the figure's word for it (a foot just planted), else its ankle
+                # coming down within contact of the floor from the air.
+                landed = (not d0 and d1) if d0 is not None else p0.z - self.ground(p0) > contact >= p1.z - base
+                if landed and t1 - last > gap:
                     last = t1
                     s = self.strength(p1)
                     if s > 0:
                         out.append((t1, Vector((p1.x, p1.y, base)), s))
         return out
+
+    def save(self, path):
+        """Every landing's time (s), for the page to play a footstep on (film.ts)."""
+        import json
+        import os
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        times = sorted(round(t, 3) for t, _, _ in self.events(contact=0.1))
+        with open(path, 'w', encoding='utf-8') as fh:
+            json.dump(times, fh)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -476,3 +500,40 @@ def bake_fluid(dom):
     with bpy.context.temp_override(scene=bpy.context.scene, object=dom, active_object=dom,
                                    selected_objects=[dom], selected_editable_objects=[dom]):
         bpy.ops.fluid.bake_all()
+
+
+def film_look(scene):
+    """One look for every shot, so the film reads as one film: a soft bloom round the bright
+    things (lamps, the beacon, daylight through a door), a grade (shadows a touch cool, highlights
+    a touch warm, as film stock does) and the faint colour fringing of a real lens at the frame's
+    edges. Grain is the page's (src/scripts/film.ts), not the frames': video compression would
+    smear it and spend bits on it."""
+    ng = bpy.data.node_groups.new('film-look', 'CompositorNodeTree')
+    ng.interface.new_socket(name='Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+    N, L = ng.nodes, ng.links
+    rl = N.new('CompositorNodeRLayers')
+    glare = N.new('CompositorNodeGlare')
+    glare.inputs['Type'].default_value = 'Bloom'
+    glare.inputs['Threshold'].default_value = 0.9
+    glare.inputs['Strength'].default_value = 0.22
+    glare.inputs['Size'].default_value = 0.6
+    cb = N.new('CompositorNodeColorBalance')
+    cb.inputs['Type'].default_value = 'Lift/Gamma/Gain'
+    cols = [s for s in cb.inputs if s.type == 'RGBA']
+    lift, gamma, gain = cols[0], cols[1], cols[2]
+    lift.default_value = (0.985, 1.0, 1.02, 1.0)
+    gamma.default_value = (1.0, 1.0, 1.0, 1.0)
+    gain.default_value = (1.025, 1.0, 0.975, 1.0)
+    lens = N.new('CompositorNodeLensdist')
+    lens.inputs['Dispersion'].default_value = 0.006
+    out = N.new('NodeGroupOutput')
+    L.new(rl.outputs['Image'], glare.inputs['Image'])
+    L.new(glare.outputs['Image'], cb.inputs['Image'])
+    L.new(cb.outputs['Image'], lens.inputs['Image'])
+    L.new(lens.outputs['Image'], out.inputs[0])
+    scene.compositing_node_group = ng
+    scene.render.use_compositing = True
+    # On the CPU: a GPU compositor opens a graphics context on the machine's first GPU, which on
+    # the shared server is someone else's.
+    scene.render.compositor_device = 'CPU'
+    return ng

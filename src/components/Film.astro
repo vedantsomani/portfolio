@@ -13,7 +13,7 @@ import { film } from '../data/site';
 interface FilmData {
   duration: number;
   tiers?: string[];
-  chapters: { id: string; start: number; end: number }[];
+  chapters: { id: string; start: number; end: number; steps?: number[] }[];
 }
 const data = Object.values(
   import.meta.glob<FilmData>('../data/film.json', { eager: true, import: 'default' }),
@@ -58,6 +58,7 @@ const orbit = chapters.find((c) => c.id === 'orbit');
       aria-hidden="true"
       data-film-video
     />
+    <div class="film-stage__grain" aria-hidden="true"></div>
     <div class="film-stage__shade" aria-hidden="true"></div>
     {orbit && (
       <p class="film-stage__signal" aria-hidden="true" data-film-signal>

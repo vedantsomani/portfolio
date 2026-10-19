@@ -64,7 +64,8 @@ console.log('— Check 8: JavaScript disabled —');
       );
     };
     return {
-      links: [...document.querySelectorAll('[data-lab-link]')].filter((a) => {
+      // The room's record links, or on a phone the simple home's project cards (PhoneHome).
+      links: [...document.querySelectorAll('[data-lab-link], .phone-card')].filter((a) => {
         const r = a.getBoundingClientRect();
         return r.width > 0 && r.height > 0;
       }).length,
@@ -74,7 +75,7 @@ console.log('— Check 8: JavaScript disabled —');
       film: shown('[data-film]'),
     };
   });
-  report(home.links >= 9, `/ lab: ${home.links} record links in the still room`);
+  report(home.links >= 8, `/ home: ${home.links} record links (the still room, or a phone's cards)`);
   report(
     home.sections && home.files >= 9 && !home.film,
     `/ files and transmission are sections under it (${home.files} record links), no film`,
@@ -119,7 +120,7 @@ console.log('\n— Check 9: prefers-reduced-motion: reduce —');
       (await page.locator('[data-film]').isHidden()),
     '/: the film does not play by itself',
   );
-  const files = page.locator('.lab-room__dock [data-panel-open="files"]');
+  const files = page.locator('header a[href="/#files"]').first();
   await files.focus();
   await page.keyboard.press('Enter');
   await page.waitForTimeout(300);

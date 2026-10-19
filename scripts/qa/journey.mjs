@@ -44,6 +44,16 @@ for (const [name, viewport] of [
     const c = chapters.find((x) => (v.dataset.part || '').endsWith(`/${x.id}.mp4`));
     return (c ? c.start : 0) + v.currentTime >= at;
   };
+  // A phone has no cold open and no film by itself: its home is the simple page, and the film is
+  // its button.
+  if (name === 'phone') {
+    report(
+      await page.locator('[data-phone-home]').isVisible(),
+      'phone: the simple home, no cold open, no film by itself',
+    );
+    await page.screenshot({ path: `${out}/phone-home.png` });
+    await page.locator('[data-phone-film]').click();
+  }
   const playing = await page
     .waitForFunction(
       () => {
@@ -55,7 +65,7 @@ for (const [name, viewport] of [
     )
     .then(() => true)
     .catch(() => false);
-  report(playing, `${name}: the film plays by itself after the cold open`);
+  report(playing, `${name}: the film plays ${name === 'phone' ? 'from its button' : 'by itself after the cold open'}`);
   const duration = await page.evaluate(() =>
     Number(document.querySelector('[data-film]')?.dataset.duration ?? 0),
   );
@@ -76,12 +86,14 @@ for (const [name, viewport] of [
   }
   await page.waitForTimeout(500);
   report(
-    (await page.evaluate(() => document.activeElement?.id)) === 'lab-title',
-    `${name}: the film ends in the lab, focus on the name`,
+    (await page.evaluate(() => document.activeElement?.id)) ===
+      (name === 'phone' ? 'phone-name' : 'lab-title'),
+    `${name}: the film ends ${name === 'phone' ? 'back on the home' : 'in the lab'}, focus on the name`,
   );
   await page.screenshot({ path: `${out}/${name}-lab.png` });
   for (const id of ['files', 'transmission']) {
-    await page.locator(`.lab-room__dock [data-panel-open="${id}"]`).click();
+    // The site's navigation opens them (/#files, /#transmission); on a phone it is in the menu.
+    await page.evaluate((x) => (location.hash = x), id);
     await page.waitForTimeout(1200);
     await page.screenshot({ path: `${out}/${name}-${id}.png` });
     report(

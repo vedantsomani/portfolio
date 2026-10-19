@@ -211,6 +211,61 @@ class Walk:
         self.period = (self.b - self.a) * c.dt
         self.settle = _settle(c, range(self.a, self.b, 4), self.yaw, 1.0)
 
+        # The feet through the cycle, relative to where the hips would be if they moved straight on
+        # at an even speed (so a planted foot runs steadily backwards), and the floor they stand on.
+        Yi = Matrix.Rotation(-self.yaw, 3, 'Z')
+        zs = [c.pos[f][side + 'Foot'].z * c.scale for f in range(self.a, self.b) for side in ('Left', 'Right')]
+        self.floor = sorted(zs)[len(zs) // 50]
+        hl = c.pos[self.a]['LeftUpLeg'] - c.pos[self.a]['RightUpLeg']
+        self.hip_w = (Yi @ hl * c.scale).xy.length / 2
+        # Each foot's own floor (capture markers sit at different heights on the two feet) and its
+        # stance: the longest stretch of the cycle it is down and still. Inside it the foot is
+        # pinned to its footprint (crew.py), so the recording's marker wobble cannot slide it.
+        self.floors, self.stance = {}, {}
+        n = self.b - self.a
+        for side in ('Left', 'Right'):
+            zs = [c.pos[f][side + 'Foot'].z * c.scale for f in range(self.a, self.b)]
+            floor = sorted(zs)[len(zs) // 10]
+            self.floors[side] = floor
+            k = max(1, int(round(0.03 / c.dt)))
+            down = []
+            for i in range(n):
+                f = self.a + i
+                f0, f1 = max(self.a, f - k), min(self.b - 1, f + k)
+                v = (c.pos[f1][side + 'Foot'] - c.pos[f0][side + 'Foot']).xy.length * c.scale / ((f1 - f0) * c.dt)
+                down.append(zs[i] < floor + 0.03 and v < 0.35)
+            best, run, start = (0, 0), 0, 0
+            for i in range(2 * n):  # round the loop, so a stance across the seam counts whole
+                if down[i % n]:
+                    if run == 0:
+                        start = i
+                    run += 1
+                    if run > best[1] and run <= n:
+                        best = (start, run)
+                else:
+                    run = 0
+            on = (best[0] % n) / n
+            self.stance[side] = (on, best[1] / n)  # strike phase, and the fraction of the cycle down
+
+    def foot(self, side, phase):
+        """Where a foot is at this point of the cycle (figure space: x to the body's right, y ahead,
+        z above the clip's floor), and which way it is turned (a rotation from its rest)."""
+        u = phase % 1.0
+        f = self.a + u * (self.b - self.a)
+        a = int(f)
+        b = min(a + 1, self.clip.n - 1)
+        k = f - a
+        c = self.clip
+        P = c.pos[a][side + 'Foot'].lerp(c.pos[b][side + 'Foot'], k) * c.scale
+        rel = Matrix.Rotation(-self.yaw, 3, 'Z') @ (P - (self.p0 + self.travel * u))
+        rel.z = P.z - self.floors[side]
+        Y = Matrix.Rotation(-self.yaw, 3, 'Z')
+        qa = (Y @ c.rot[a][side + 'Foot'] @ R0).to_quaternion()
+        qb = (Y @ c.rot[b][side + 'Foot'] @ R0).to_quaternion()
+        if qa.dot(qb) < 0:
+            qb.negate()
+        return rel, qa.slerp(qb, k)
+
     def pose(self, phase):
         f = self.a + (phase % 1.0) * (self.b - self.a)
         out = _apply(self.clip.pose(f, self.yaw), self.settle)
