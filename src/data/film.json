@@ -1,6 +1,6 @@
 {
   "fps": 24,
-  "duration": 59.0,
+  "duration": 74.0,
   "tiers": [
     "phone",
     "desk"
@@ -24,22 +24,42 @@
     {
       "id": "street",
       "start": 20.0,
-      "end": 30.0
+      "end": 32.0
     },
     {
       "id": "approach",
-      "start": 30.0,
-      "end": 38.0
+      "start": 32.0,
+      "end": 40.0
     },
     {
       "id": "door",
-      "start": 38.0,
-      "end": 47.0
+      "start": 40.0,
+      "end": 49.0
     },
     {
-      "id": "lab",
-      "start": 47.0,
-      "end": 59.0
+      "id": "lab-enter",
+      "start": 49.0,
+      "end": 54.5
+    },
+    {
+      "id": "lab-breaker",
+      "start": 54.5,
+      "end": 58.0
+    },
+    {
+      "id": "lab-power",
+      "start": 58.0,
+      "end": 63.0
+    },
+    {
+      "id": "lab-bench",
+      "start": 63.0,
+      "end": 70.0
+    },
+    {
+      "id": "lab-reveal",
+      "start": 70.0,
+      "end": 74.0
     }
   ]
 }

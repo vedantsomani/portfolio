@@ -69,6 +69,7 @@ def parse_args():
 OPTS = parse_args()
 ULTRA = OPTS['quality'] == 'ultra'
 C.DETAIL = 1 if ULTRA else 0  # the crew's extra subdivision level
+C.REAL = '--toy' not in sys.argv  # the real crew member (blender/human.py); --toy: the built figure
 
 
 def use_gpu(scene):
@@ -1269,7 +1270,7 @@ puck = cylinder('Projector', HOLO + Vector((0, 0, 0.018)), 0.075, 0.036, M['dark
 cylinder('Projector lens', HOLO + Vector((0, 0, 0.037)), 0.05, 0.003, emit_mat('Projector lens', CYAN, 6.0), segs=32)
 ANCHOR['transmission'] = (HOLO + Vector((0, 0, 0.03)), [puck])
 HOLO_CTRL = {}
-if OPTS['shots'] & {'holo', 'holoanim', 'lab-bench', 'hub'}:
+if OPTS['shots'] & {'holo', 'holoanim', 'lab-bench', 'lab-reveal', 'hub'}:
     m, nt, out = new_mat('Hologram')
     tc = nt.nodes.new('ShaderNodeTexCoord')
 
@@ -1467,6 +1468,24 @@ REST = mains(99.0)
 REST.update({f'tube{i}': 0.35 for i in range(len(FITTINGS))})
 power(REST)
 
+
+if 'room' in OPTS['shots']:
+    # The room as the street sees it through the doors (arrival.py's door shot): the power off,
+    # the beacon at rest, the corridor open at its far end; no sun (the building around it is
+    # closed), no camera, no fill at the doorway (the corridor's own light comes in). Saved to
+    # blender/out/work/lab-room.blend; arrival.py places it behind the entrance.
+    power(mains(-1.0))
+    BEACON.default_value = 0.6
+    for ob in list(bpy.data.objects):
+        if ob.type == 'CAMERA' or ob.name in ('Sun', 'Doorway fill', 'Corridor end') or ob.name.startswith('Hologram'):
+            bpy.data.objects.remove(ob)
+    for m in bpy.data.materials:
+        if m.name == 'Beacon':
+            m['archive_beacon'] = 1  # the door shot finds it by this
+    os.makedirs(os.path.join(OUT, 'work'), exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'work', 'lab-room.blend'))
+    print('[lab] room: built blender/out/work/lab-room.blend', flush=True)
+    sys.exit(0)
 
 cams = {k: make_camera(f'Cam {k}', s['lens']) for k, s in SHOTS.items()}
 shots = OPTS['shots']
@@ -1834,8 +1853,67 @@ def shot_bench():
     return n, step, keys, fig
 
 
+def shot_reveal():
+    """Four seconds, close, three-quarters on their face across the bench, the hologram soft in
+    the foreground: the helmet comes off (both hands, straight up, down to the waist), and they
+    look at it with nothing between them. The face is lit by the hologram."""
+    fig = C.Crew('crew')
+    cam = film_camera(55, 2.0)
+    aim = Aim(cam)
+    n = 96
+    total = length(BENCH)
+    path = lambda x: fx.route(BENCH, x, 0.8)  # noqa: E731
+    pos, hd = path(total)
+    proj = Vector((HOLO.x, HOLO.y, 0))
+    face = blend_angle(hd, fx.heading(proj - pos), 1.0)
+    # Half the face lit: the hologram's cold light from the side away from the camera, the room
+    # held down, so the near cheek falls into shadow (the room's tubes are only a dim fill).
+    SCENE.view_settings.exposure = -1.8
+    fwd0 = Vector((-math.sin(face), math.cos(face), 0.0))
+    side0 = Vector((math.cos(face), math.sin(face), 0.0))
+    head0 = pos + Vector((0, 0, fig.pz + 0.6))
+    key = lamp('Holo key', 'AREA', head0 + fwd0 * 0.55 - side0 * 0.75 + Vector((0, 0, 0.12)), 34.0,
+               (0.62, 0.86, 1.0), size=0.35)
+    look_at(key, head0)
+
+    def step(t, f):
+        s = t * 4.0
+        C.place(fig, pos, face)
+        # Eyes on the hologram; a dip as the helmet lifts; then up to it, bare-headed.
+        lift = ease(span01(s, 0.9, 2.6))
+        up = math.radians(11) - math.radians(9) * math.sin(math.pi * lift) + math.radians(4) * ease(span01(s, 2.8, 3.6))
+        fig.stride(total, path, 1.4, 0.0, (math.radians(3) * ease(span01(s, 2.6, 3.8)), up), breath=s * 1.7)
+        fwd = Vector((-math.sin(face), math.cos(face), 0.0))
+        bpy.context.view_layer.update()
+        waist = fig.j['pelvis'].matrix_world.translation + fwd * 0.33 + Vector((0, 0, 0.08))
+        hold = Matrix.Translation(waist) @ Matrix.Rotation(face, 4, 'Z') @ Matrix.Rotation(math.radians(-20), 4, 'X')
+        hm = fig.helmet(lift, hold)
+        hands = ease(span01(s, 0.45, 0.95))
+        for side, sg in (('L', -1), ('R', 1)):
+            fig.reach_to(side, hm.translation + hm.to_3x3() @ Vector((0.165 * sg, -0.01, -0.03)), hands,
+                         pole=(0.8, -0.2, -1.0))
+        HOLO_CTRL['gain'].default_value = 1.0
+        HOLO_CTRL['phase'].default_value = 2 * math.pi * 2 * (1.0 + s / 7.0)
+        HOLO_CTRL['beam'].default_value = 0.3
+        HOLO_CTRL['light'].data.energy = 2.5
+        lv = mains(99.0)
+        lv['standby'] = 1.0
+        power(lv)
+        BEACON.default_value = 0.6
+        head = fig.j['head'].matrix_world.translation + Vector((0, 0, 0.07))
+        side = Vector((math.cos(face), math.sin(face), 0.0))
+        eye = head + fwd * 1.15 + side * 0.85 + Vector((0, 0, -0.04))
+        eye = eye.lerp(head + fwd * 1.0 + side * 0.72 + Vector((0, 0, -0.06)), ease(t))  # a slow push in
+        aim(eye + handheld(t * 4, 0.002), head, (head - eye).length)
+
+    keys = [(cam, 'location'), (cam, 'rotation_euler'), (cam.data.dof, 'focus_distance'), (BEACON, 'default_value')]
+    keys += [(HOLO_CTRL[k], 'default_value') for k in ('gain', 'phase', 'beam')]
+    keys += [(HOLO_CTRL['light'].data, 'energy')]
+    return n, step, keys, fig
+
+
 FILM_SHOTS = {'lab-enter': shot_enter, 'lab-breaker': shot_breaker, 'lab-power': shot_power,
-              'lab-bench': shot_bench}
+              'lab-bench': shot_bench, 'lab-reveal': shot_reveal}
 film_shots = [s for s in FILM_SHOTS if s in shots]
 if len(film_shots) > 1:
     sys.exit('[lab] one film shot per run: ' + ', '.join(film_shots))
@@ -1845,6 +1923,7 @@ for name in film_shots:
     keys = keys + fig.keys() + [(owner, attr) for owner, attr, _, _ in POWER]
     steps = fx.Steps(fig, 0.0, 0.7)
     for f in range(n):
+        C.TIME = f / FILM_FPS  # the clock the recorded motion plays to
         step(f / (n - 1), f)
         for owner, path in keys:
             owner.keyframe_insert(path, frame=f + 1)

@@ -37,6 +37,7 @@ SHOTS = [
     ('lab-breaker', 'lab-breaker'),
     ('lab-power', 'lab-power'),
     ('lab-bench', 'lab-bench'),
+    ('lab-reveal', 'lab-reveal'),
 ]
 if PREVIEW:
     # Where the previews are: arrival/preview/<shot> and preview/<lab shot>. The orbit has no

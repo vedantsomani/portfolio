@@ -39,6 +39,7 @@ const EFFECTS: Record<string, [number, FilmCue][]> = {
     [1.47, 'tube'],
   ],
   'lab-bench': [[4.97, 'holo']],
+  'lab-reveal': [[0.85, 'seal']],
 };
 
 const SEEN = 'archive:film-seen';

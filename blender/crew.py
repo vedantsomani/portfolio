@@ -13,12 +13,18 @@ import bpy
 import bmesh
 import math
 import os
-from mathutils import Matrix, Vector
+import sys
+from mathutils import Euler, Matrix, Quaternion, Vector
 
 DETAIL = 0  # extra subdivision levels for the final film (set by the shot scripts)
 # The real crew member (blender/human.py: a MakeHuman body in the flight suit, cap, helmet and pack):
 # used when REAL is set (the shot scripts set it) and the file exists; otherwise the built figure.
 REAL = False
+# Real motion (blender/mocap.py): the walk's body from a recorded slow walk, standing from a recorded
+# stand. TIME is the shot's clock in seconds (the shot scripts set it each frame).
+WALK_CLIP, IDLE_CLIP = '07_04', '77_02'
+TIME = 0.0
+FACE_LIGHT = 0.25  # watts: the light inside the helmet
 HUMAN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'mh', 'crew-human.blend')
 # The legs, for stride(): hip to knee, knee to ankle, the ankle's height over the sole, and how far
 # each hip sits from the body's centre line.
@@ -249,7 +255,16 @@ class Crew:
     def __init__(self, name='crew', lamp=True, real=None):
         real = (REAL if real is None else real) and os.path.exists(HUMAN)
         self.real = real
-        self.helm = None
+        self.helm = self.face = None
+        self.crouch = 0.0  # 0 → 1: knees bent, weight down and forward (the shot sets it)
+        self.fog = 0.45  # how much each breath fogs the visor (cold, dark places more)
+        self.fog_value = None
+        self.motion = None
+        if real:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import mocap
+            if mocap.available():
+                self.motion = (mocap, mocap.get('walk', WALK_CLIP), mocap.get('idle', IDLE_CLIP))
         D = self._human(name) if real else {
             'pelvis': (0, 0, 0.98), 'spine': (0, 0, 0.1), 'chest': (0, 0, 0.24), 'neck': (0, 0.0, 0.22),
             'head': (0, 0.025, 0.14), 'hip': (0.1, 0, -0.05), 'thigh': 0.44, 'shin': 0.41, 'ankle_h': 0.083,
@@ -417,6 +432,23 @@ class Crew:
                 o.matrix_parent_inverse = Matrix()
                 o.matrix_world = mw
             self.helm = car
+            visor = next((o for o in helm if 'visor' in o.name), None)
+            if visor and visor.active_material and visor.active_material.node_tree:
+                node = visor.active_material.node_tree.nodes.get('fog')
+                if node:
+                    self.fog_value = node.outputs[0]
+            # A faint cool light inside, low in front of the chin (the helmet's displays, as films
+            # do it): the face reads behind the visor instead of a black glass.
+            data = bpy.data.lights.new(f'{name}-facelight', 'POINT')
+            data.energy = FACE_LIGHT
+            data.shadow_soft_size = 0.025
+            data.color = (0.8, 0.9, 1.0)
+            fl = _link(bpy.data.objects.new(f'{name}-facelight', data))
+            fl.parent = car
+            fl.location = (0.0, 0.14, -0.07)  # in front of the chin, inside the visor
+            # Lights the face; never seen itself, nor a hotspot in the visor.
+            fl.visible_glossy = fl.visible_camera = fl.visible_transmission = False
+            self.face = data
 
         def at(bone):
             return rig.matrix_world @ rig.data.bones['mixamorig:' + bone].head_local
@@ -425,7 +457,7 @@ class Crew:
         hip, knee, ankle = at('RightUpLeg'), at('RightLeg'), at('RightFoot')
         sho, elb, wri = at('RightArm'), at('RightForeArm'), at('RightHand')
         # The lamp sits on the suit: its front, measured just where the lamp goes (on the figure's
-        # left, a little above the chest joint), plus half the lamp's depth.
+        # left, a little above the chest joint), plus most of the lamp's depth.
         suit = next((o for o in parts if o.name.startswith('crew-suit')), None)
         lx, lz = -0.085, 0.02
         front = 0.13
@@ -436,7 +468,7 @@ class Crew:
             mw = ev.matrix_world
             ys = [w.y for w in (mw @ v.co for v in me.vertices)
                   if abs(w.x - lx) < 0.025 and abs(w.z - (chest.z + lz)) < 0.025 and w.y > chest.y]
-            front = (max(ys) - chest.y + 0.028) if ys else front
+            front = (max(ys) - chest.y + 0.017) if ys else front  # seated a little into the fabric
             ev.to_mesh_clear()
         pel = Vector((0.0, hips.y, hips.z))
         return {'pelvis': tuple(pel), 'spine': tuple(spine - pel), 'chest': tuple(chest - spine),
@@ -472,6 +504,27 @@ class Crew:
                          ('Head', 'head')):
             copy(bone, j[jn])
         aim('Spine1', j['chest'])  # the middle of the back bends evenly between the two
+        # Hands at rest, not splayed: the fingers drawn in beside the middle one, the knuckles bent
+        # most, then the middle joints; more towards the little finger.
+        # (Each finger bone hinges on its X axis; its +Z is the back of the hand.)
+        bones = rig.data.bones
+        for side in ('Left', 'Right'):
+            mid = bones[f'mixamorig:{side}HandMiddle1'].matrix_local.to_3x3().col[1]
+            for finger, angs, draw in (('Index', (30, 26, 12), 0.6), ('Middle', (34, 30, 13), 0.0),
+                                       ('Ring', (38, 32, 14), 0.6), ('Pinky', (42, 34, 15), 0.7),
+                                       ('Thumb', (0, 14, 12), 0.0)):
+                for n, a in enumerate(angs, 1):
+                    b = pb.get(f'mixamorig:{side}Hand{finger}{n}')
+                    if not b:
+                        continue
+                    q = Quaternion((1.0, 0.0, 0.0), -math.radians(a))
+                    if n == 1 and draw:
+                        rest = bones[b.name].matrix_local.to_3x3()
+                        turn = rest.col[1].rotation_difference(mid)  # in the rig's space
+                        local = rest.inverted() @ turn.to_matrix() @ rest
+                        q = Quaternion().slerp(local.to_quaternion(), draw) @ q
+                    b.rotation_mode = 'QUATERNION'
+                    b.rotation_quaternion = q
         # Facing +Y, the body's left is -X: MakeHuman's Left is the figure's L.
         for side, s in (('Left', 'L'), ('Right', 'R')):
             aim(f'{side}UpLeg', j[f'knee{s}'])
@@ -507,6 +560,11 @@ class Crew:
             loc = (on.translation + up * 0.17 * a).lerp(to.translation, b)
             rot = on.to_quaternion().slerp(to.to_quaternion(), b)
             m = Matrix.Translation(loc) @ rot.to_matrix().to_4x4()
+        self._helmet_off = _smooth(min(1.0, k / 0.3)) if k > 0 else 0.0
+        if self.face:
+            self.face.energy = FACE_LIGHT * (1.0 - self._helmet_off)
+        if self.fog_value is not None:
+            self.fog_value.default_value *= 1.0 - self._helmet_off
         local = head.inverted() @ m
         prev = self.helm.rotation_euler.copy()
         self.helm.location = local.translation
@@ -577,6 +635,20 @@ class Crew:
         dip = (1 - math.cos(4 * math.pi * (phl - 0.3))) / 2
         px, py, _ = j['pelvis'].location
         j['pelvis'].location = (px, py, self.pz - 0.005 - a * (0.02 + 0.05 * dip))
+        if self.motion:
+            self._recorded(d / S + phase0, a, look, breath)
+        if self.fog_value is not None:
+            # A breath every 3.4 s: the exhale blooms on the glass over a second, then clears.
+            ph = (TIME / 3.4) % 1.0
+            bloom = _smooth(ph / 0.3) if ph < 0.3 else math.exp(-(ph - 0.3) / 0.16)
+            self.fog_value.default_value = self.fog * (0.12 + 0.88 * bloom) * (1.0 - getattr(self, '_helmet_off', 0.0))
+        if self.crouch:
+            c = self.crouch
+            px, py, pz_ = j['pelvis'].location
+            j['pelvis'].location = (px, py - 0.03 * c, pz_ - 0.085 * c)
+            j['pelvis'].rotation_euler.x += math.radians(10) * c
+            j['chest'].rotation_euler.x += math.radians(8) * c
+            j['head'].rotation_euler.x -= math.radians(12) * c
 
         def foot_at(dist, s):
             p, h = path(dist)
@@ -606,6 +678,16 @@ class Crew:
             mid = (feet['L'][2] + feet['R'][2]) / 2
             r = self.root.location
             self.root.location = (r.x + (mid.x - r.x) * (1 - a), r.y + (mid.y - r.y) * (1 - a), r.z)
+        # Never a locked knee dragging a foot: if a leg cannot reach its footprint without
+        # straightening fully, the hips drop just enough (as a body does: the knee gives).
+        for _ in range(3):
+            bpy.context.view_layer.update()
+            over = max((feet[s_][2] - j[f'hip{s_}'].matrix_world.translation).length
+                       - 0.985 * (self.thigh + self.shin) for s_ in ('L', 'R'))
+            if over <= 0:
+                break
+            px, py, pz_ = j['pelvis'].location
+            j['pelvis'].location = (px, py, pz_ - over * 1.15)
         bpy.context.view_layer.update()
         inv = j['pelvis'].matrix_world.inverted()
         tilt = j['pelvis'].rotation_euler.x
@@ -623,6 +705,29 @@ class Crew:
             j[f'knee{side}'].rotation_euler = (-bend, 0.0, 0.0)
             # The sole level with the ground (less the push-off and the toe-up before landing).
             j[f'ankle{side}'].rotation_euler = (-(tilt + pitch - bend) + toe, 0.0, math.radians(-3 * s))
+
+    def _recorded(self, cycles, a, look, breath):
+        """The body from real motion: the recorded walk at this point of the step cycle (cycles:
+        strides walked, + phase), blended with recorded standing as the walk fades (a). The legs
+        are solved after this to the footprints; look turns the head on top of the recording."""
+        mocap, walk, idle = self.motion
+        j = self.j
+        p = mocap.blend(idle.pose(TIME), walk.pose(cycles % 1.0), a)
+
+        def put(name, q):
+            j[name].rotation_euler = q.to_euler('XYZ', j[name].rotation_euler)
+
+        put('pelvis', p['pelvis'])
+        for name in ('spine', 'chest', 'neck'):
+            put(name, p[name])
+        put('head', p['head'] @ Euler((look[1], 0.0, look[0])).to_quaternion())
+        for s in ('L', 'R'):
+            put('shoulder' + s, p['shoulder' + s])
+            put('elbow' + s, p['elbow' + s])
+            j['wrist' + s].rotation_euler = (0.0, 0.0, 0.0)
+        j['chest'].rotation_euler.x += math.radians(1.0 * math.sin(breath)) * (1 - a)
+        # The hips: their recorded bob and sway, round the height the legs can reach both feet from.
+        j['pelvis'].location = (p['sway'] * a, 0.0, self.pz - 0.008 - 0.045 * a + p['lift'])
 
     def reach_to(self, side, target, k=1.0, pole=(0.6, -0.4, -1.0)):
         """Put a hand on a world point: the arm solved by inverse kinematics (shoulder, elbow),
@@ -679,6 +784,10 @@ class Crew:
             out += [(self.lamp.data, 'energy'), (self.lens, 'default_value')]
         if self.helm:
             out += [(self.helm, 'location'), (self.helm, 'rotation_euler')]
+        if self.face:
+            out += [(self.face, 'energy')]
+        if self.fog_value is not None:
+            out += [(self.fog_value, 'default_value')]
         return out
 
 

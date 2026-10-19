@@ -73,6 +73,7 @@ if OPTS['anim']:
 ULTRA = OPTS['quality'] == 'ultra'
 SEGS = 2 if ULTRA else 1  # facets on round parts
 C.DETAIL = 1 if ULTRA else 0  # the crew's extra subdivision level
+C.REAL = '--toy' not in sys.argv  # the real crew member (blender/human.py); --toy: the built figure
 WORK = os.path.join(ROOT, 'blender', 'out', 'work')
 
 
@@ -2267,6 +2268,8 @@ def shot_street():
         C.place(fig, pos, hd)
         # They look at it as it wakes, keep their eyes on it while frozen, and kill the lamp.
         look = math.radians(-50) * ease(span(t, 0.24, 0.32)) * (1 - ease(span(t, 0.66, 0.78)))
+        # As the beam comes they sink, weight down, and hold it; they come up once it has gone.
+        fig.crouch = 0.55 * ease(span(t, 0.33, 0.40)) * (1 - ease(span(t, 0.63, 0.71)))
         fig.stride(dist[f], lambda x: path_at(route, x), STRIDE, pace(t), (look, math.radians(6)), breath=t * 18)
         fig.light(1.0 - ease(span(t, 0.34, 0.37)) + ease(span(t, 0.66, 0.70)))
         # Behind them; closer and lower while they hold still, half turned to the machine.
@@ -2494,6 +2497,7 @@ def run(name):
     os.makedirs(d, exist_ok=True)
     if not OPTS['encode_only']:
         for f in range(frames):
+            C.TIME = f / FPS  # the clock the recorded motion plays to
             step(f / (frames - 1))
             for owner, path in keys:
                 owner.keyframe_insert(path, frame=f + 1)

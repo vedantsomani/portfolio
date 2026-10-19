@@ -18,6 +18,7 @@
 //   powerdown  the machine giving up: a falling tone
 //   breaker    the main going back on: a hard click, then the hum of the mains
 //   tube       a fluorescent tube striking: ticks and a buzz
+//   seal       the helmet coming off: two latch clicks and the seal breaking (a short hiss)
 //   title      the title card: a low hit
 // radioVoice() plays a recorded line through a radio's narrow band.
 type Cue = 'heartbeat' | 'boom' | 'static' | 'tick';
@@ -34,6 +35,7 @@ export type FilmCue =
   | 'powerdown'
   | 'breaker'
   | 'tube'
+  | 'seal'
   | 'title';
 let engine: { stop: (at: number) => void } | null = null;
 
@@ -319,6 +321,11 @@ export function filmCue(name: FilmCue): void {
       for (let k = 0; k < 3; k++)
         burst(c, out, now + k * 0.07 + Math.random() * 0.04, 0.02, 3000, 3, 0.05);
       tone(c, out, now + 0.2, 100, 100, 1.6, 'sawtooth', 0.006);
+      break;
+    case 'seal':
+      burst(c, out, now, 0.02, 3600, 4, 0.08);
+      burst(c, out, now + 0.11, 0.02, 3300, 4, 0.07);
+      burst(c, out, now + 0.2, 0.7, 5200, 0.7, 0.035);
       break;
     case 'title':
       thump(c, out, now, 0.8);

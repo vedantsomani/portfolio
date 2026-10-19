@@ -28,7 +28,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORK = os.path.join(ROOT, 'blender', 'out', 'work')
 LOGS = os.path.join(WORK, 'logs')
 ARRIVAL = ['orbit', 'descent', 'ramp', 'street', 'approach', 'door']
-LAB = ['lab-enter', 'lab-breaker', 'lab-power', 'lab-bench']
+LAB = ['lab-enter', 'lab-breaker', 'lab-power', 'lab-bench', 'lab-reveal']
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--blender', required=True)
