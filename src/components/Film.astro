@@ -32,7 +32,7 @@ const orbit = chapters.find((c) => c.id === 'orbit');
   <section
     id="film"
     class="film-stage"
-    aria-label="The arrival: a rendered film"
+    aria-label="The arrival: a film"
     data-film
     data-chapters={JSON.stringify(chapters)}
     data-lines={JSON.stringify(lines)}
@@ -74,7 +74,6 @@ const orbit = chapters.find((c) => c.id === 'orbit');
       <p class="film-stage__by">{film.title.by}</p>
     </div>
     <div class="film-stage__ui">
-      <p class="film-stage__credit">{film.credit}</p>
       <button type="button" class="film-stage__btn" data-film-skip>
         Skip <span aria-hidden="true">→</span>
       </button>

@@ -47,6 +47,9 @@ ap.add_argument('--threshold', default='', help='adaptive noise threshold for th
 ap.add_argument('--volstep', default='', help='volume step rate for this pass')
 ap.add_argument('--max', action='store_true', help='the uncompromised render settings')
 ap.add_argument('--nodust', action='store_true', help='leave out the footstep dust and the motes')
+ap.add_argument('--fast', action='store_true', help='coherent sampling (auto scrambling distance): faster')
+ap.add_argument('--exr', action='store_true', help='HDR frames: scene-linear OpenEXR (for the masters)')
+ap.add_argument('--outdir', default='', help='write frames under this folder instead of blender/out')
 ap.add_argument('--backend', default='', help='CUDA: CUDA before OptiX (faster on GPUs without RT cores)')
 args = ap.parse_args()
 GPUS = [int(g) for g in args.gpus.split(',')]  # a GPU listed twice runs two renders at once
@@ -55,9 +58,13 @@ SHOTS = [s for s in ARRIVAL + LAB if not args.only or s in args.only.split(',')]
 SLICES = args.slices or len(GPUS)
 OVERRIDE = (['--res', args.res] if args.res else []) + ['--samples', str(args.samples)]
 OVERRIDE += (['--threshold', args.threshold] if args.threshold else []) + (['--volstep', args.volstep] if args.volstep else [])
-OVERRIDE += ['--max'] if args.max else []
+MAX_ARRIVAL = ['--max'] if args.max else []
+MAX_LAB = ['--max', '1'] if args.max else []
 NODUST_ARRIVAL = ['--nodust'] if args.nodust else []
+OVERRIDE += (['--outdir', args.outdir] if args.outdir else [])
 NODUST_LAB = ['--nodust', '1'] if args.nodust else []
+EXR_ARRIVAL = (['--exr'] if args.exr else []) + (['--fast'] if args.fast else [])
+EXR_LAB = (['--exr', '1'] if args.exr else []) + (['--fast', '1'] if args.fast else [])
 os.makedirs(LOGS, exist_ok=True)
 
 
@@ -163,10 +170,10 @@ if 'render' not in SKIP:
         for k in range(SLICES):
             if s in LAB:
                 jobs.put(('lab.py', ['--shots', s, '--art', 'none', '--stage', 'render',
-                                     '--slice', f'{k}/{SLICES}'] + OVERRIDE + NODUST_LAB, f'{s}-{k}'))
+                                     '--slice', f'{k}/{SLICES}'] + OVERRIDE + NODUST_LAB + EXR_LAB + MAX_LAB, f'{s}-{k}'))
             else:
                 jobs.put(('arrival.py', ['--shot', s, '--anim', '--quality', 'ultra', '--stage', 'render',
-                                         '--slice', f'{k}/{SLICES}'] + OVERRIDE + NODUST_ARRIVAL, f'{s}-{k}'))
+                                         '--slice', f'{k}/{SLICES}'] + OVERRIDE + NODUST_ARRIVAL + EXR_ARRIVAL + MAX_ARRIVAL, f'{s}-{k}'))
 failed = []
 
 

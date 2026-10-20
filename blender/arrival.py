@@ -50,11 +50,11 @@ def parse_args():
     opts = {'shot': 'orbit', 'samples': 64, 'scale': 0.5, 'inspect': False, 'tag': '', 'anim': False,
             't': 1.0, 'start': 0, 'res': '1920x1080', 'encode_only': False, 'quality': 'final',
             'stage': 'all', 'slice': '0/1', 'frames': '', 'fluid_res': 0, 'preview': False,
-            'threshold': 0.0, 'volstep': 0.0, 'max': False, 'nodust': False}
+            'threshold': 0.0, 'volstep': 0.0, 'max': False, 'nodust': False, 'exr': False, 'outdir': '', 'fast': False}
     i = 0
     while i < len(argv):
         key = argv[i].lstrip('-')
-        if key in ('inspect', 'anim', 'encode_only', 'preview', 'max', 'nodust'):
+        if key in ('inspect', 'anim', 'encode_only', 'preview', 'max', 'nodust', 'exr', 'fast'):
             opts[key] = True
             i += 1
         elif key in opts and i + 1 < len(argv):
@@ -2478,9 +2478,21 @@ def frames_to_render(frames):
     return [f for f in sel if f % n == k]
 
 
+def exr(scene):
+    """The HDR masters' frames: scene-linear OpenEXR, half float, DWAA (visually lossless, a tenth of
+    the size), the film look composited in; the view transform is applied when they are graded
+    for each display (blender/master.py)."""
+    s = scene.render.image_settings
+    s.file_format = 'OPEN_EXR'
+    s.color_depth = '16'
+    s.exr_codec = 'DWAA'
+    scene.render.use_compositing = True
+    fx.bake_exposure(scene)
+
+
 def render_frames(name, d, frames):
     os.makedirs(d, exist_ok=True)
-    ext = 'jpg' if SCENE.render.image_settings.file_format == 'JPEG' else 'png'
+    ext = {'JPEG': 'jpg', 'OPEN_EXR': 'exr'}.get(SCENE.render.image_settings.file_format, 'png')
     for f in frames_to_render(frames):
         path = os.path.join(d, f'{f:04d}.{ext}')
         if OPTS['stage'] == 'render' and os.path.exists(path) and os.path.getsize(path) > 0:
@@ -2543,6 +2555,14 @@ def run(name):
             SCENE.cycles.adaptive_threshold = OPTS['threshold']
         if OPTS['volstep']:
             SCENE.cycles.volume_step_rate = OPTS['volstep']
+        if OPTS['fast']:
+            # Neighbouring pixels share their sampling patterns: the GPU works coherently, the
+            # picture is the same at these sample counts.
+            SCENE.cycles.auto_scrambling_distance = True
+        if OPTS['exr']:
+            exr(SCENE)
+        if OPTS['outdir']:
+            d = os.path.join(OPTS['outdir'], 'arrival', name)
         render_frames(name, d, SCENE.frame_end)
         return
     STEPS = None

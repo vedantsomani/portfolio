@@ -42,3 +42,6 @@ blender/assets/
 
 # Local-only: inventory of this laptop (private paths, restricted-project notes). Never publish.
 ASSET_INVENTORY.md
+
+# Local tools (ffmpeg for the HDR masters)
+blender/tools/

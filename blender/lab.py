@@ -49,7 +49,7 @@ def parse_args():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     opts = {'shots': 'rest', 'samples': 128, 'scale': 1.0, 'frames': 36, 'art': 'desk,phone',
             'only': '', 'frame': -1, 'quality': 'final', 'stage': 'all', 'slice': '0/1',
-            'preview': False, 'res': '', 'threshold': 0.0, 'volstep': 0.0, 'nodust': False}
+            'preview': False, 'res': '', 'threshold': 0.0, 'volstep': 0.0, 'nodust': False, 'exr': 0, 'outdir': '', 'fast': 0, 'max': 0}
     i = 0
     while i < len(argv):
         key = argv[i].lstrip('-')
@@ -118,9 +118,25 @@ if OPTS['stage'] == 'render':
         sc.cycles.adaptive_threshold = OPTS['threshold']
     if OPTS['volstep']:
         sc.cycles.volume_step_rate = OPTS['volstep']
+    if OPTS['max']:
+        # The uncompromised settings (as arrival.py's --max): a finer noise threshold, twice the
+        # bounces, the haze sampled twice as finely.
+        for attr, val in (('adaptive_threshold', 0.006), ('max_bounces', 16), ('diffuse_bounces', 6),
+                          ('glossy_bounces', 6), ('transmission_bounces', 12), ('volume_bounces', 3),
+                          ('transparent_max_bounces', 64), ('volume_step_rate', 0.5), ('volume_max_steps', 2048)):
+            setattr(sc.cycles, attr, val)
+    if OPTS['fast']:
+        sc.cycles.auto_scrambling_distance = True  # coherent sampling: faster on the GPU, same picture
+    if OPTS['exr']:
+        # The HDR masters' frames: scene-linear OpenEXR, half float, DWAA, the film look composited in.
+        sc.render.image_settings.file_format = 'OPEN_EXR'
+        sc.render.image_settings.color_depth = '16'
+        sc.render.image_settings.exr_codec = 'DWAA'
+        sc.render.use_compositing = True
+        fx.bake_exposure(sc)
     k, every = (int(v) for v in OPTS['slice'].split('/'))
-    ext = 'jpg' if sc.render.image_settings.file_format == 'JPEG' else 'png'
-    d = os.path.join(OUT, shot)
+    ext = {'JPEG': 'jpg', 'OPEN_EXR': 'exr'}.get(sc.render.image_settings.file_format, 'png')
+    d = os.path.join(OPTS['outdir'] or OUT, shot)
     os.makedirs(d, exist_ok=True)
     for f in range(sc.frame_start - 1, sc.frame_end):
         path = os.path.join(d, f'{f:04d}.{ext}')

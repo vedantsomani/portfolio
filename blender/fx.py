@@ -537,3 +537,25 @@ def film_look(scene):
     # the shared server is someone else's.
     scene.render.compositor_device = 'CPU'
     return ng
+
+
+def bake_exposure(scene):
+    """For HDR frames (OpenEXR): the shot's exposure (a view setting, so not in a float file, and
+    keyed in some shots: the door's eye opening in the dark) moved into the film look, driven by
+    that same setting, so the frames carry it and the masters' view transforms see the right light."""
+    ng = scene.compositing_node_group
+    if ng is None or 'exposure' in ng.nodes:
+        return
+    out = next(n for n in ng.nodes if n.type == 'GROUP_OUTPUT')
+    src = out.inputs[0].links[0].from_socket
+    ex = ng.nodes.new('CompositorNodeExposure')
+    ex.name = 'exposure'
+    ng.links.new(src, ex.inputs['Image'])
+    ng.links.new(ex.outputs['Image'], out.inputs[0])
+    fc = ex.inputs['Exposure'].driver_add('default_value')
+    drv = fc.driver
+    drv.type = 'AVERAGE'
+    var = drv.variables.new()
+    var.targets[0].id_type = 'SCENE'
+    var.targets[0].id = scene
+    var.targets[0].data_path = 'view_settings.exposure'
